@@ -56,12 +56,12 @@ class ExploreAllObjects(BaseTask):
                 len(self.discoverd) == len(self.target_objects):
             if len(self.discoverd) == len(self.target_objects):
                 print("Used {} steps to find all objects".format(self.step_num))
-                reward += len(self.target_objects)
+                # reward += len(self.target_objects)
             else:
                 print('Totally found objects {}/{} with {} steps'.format(len(self.discoverd), len(self.target_objects),
                                                                      self.step_num))
             done = True
-
+        self.step_num += 1
         return reward, done
 
     def reset(self):
