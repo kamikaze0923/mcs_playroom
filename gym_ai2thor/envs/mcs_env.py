@@ -35,7 +35,6 @@ class McsEnv(gym.Env):
         """
         # Loads config settings from file
         self.config = read_config(config_file, config_dict)
-        self.scene_id = self.config['scene_id']
         # Randomness settings
         self.np_random = None
         if seed:
@@ -81,8 +80,9 @@ class McsEnv(gym.Env):
         self.step_output = None
         self.reset()
 
-        self.abs_rotation = 30
-        self.abs_horizon = 30
+        self.abs_rotation = 10
+        self.abs_horizon = 10
+        self.horizon_state = 0
 
 
     def step(self, action):
@@ -92,7 +92,11 @@ class McsEnv(gym.Env):
         action_str = self.action_names[action]
         if action_str.startswith('Look'):
             horizon = self.abs_horizon if action_str == 'LookDown' else -self.abs_horizon
-            self.step_output = self.controller.step(action='RotateLook', horizon=horizon)
+            if abs(self.horizon_state + horizon) <= 30:
+                self.step_output = self.controller.step(action='RotateLook', horizon=horizon)
+                self.horizon_state += horizon
+            else:
+                self.step_output = self.controller.step(action="Pass")
         elif action_str.startswith('Rotate'):
             rotation = self.abs_rotation if action_str == 'RotateRight' else -self.abs_rotation
             self.step_output = self.controller.step(action='RotateLook', rotation=rotation)
