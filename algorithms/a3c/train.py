@@ -15,7 +15,6 @@ gradients and then optimise with Adam and we go back to the start of the main tr
 
 import torch
 import torch.nn.functional as F
-import torch.optim as optim
 import sys
 
 from gym_ai2thor.envs.mcs_env import McsEnv
