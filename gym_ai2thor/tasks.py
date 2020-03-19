@@ -38,33 +38,29 @@ class ExploreAllObjects(BaseTask):
     """
     This task consists of finding all objects in the enviorment.
     """
-    def __init__(self, **kwargs):
+    def __init__(self, object_id_list, **kwargs):
         super().__init__(kwargs)
-        self.target_objects = kwargs['task'].get('target_objects', {})
+        self.target_objects = object_id_list
         self.discoverd = set()
-        # self.never_found = set(self.target_objects.keys())
 
-    def transition_reward(self, state, action_str=None):
+    def transition_reward(self, state):
         reward, done = self.movement_reward, False
-        for obj in state.metadata['objects']:
-            assert obj['name'] in self.target_objects
-            if obj['visible'] and obj['name'] not in self.discoverd:
-                self.discoverd.add(obj['name'])
-                x, y, z = obj['position']['x'], obj['position']['y'], obj['position']['z']
-                # print("Found {} at {}, {}, {}".format(obj['name'], x, y, z))
-                reward += self.target_objects.get(obj['name'], 0)
-                # self.never_found.discard(obj['name'])
+        for obj in state.object_list:
+            assert obj.uuid in self.target_objects
+            if obj.visible and obj.uuid not in self.discoverd:
+                self.discoverd.add(obj.uuid)
+                x, y, z = obj.direction['x'], obj.direction['y'], obj.direction['z']
+                reward += 1
 
         if self.max_episode_length and self.step_num >= self.max_episode_length or \
                 len(self.discoverd) == len(self.target_objects):
             if len(self.discoverd) == len(self.target_objects):
                 print("Used {} steps to find all objects".format(self.step_num))
-                reward += 50
+                reward += len(self.target_objects)
             else:
                 print('Totally found objects {}/{} with {} steps'.format(len(self.discoverd), len(self.target_objects),
                                                                      self.step_num))
             done = True
-            # print(self.never_found)
 
         return reward, done
 

@@ -19,8 +19,6 @@ import gym_ai2thor.tasks
 import machine_common_sense
 
 import torch
-from PIL import Image
-
 
 class McsEnv(gym.Env):
     """
@@ -76,14 +74,15 @@ class McsEnv(gym.Env):
                                             shape=(self.channels, self.config['resolution'][0],
                                                    self.config['resolution'][1]),
                                             dtype=np.uint8)
-
-        self.step_output = None
-        self.reset()
-
         self.abs_rotation = 10
         self.abs_horizon = 10
         self.horizon_state = 0
 
+        self.step_output = self.controller.start_scene(self.scene_config)
+
+        self.task = getattr(gym_ai2thor.tasks, self.config['task']['task_name'])(
+            [x.uuid for x in self.step_output.object_list] , **self.config
+        )
 
     def step(self, action):
         if not self.action_space.contains(action):
@@ -103,7 +102,7 @@ class McsEnv(gym.Env):
         else:
             self.step_output = self.controller.step(action=action_str)
 
-        reward, done = 0, False
+        reward, done = self.task.transition_reward(self.step_output)
         info = {}
 
         return self.get_observation(), reward, done, info
@@ -168,8 +167,8 @@ class McsEnv(gym.Env):
 
     def reset(self):
         # print('Resetting environment and starting new episode')
-        self.controller.start_scene(self.scene_config)
-        self.step_output = self.controller.step(action='Pass')
+        self.step_output = self.controller.start_scene(self.scene_config)
+        self.task.reset()
         return self.get_observation()
 
     def seed(self, seed=None):
