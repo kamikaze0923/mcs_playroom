@@ -18,7 +18,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 import sys
 
-from gym_ai2thor.envs.ai2thor_env import AI2ThorEnv
+from gym_ai2thor.envs.mcs_env import McsEnv
 from algorithms.a3c.model import ActorCritic
 
 # import matplotlib.pyplot as plt
@@ -33,14 +33,14 @@ def ensure_shared_grads(model, shared_model):
 
 def train(rank, args, shared_model, counter, lock, optimizer):
     torch.manual_seed(args.seed + rank)
-    env = AI2ThorEnv(config_dict=args.config_dict)
+    env = McsEnv(config_dict=args.config_dict)
     env.seed(args.seed + rank)
 
     if args.point_cloud_model:
         model = ActorCritic(env.action_space.n)
     else:
         args.frame_dim = env.config['resolution'][-1]
-        model = ActorCritic(env.action_space.n, env.observation_space.shape[0], args.frame_dim)
+        model = ActorCritic(env.action_space.n, env.observation_space.shape)
 
     if args.cuda:
         model = model.cuda()
@@ -97,7 +97,7 @@ def train(rank, args, shared_model, counter, lock, optimizer):
 
             action_int = action.cpu().numpy()[0][0].item()
 
-            state, reward, done, _ = env.step(action_int, verbose=False)
+            state, reward, done, _ = env.step(action_int)
             done = done or episode_length >= args.max_episode_length
 
             with lock:

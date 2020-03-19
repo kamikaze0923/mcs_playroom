@@ -12,7 +12,7 @@ from collections import deque
 import torch
 import torch.nn.functional as F
 
-from gym_ai2thor.envs.ai2thor_env import AI2ThorEnv
+from gym_ai2thor.envs.mcs_env import McsEnv
 from gym_ai2thor.utils import CSVLogger
 from algorithms.a3c.model import ActorCritic
 
@@ -21,14 +21,14 @@ from copy import deepcopy
 
 def test(rank, args, shared_model, counter):
     torch.manual_seed(args.seed + rank)
-    env = AI2ThorEnv(config_dict=args.config_dict)
+    env = McsEnv(config_dict=args.config_dict)
     env.seed(args.seed + rank)
 
     if args.point_cloud_model:
         model = ActorCritic(env.action_space.n)
     else:
         args.frame_dim = env.config['resolution'][-1]
-        model = ActorCritic(env.action_space.n, env.observation_space.shape[0], args.frame_dim)
+        model = ActorCritic(env.action_space.n, env.observation_space.shape)
 
     if args.cuda:
         model = model.cuda()
@@ -84,7 +84,7 @@ def test(rank, args, shared_model, counter):
         # print(entropy)
 
         action = prob.max(1, keepdim=True)[1].cpu().numpy()
-        state, reward, done, _ = env.step(action[0, 0], verbose=False)
+        state, reward, done, _ = env.step(action[0, 0])
         done = done or episode_length >= args.max_episode_length
         reward_sum += reward
 

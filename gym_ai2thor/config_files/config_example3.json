@@ -1,12 +1,13 @@
 {
-    "open_close_interaction": true,
-    "openable_objects": [
-        "Fridge"
-    ],
+    "open_close_interaction": false,
     "pickup_put_interaction": false,
-    "scene_id": "FloorPlan28",
+    "push_pull_interation": false,
+    "throw_interation": false,
+    "drop_interation": false,
+
+    "scene_id": "MCS",
     "grayscale": true,
-    "resolution": [128, 128],
+    "resolution": [80, 120],
     "cameraY": 0.0,
     "gridSize": 0.1,
     "movement_reward": -0.1,

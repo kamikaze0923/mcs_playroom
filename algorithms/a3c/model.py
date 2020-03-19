@@ -38,9 +38,9 @@ def weights_init(m):
         m.bias.data.fill_(0)
 
 class FrameEncoder(torch.nn.Module):
-    def __init__(self, num_input_channels, frame_dim):
+    def __init__(self, input_frame_dim):
         super(FrameEncoder, self).__init__()
-        self.frame_dim = frame_dim
+        num_input_channels, self.height, self.width = input_frame_dim
         self.num_filter = 8
         self.stride = 2
         self.kernel_size = 3
@@ -58,18 +58,14 @@ class FrameEncoder(torch.nn.Module):
         return x
 
     def calculate_lstm_input_size(self):
-        """
-        Assumes square resolution image. Find LSTM size after 4 conv layers below in A3C using regular
-        Convolution math. For example:
-        42x42 -> (42 − 3 + 2)÷ 2 + 1 = 21x21 after 1 layer
-        11x11 after 2 layers -> 6x6 after 3 -> and finally 3x3 after 4 layers
-        Therefore lstm input size after flattening would be (3 * 3 * num_filters)
-        """
-        width = (self.frame_dim - self.kernel_size + 2 * self.padding) // self.stride + 1
-        width = (width - self.kernel_size + 2 * self.padding) // self.stride + 1
-        width = (width - self.kernel_size + 2 * self.padding) // self.stride + 1
-        width = (width - self.kernel_size + 2 * self.padding) // self.stride + 1
-        return width * width * self.num_filter
+        prod = 1
+        for para in [self.width, self.height]:
+            para = (para - self.kernel_size + 2 * self.padding) // self.stride + 1
+            para = (para - self.kernel_size + 2 * self.padding) // self.stride + 1
+            para = (para - self.kernel_size + 2 * self.padding) // self.stride + 1
+            para = (para - self.kernel_size + 2 * self.padding) // self.stride + 1
+            prod *= para
+        return prod * self.num_filter
 
 class PointCloudEncoder(torch.nn.Module):
     def __init__(self):
@@ -107,13 +103,12 @@ class ActorCritic(torch.nn.Module):
     The final output is then predicted value, action logits, hx and cx.
     """
 
-    def __init__(self, num_outputs, num_input_channels=None, frame_dim=None):
+    def __init__(self, num_outputs, input_frame_dim=None):
         super(ActorCritic, self).__init__()
 
-        if num_input_channels is not None and frame_dim is not None:
-            self.feature_encoder = FrameEncoder(num_input_channels, frame_dim)
+        if input_frame_dim is not None:
+            self.feature_encoder = FrameEncoder(input_frame_dim)
         else:
-            assert num_input_channels is None and frame_dim is None
             self.feature_encoder = PointCloudEncoder()
 
         self.lstm_cell_size = self.feature_encoder.calculate_lstm_input_size()

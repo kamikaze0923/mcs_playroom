@@ -18,7 +18,7 @@ import sys
 import torch
 import torch.multiprocessing as mp
 
-from gym_ai2thor.envs.ai2thor_env import AI2ThorEnv
+from gym_ai2thor.envs.mcs_env import McsEnv
 from algorithms.a3c import my_optim
 from algorithms.a3c.model import ActorCritic
 from algorithms.a3c.test import test
@@ -52,7 +52,7 @@ parser.add_argument('--max-episode-length', type=int, default=1000,
                     help='maximum length of an episode (default: 1000000)')
 
 parser.add_argument('--point-cloud-model', action='store_false', help='Use point cloud feature instead of frames')
-parser.set_defaults(point_cloud_model=True)
+parser.set_defaults(point_cloud_model=False)
 
 parser.add_argument('--no_cuda', action='store_true', help='Disable GPU')
 parser.set_defaults(no_cuda=False)
@@ -62,7 +62,7 @@ parser.add_argument('-sync', '--synchronous', dest='synchronous', action='store_
                          'Overwrites args.num_processes as everything is in main thread. '
                          '1 train() function is run and no test()')
 parser.add_argument('-async', '--asynchronous', dest='synchronous', action='store_false')
-parser.set_defaults(synchronous=False)
+parser.set_defaults(synchronous=True)
 
 parser.add_argument('--solved-reward', type=int, default=102,
                     help='stop when episode reward exceed this number')
@@ -84,14 +84,12 @@ if __name__ == '__main__':
 
     torch.manual_seed(args.seed)
     args.config_dict = {'max_episode_length': args.max_episode_length, 'point_cloud_model': args.point_cloud_model}
-    env = AI2ThorEnv(config_dict=args.config_dict)
+    env = McsEnv(config_dict=args.config_dict)
 
     if args.point_cloud_model:
         shared_model = ActorCritic(env.action_space.n)
     else:
-        args.frame_dim = env.config['resolution'][-1]
-        shared_model = ActorCritic(env.action_space.n, env.observation_space.shape[0], args.frame_dim)
-
+        shared_model = ActorCritic(env.action_space.n, env.observation_space.shape)
 
     if args.cuda:
         shared_model = shared_model.cuda()
