@@ -26,15 +26,15 @@ if __name__ == '__main__':
     args.config_dict = {'max_episode_length': args.max_episode_length}
     env = McsNavEnv(config_dict=args.config_dict)
     for _ in range(100):
-        env.step(1)
+        env.step(0)
     a = 1
 
-    # nav = Navigator(env.observation_spaces, env.action_space, "point_goal_with_gps_compass")
-    # nav.load_checkpoint(
-    #     os.path.join(
-    #         os.getcwd(), "algorithms/point_goal_navigation/model_pretrained/blind.pth"
-    #     )
-    # )
+    nav = Navigator(env.observation_spaces, env.action_space, "point_goal_with_gps_compass")
+    nav.load_checkpoint(
+        os.path.join(
+            os.getcwd(), "algorithms/point_goal_navigation/model_pretrained/blind.pth"
+        )
+    )
 
 
 

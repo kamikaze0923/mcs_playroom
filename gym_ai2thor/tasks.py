@@ -70,16 +70,23 @@ class ExploreAllObjects(BaseTask):
 
 
 class Navigation(BaseTask):
-    """
-    This task consists of finding all objects in the enviorment.
-    """
+
+    SUCCESS_DISTANCE = 0.2
+
     def __init__(self, task_object, **kwargs):
         super().__init__(kwargs)
+        self.prev_distance = None
 
 
     def transition_reward(self, state):
+        new_distance, action_str = state
         reward, done = self.movement_reward, False
-
+        reward += self.prev_distance - new_distance
+        self.prev_distance = new_distance
+        if action_str == "Stop":
+            if new_distance < self.SUCCESS_DISTANCE:
+                reward += 10
+            done = True
         self.step_num += 1
         return reward, done
 

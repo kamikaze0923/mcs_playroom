@@ -74,7 +74,6 @@ class McsNavEnv(McsEnv):
         self.random_object_no = None
         self.reset()
 
-
     def reset(self):
         # print('Resetting environment and starting new episode')
         self.step_output = self.controller.start_scene(self.scene_config)
@@ -88,27 +87,25 @@ class McsNavEnv(McsEnv):
 
     def print_target_info(self):
         print(
-            "Target Objext: {}, Direction: {}, Distance: {}, Visible: {}".format(
+            'Target Objext: {}, Direction: {}, Distance: {}, Visible: {}'.format(
                 self.target_object.uuid,
                 self.get_polar_direction(
-                    self.target_object.direction["x"],
-                    self.target_object.direction["z"]
+                    self.target_object.direction['x'],
+                    self.target_object.direction['z']
                 ),
                 self.target_object.distance,
                 self.target_object.visible
             )
         )
 
-
     def get_polar_direction(self, delta_x, delta_z):
         # the agent is originally looking at z axis
-        # rotate_state = degrees of rotating left
+        # rotate_state = degrees of rotating right
         reverse_theta = 2 * np.pi * self.rotation_state / 360
         relative_complex = np.array(delta_z + delta_x * 1j)
         reverse_rotate_complex = np.array(np.cos(reverse_theta) + np.sin(reverse_theta) * 1j)
         rotate_direction = relative_complex * reverse_rotate_complex
         return np.round(np.arctan2(rotate_direction.imag, rotate_direction.real), 2)
-
 
     def step(self, action):
         action_str = self.action_names[action]
@@ -116,11 +113,14 @@ class McsNavEnv(McsEnv):
             rotation = -self.abs_rotation if action_str == 'RotateLeft' else self.abs_rotation
             self.step_output = self.controller.step(action='RotateLook', rotation=rotation)
             self.rotation_state += rotation
+        elif action_str == 'MoveAhead':
+            self.step_output = self.controller.step(action=action_str, amount=0.25)
         else:
-            self.step_output = self.controller.step(action=action_str)
+            assert action_str == 'Stop'
+
         self.target_object = self.step_output.object_list[self.random_object_no]
 
-        reward, done = self.task.transition_reward(self.step_output)
+        reward, done = self.task.transition_reward((self.target_object, action_str))
         info = {}
         self.print_target_info()
 
@@ -128,12 +128,14 @@ class McsNavEnv(McsEnv):
 
     def get_observation(self):
         obs = {}
+        theta = self.get_polar_direction(self.target_object.direction['x'], self.target_object.direction['z'])
+        obs['point_goal_with_gps_compass'] = np.array(self.target_object.distance, theta)
         if self.rgb_sensor:
             frame_img = self.preprocess(self.step_output.image_list[0])
-            obs["rgb"] = frame_img
+            obs['rgb'] = frame_img
         if self.depth_sensor:
             depth_img = self.preprocess(self.step_output.depth_image_list[0])
-            obs["depth"] = depth_img
+            obs['depth'] = depth_img
         return obs
 
     def preprocess(self, img):
