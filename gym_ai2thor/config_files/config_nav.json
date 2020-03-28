@@ -8,10 +8,10 @@
     "depth_sensor": false,
     "rgb_sensor": false,
 
-    "resolution": [80, 120],
-
-    "movement_reward": -0.1,
+    "resolution": [256, 256],
+    "gridSize": 0.1,
+    "movement_reward": -0.01,
     "task": {
-        "task_name": "ExploreAllObjects"
+        "task_name": "Navigation"
     }
 }

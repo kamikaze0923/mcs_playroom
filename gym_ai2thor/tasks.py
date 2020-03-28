@@ -67,3 +67,20 @@ class ExploreAllObjects(BaseTask):
     def reset(self):
         self.discoverd = set()
         self.step_num = 0
+
+
+class Navigation(BaseTask):
+    """
+    This task consists of finding all objects in the enviorment.
+    """
+    def __init__(self, task_object, **kwargs):
+        super().__init__(kwargs)
+
+
+    def transition_reward(self, state):
+        reward, done = self.movement_reward, False
+
+        self.step_num += 1
+        return reward, done
+
+
