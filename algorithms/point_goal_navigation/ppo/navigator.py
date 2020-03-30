@@ -5,8 +5,6 @@ from collections import OrderedDict
 
 
 class Navigator:
-
-
     def __init__(self, observation_space, action_space, goal_sensor_uuid):
         self.actor_critic = PointNavBaselinePolicy(
             observation_space,
@@ -14,6 +12,9 @@ class Navigator:
             goal_sensor_uuid
         )
 
+    def act(self, obs, hidden_states, mask):
+        _, action, _, rnn_hidden_states = self.actor_critic.act(obs, hidden_states, None, mask, deterministic=True)
+        return action[0].item(), rnn_hidden_states
 
     def load_checkpoint(self, checkpoint_path):
         state_dict = torch.load(checkpoint_path, map_location='cpu')
@@ -31,6 +32,16 @@ def key_transformation_funtion(old_key):
         "actor_critic.net.critic_linear.bias": "critic.fc.bias",
         "actor_critic.action_distribution.linear.weight": "action_distribution.linear.weight",
         "actor_critic.action_distribution.linear.bias": "action_distribution.linear.bias",
+
+        "actor_critic.net.cnn.0.weight": "net.visual_encoder.cnn.0.weight",
+        "actor_critic.net.cnn.0.bias": "net.visual_encoder.cnn.0.bias",
+        "actor_critic.net.cnn.2.weight": "net.visual_encoder.cnn.2.weight",
+        "actor_critic.net.cnn.2.bias": "net.visual_encoder.cnn.2.bias",
+        "actor_critic.net.cnn.4.weight": "net.visual_encoder.cnn.4.weight",
+        "actor_critic.net.cnn.4.bias": "net.visual_encoder.cnn.4.bias",
+        "actor_critic.net.cnn.6.weight": "net.visual_encoder.cnn.6.weight",
+        "actor_critic.net.cnn.6.bias": "net.visual_encoder.cnn.6.bias",
+
     }
     if old_key in transform:
         return transform[old_key]

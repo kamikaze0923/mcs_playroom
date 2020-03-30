@@ -18,33 +18,10 @@ class McsNavEnv(McsEnv):
     def __init__(self, config_file='config_files/config_nav.json', config_dict=None):
         super().__init__()
 
-        self.config = read_config(config_file, None)
+        self.config = read_config(config_file, config_dict)
 
-        all_actions_str = self.all_actions_str
-        if not self.config['open_close_interaction']:
-            all_actions_str.remove('OpenObject')
-            all_actions_str.remove('CloseObject')
-        if not self.config['pickup_put_interaction']:
-            all_actions_str.remove('PickupObject')
-            all_actions_str.remove('PutObject')
-        if not self.config['push_pull_interation']:
-            all_actions_str.remove('PushObject')
-            all_actions_str.remove('PullObject')
-        if not self.config['throw_interation']:
-            all_actions_str.remove('ThrowObject')
-        if not self.config['drop_interation']:
-            all_actions_str.remove('DropObject')
 
-        assert 'RotateLook' in all_actions_str
-        all_actions_str.remove('RotateLook')
-        all_actions_str.append('RotateLeft')
-        all_actions_str.append('RotateRight')
-
-        for action in ['MoveLeft', 'MoveRight', 'MoveBack', 'Pass']:
-            all_actions_str.remove(action)
-        all_actions_str.append('Stop')
-
-        self.action_names = all_actions_str
+        self.action_names = ["MoveAhead", "Stop", "RotateLeft", "RotateRight"]# order matters
         self.action_space = Discrete(len(self.action_names))
 
         self.rgb_sensor = True if self.config['rgb_sensor'] else False
@@ -58,13 +35,11 @@ class McsNavEnv(McsEnv):
             )
         }
         if self.rgb_sensor:
-            self.observation_space['rgb'] = Box(low=0, high=255, dtype=np.uint8,
-                                                shape=(3, self.config['resolution'][0], self.config['resolution'][1])
-                                            )
+            self.observation_spaces.spaces['rgb'] = Box(low=0, high=255, dtype = np.uint8,
+                                                shape=(self.config['resolution'][0], self.config['resolution'][1], 3))
         if self.depth_sensor:
-            self.observation_space['depth'] = Box(low=0, high=255, dtype=np.uint8,
-                                                shape=(1, self.config['resolution'][0], self.config['resolution'][1])
-                                            )
+            self.observation_spaces.spaces['depth'] = Box(low=0, high=255, dtype=np.uint8,
+                                                  shape=(self.config['resolution'][0], self.config['resolution'][1], 1))
         self.rotation_state = 0 # same as MCS internal
         self.abs_rotation = 10 # same as settings in habitat, right is positive
 
@@ -72,7 +47,7 @@ class McsNavEnv(McsEnv):
         self.target_object = None
         self.task = None
         self.random_object_no = None
-        self.reset()
+
 
     def reset(self):
         # print('Resetting environment and starting new episode')
@@ -87,13 +62,13 @@ class McsNavEnv(McsEnv):
 
     def print_target_info(self):
         print(
-            'Target Objext: {}, Direction: {}, Distance: {}, Visible: {}'.format(
+            'Target Objext: {}, Distance: {}, Direction: {}, Visible: {}'.format(
                 self.target_object.uuid,
+                self.target_object.distance,
                 self.get_polar_direction(
                     self.target_object.direction['x'],
                     self.target_object.direction['z']
                 ),
-                self.target_object.distance,
                 self.target_object.visible
             )
         )
@@ -120,7 +95,7 @@ class McsNavEnv(McsEnv):
 
         self.target_object = self.step_output.object_list[self.random_object_no]
 
-        reward, done = self.task.transition_reward((self.target_object, action_str))
+        reward, done = self.task.transition_reward((self.target_object.distance, action_str))
         info = {}
         self.print_target_info()
 
@@ -129,17 +104,19 @@ class McsNavEnv(McsEnv):
     def get_observation(self):
         obs = {}
         theta = self.get_polar_direction(self.target_object.direction['x'], self.target_object.direction['z'])
-        obs['point_goal_with_gps_compass'] = np.array(self.target_object.distance, theta)
+        obs['point_goal_with_gps_compass'] = np.array([self.target_object.distance, theta])
         if self.rgb_sensor:
             frame_img = self.preprocess(self.step_output.image_list[0])
             obs['rgb'] = frame_img
         if self.depth_sensor:
-            depth_img = self.preprocess(self.step_output.depth_image_list[0])
+            depth_img = self.preprocess(self.step_output.depth_mask_list[0])
             obs['depth'] = depth_img
-        return obs
+        return [obs]
 
     def preprocess(self, img):
+        img = np.array(img)
+        if len(img.shape) == 2:
+            img = np.expand_dims(img, axis=-1)
         img = transform.resize(img, self.config['resolution'], mode='reflect')
         img = img.astype(np.float32)
-        img = np.moveaxis(img, 2, 0)
         return img

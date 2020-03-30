@@ -75,8 +75,7 @@ class Navigation(BaseTask):
 
     def __init__(self, task_object, **kwargs):
         super().__init__(kwargs)
-        self.prev_distance = None
-
+        self.prev_distance = task_object.distance
 
     def transition_reward(self, state):
         new_distance, action_str = state
@@ -88,6 +87,8 @@ class Navigation(BaseTask):
                 reward += 10
             done = True
         self.step_num += 1
+        if self.step_num == self.max_episode_length:
+            done = True
         return reward, done
 
 
