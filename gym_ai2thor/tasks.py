@@ -71,7 +71,7 @@ class ExploreAllObjects(BaseTask):
 
 class Navigation(BaseTask):
 
-    SUCCESS_DISTANCE = 0.2
+    SUCCESS_DISTANCE = 0.4
 
     def __init__(self, task_object, **kwargs):
         super().__init__(kwargs)
@@ -82,9 +82,10 @@ class Navigation(BaseTask):
         reward, done = self.movement_reward, False
         reward += self.prev_distance - new_distance
         self.prev_distance = new_distance
-        if action_str == "Stop":
-            if new_distance < self.SUCCESS_DISTANCE:
-                reward += 10
+        # if action_str == "Stop":
+        if new_distance < self.SUCCESS_DISTANCE:
+            print("Success!")
+            reward += 10
             done = True
         self.step_num += 1
         if self.step_num == self.max_episode_length:

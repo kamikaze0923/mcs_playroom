@@ -64,7 +64,7 @@ def test(rank, args, shared_model, counter):
         with torch.no_grad():
             batch = batch_obs(state, args.device)
             value, action, action_log_probs, rnn_hidden_states = model.act(batch, rnn_hidden_states, prev_action, mask)
-            torch.cuda.empty_cache()
+            # torch.cuda.empty_cache()
 
         prev_action.copy_(action)
         mask = undone_mask

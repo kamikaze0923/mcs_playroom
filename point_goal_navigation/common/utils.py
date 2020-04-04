@@ -4,6 +4,7 @@ import torch.distributions
 from typing import List, Dict, Optional
 from collections import defaultdict
 import numpy as np
+import quaternion
 
 
 class Flatten(nn.Module):
@@ -79,6 +80,23 @@ def batch_obs(
         )
 
     return batch
+
+
+def normalize_3d_rotation(delta_x, delta_z):
+    if delta_x == 0 and delta_z ==0:
+        return 0, 0
+    norm = (delta_x ** 2 + delta_z ** 2) ** 0.5
+    return delta_x / norm, delta_z / norm
+
+def quaternion_rotate_vector(quat, v):
+    vq = np.quaternion(0, 0, 0, 0)
+    vq.imag = v
+    return (quat * vq * quat.inverse()).imag
+
+def quat_from_angle_axis(theta, axis=np.array([0,1,0])):
+    axis = axis.astype(np.float)
+    axis /= np.linalg.norm(axis)
+    return quaternion.from_rotation_vector(theta * axis)
 
 
 

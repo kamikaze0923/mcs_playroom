@@ -24,8 +24,8 @@ class PointNavResNetPolicy(Policy):
         action_space,
         goal_sensor_uuid="pointgoal_with_gps_compass",
         hidden_size=512,
-        num_recurrent_layers=1,
-        rnn_type="GRU",
+        num_recurrent_layers=2,
+        rnn_type="LSTM",
         resnet_baseplanes=32,
         backbone="resnet50",
         normalize_visual_inputs=False,
@@ -180,17 +180,17 @@ class PointNavResNetNet(Net):
         self._hidden_size = hidden_size
 
         rnn_input_size = self._n_input_goal + self._n_prev_action
-        # self.visual_encoder = ResNetEncoder(
-        #     observation_space,
-        #     baseplanes=resnet_baseplanes,
-        #     ngroups=resnet_baseplanes // 2,
-        #     make_backbone=getattr(resnet, backbone),
-        #     normalize_visual_inputs=normalize_visual_inputs,
-        # )
-        self.visual_encoder = SimpleCNN(
+        self.visual_encoder = ResNetEncoder(
             observation_space,
-            self._hidden_size
+            baseplanes=resnet_baseplanes,
+            ngroups=resnet_baseplanes // 2,
+            make_backbone=getattr(resnet, backbone),
+            normalize_visual_inputs=normalize_visual_inputs,
         )
+        # self.visual_encoder = SimpleCNN(
+        #     observation_space,
+        #     self._hidden_size
+        # )
 
         if not self.visual_encoder.is_blind:
             self.visual_fc = nn.Sequential(

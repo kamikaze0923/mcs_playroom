@@ -41,7 +41,7 @@ parser.add_argument('--max-grad-norm', type=float, default=50,
                     help='value loss coefficient (default: 50)')
 parser.add_argument('--seed', type=int, default=1,
                     help='random seed (default: 1)')
-parser.add_argument('--test-sleep-time', type=int, default=1800,
+parser.add_argument('--test-sleep-time', type=int, default=600,
                     help='number of seconds to wait before testing again (default: 10)')
 parser.add_argument('--num-processes', type=int, default=4,
                     help='how many training processes to use (default: 1)')
@@ -81,6 +81,10 @@ if __name__ == '__main__':
     torch.manual_seed(args.seed)
     args.config_dict = {'max_episode_length': args.max_episode_length}
     env = McsNavEnv(config_dict=args.config_dict)
+    for i in range(10000):
+        print(i)
+        env.reset()
+    exit(0)
 
     shared_model = PointNavResNetPolicy(env.observation_spaces, env.action_space)
 

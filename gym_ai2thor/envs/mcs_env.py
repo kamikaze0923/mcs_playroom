@@ -20,8 +20,8 @@ class McsEnv(gym.Env):
     Wrapper base class
     """
     POSSIBLE_INIT_ROTATION = [i*10 for i in range(360)]
-    POSSIBLE_INIT_X = [-3, -2, -1, 0, 1, 2, 3]
-    POSSIBLE_INIT_Z = [-3, -2, -1, 0, 1, 2, 3]
+    POSSIBLE_INIT_X = [-2.5, -2, -1.5, -1, -0.5, 0, 0.5, 1, 1.5, 2, 2.5]
+    POSSIBLE_INIT_Z = [-2.5, -2, -1.5, -1, -0.5, 0, 0.5, 1, 1.5, 2, 2.5]
 
     def __init__(self, config_file, config_dict, seed=None):
         self.np_random = None
@@ -34,7 +34,7 @@ class McsEnv(gym.Env):
         self.depth_sensor = True if self.config['depth_sensor'] else False
 
         self.controller = machine_common_sense.MCS_Controller_AI2THOR(
-            os.path.join(os.getcwd(), "gym_ai2thor/unity_app/MCS-AI2-THOR-Unity-App-v0.0.1.x86_64"),
+            os.path.join(os.getcwd(), "gym_ai2thor/unity_app/MCS-AI2-THOR-Unity-App-v0.0.2.x86_64"),
             renderDepthImage=self.depth_sensor, renderObjectImage=False
         )
 

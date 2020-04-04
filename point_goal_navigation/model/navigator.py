@@ -10,7 +10,7 @@ class NavigatorResNet:
         )
 
     def act(self, obs, hidden_states, prev_action, mask):
-        _, action, _, rnn_hidden_states = self.actor_critic.act(obs, hidden_states, prev_action, mask, deterministic=True)
+        _, action, _, rnn_hidden_states = self.actor_critic.act(obs, hidden_states, prev_action, mask, deterministic=False)
         return action[0].item(), rnn_hidden_states
 
     def load_checkpoint(self, checkpoint_path):
@@ -28,7 +28,6 @@ import argparse
 import torch
 import os
 
-from point_goal_navigation.model import NavigatorResNet
 from gym_ai2thor.envs.mcs_nav_env import McsNavEnv
 from point_goal_navigation.common.utils import batch_obs, _to_tensor
 
@@ -63,10 +62,10 @@ if __name__ == '__main__':
             model_file = "gibson-4plus-resnet50.pth"
         else:
             model_file = "gibson-0plus-mp3d-train-val-test-blind.pth"
-
+    print(model_file)
     nav.load_checkpoint(
         os.path.join(
-            os.getcwd(), "algorithms/point_goal_navigation/model/model_pretrained/{}".format(model_file)
+            os.getcwd(), "point_goal_navigation/model/model_pretrained/{}".format(model_file)
         )
     )
 
@@ -79,8 +78,8 @@ if __name__ == '__main__':
         prev_action = torch.zeros(1,1)
         while not done:
             batch = batch_obs(obs)
+            print(batch['pointgoal_with_gps_compass'])
             action, hidden_states = nav.act(batch, hidden_states, prev_action, mask)
-            print(action)
             prev_action.copy_(_to_tensor(action))
             mask = torch.ones(size=(1,1))
             obs, _, done, _ = env.step(action)
