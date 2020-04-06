@@ -1,5 +1,5 @@
-
 from point_goal_navigation.model.policy import PointNavResNetPolicy
+from gif_generator.make_gif import list_of_numpy_to_gif
 
 class NavigatorResNet:
     def __init__(self, observation_space, action_space, goal_sensor_uuid):
@@ -20,7 +20,8 @@ class NavigatorResNet:
                 k[len("actor_critic."):]: v
                 for k, v in ckpt["state_dict"].items()
                 if "actor_critic" in k
-            }
+            },
+            strict=False
         )
 
 
@@ -59,7 +60,9 @@ if __name__ == '__main__':
             raise NotImplementedError("No rgb model")
     else:
         if env.depth_sensor:
-            model_file = "gibson-4plus-resnet50.pth"
+            model_file = "job_19633842.sensor_DEPTH_SENSOR.train_data_gibson.noise_multiplier_1.0." \
+                         "noise_model_controller_Proportional.agent_radius_0.20.success_reward_10.0.slack_reward_-0.01." \
+                         "collision_reward_0.0.spl_max_collisions_500_ckpt.000000057.pth"
         else:
             model_file = "gibson-0plus-mp3d-train-val-test-blind.pth"
     print(model_file)
@@ -76,14 +79,18 @@ if __name__ == '__main__':
         mask = torch.zeros(size=(1,1))
         hidden_states = torch.zeros(size=(nav.actor_critic.net.num_recurrent_layers,1,512))
         prev_action = torch.zeros(1,1)
+        episode_image = []
         while not done:
             batch = batch_obs(obs)
-            print(batch['pointgoal_with_gps_compass'])
+            # episode_image.append(env.get_depth_rgb())
+            # print(batch['pointgoal_with_gps_compass'])
             action, hidden_states = nav.act(batch, hidden_states, prev_action, mask)
             prev_action.copy_(_to_tensor(action))
             mask = torch.ones(size=(1,1))
             obs, _, done, _ = env.step(action)
         print("Episode Finish")
+        # list_of_numpy_to_gif(episode_image, "episode_gif/1.gif")
+
 
 
 

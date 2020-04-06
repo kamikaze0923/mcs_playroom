@@ -5,6 +5,7 @@ inheriting the predefined methods and can be extended for particular tasks.
 
 import os
 import gym
+import platform
 
 from gym.utils import seeding
 import random
@@ -32,10 +33,16 @@ class McsEnv(gym.Env):
 
         self.rgb_sensor = True if self.config['rgb_sensor'] else False
         self.depth_sensor = True if self.config['depth_sensor'] else False
+        if platform.system() == "Linux":
+            app = "gym_ai2thor/unity_app/MCS-AI2-THOR-Unity-App-v0.0.2.x86_64"
+        elif platform.system() == "Darwin":
+            app = "gym_ai2thor/unity_app/MCSai2thor.app/Contents/MacOS/MCSai2thor"
+        else:
+            app = None
 
         self.controller = machine_common_sense.MCS_Controller_AI2THOR(
-            os.path.join(os.getcwd(), "gym_ai2thor/unity_app/MCS-AI2-THOR-Unity-App-v0.0.2.x86_64"),
-            renderDepthImage=self.depth_sensor, renderObjectImage=False
+            os.path.join(os.getcwd(), app),
+            renderDepthImage=self.depth_sensor, renderObjectImage=True
         )
 
         self.scene_config, status = machine_common_sense.MCS.load_config_json_file(

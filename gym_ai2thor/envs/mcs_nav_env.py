@@ -45,30 +45,30 @@ class McsNavEnv(McsEnv):
 
 
     def reset(self):
-        self.rotation_state = 0
-        self.scene_config["performerStart"] = {
-            "position": {
-                "x": 1,
-                "z": -3
-            },
-            "rotation": {
-                "y": self.rotation_state
-            }
-        }
-        # self.rotation_state = random.sample(self.POSSIBLE_INIT_ROTATION, 1)[0]
+        # self.rotation_state = 0
         # self.scene_config["performerStart"] = {
         #     "position": {
-        #         "x": random.sample(self.POSSIBLE_INIT_X, 1)[0],
-        #         "z": random.sample(self.POSSIBLE_INIT_Z, 1)[0]
+        #         "x": 1,
+        #         "z": -3
         #     },
         #     "rotation": {
         #         "y": self.rotation_state
         #     }
         # }
+        self.rotation_state = random.sample(self.POSSIBLE_INIT_ROTATION, 1)[0]
+        self.scene_config["performerStart"] = {
+            "position": {
+                "x": random.sample(self.POSSIBLE_INIT_X, 1)[0],
+                "z": random.sample(self.POSSIBLE_INIT_Z, 1)[0]
+            },
+            "rotation": {
+                "y": self.rotation_state
+            }
+        }
         self.step_output = self.controller.start_scene(self.scene_config)
         n_objects = len(self.step_output.object_list)
         self.random_object_no = random.randint(0, n_objects-1)
-        self.random_object_no = 2
+        # self.random_object_no = 19
         self.target_object = self.step_output.object_list[self.random_object_no]
         # self.print_target_info()
         self.task = getattr(gym_ai2thor.tasks, self.config['task']['task_name'])(self.target_object, **self.config)
@@ -104,12 +104,12 @@ class McsNavEnv(McsEnv):
         relative_complex = np.array(delta_z - delta_x * 1j)
         rotate_direction = relative_complex * reverse_rotate_complex
         dir_2d = np.round(np.arctan2(rotate_direction.imag, rotate_direction.real), 2)
-        print(dir_3d, dir_2d)
+        # print(dir_3d, dir_2d)
         return dir_2d
 
 
     def step(self, action):
-        action = 2
+        # action = 2
         action_str = self.action_names[action]
         if action_str.startswith('Rotate'):
             rotation = -self.abs_rotation if action_str == 'RotateLeft' else self.abs_rotation
@@ -143,6 +143,18 @@ class McsNavEnv(McsEnv):
             depth_img = self.preprocess(self.step_output.depth_mask_list[0])
             obs['depth'] = depth_img
         return [obs]
+
+    def get_rgb(self):
+        img = self.step_output.image_list[0].convert(mode="P").convert("RGB")
+        img = np.array(img).transpose(2,0,1)
+        return img
+
+    def get_depth_rgb(self):
+        img1 = self.get_rgb()
+        img2 = self.step_output.depth_mask_list[0].convert(mode="L").convert("RGB")
+        img2 = np.array(img2).transpose(2, 0, 1)
+        img = np.concatenate([img1, img2], axis=2)
+        return img
 
     def preprocess(self, img):
         img = np.array(img)

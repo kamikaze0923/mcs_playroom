@@ -71,7 +71,7 @@ class ExploreAllObjects(BaseTask):
 
 class Navigation(BaseTask):
 
-    SUCCESS_DISTANCE = 0.4
+    SUCCESS_DISTANCE = 0.6
 
     def __init__(self, task_object, **kwargs):
         super().__init__(kwargs)
