@@ -82,11 +82,11 @@ def batch_obs(
     return batch
 
 
-def normalize_3d_rotation(delta_x, delta_z):
-    if delta_x == 0 and delta_z ==0:
-        return 0, 0
-    norm = (delta_x ** 2 + delta_z ** 2) ** 0.5
-    return delta_x / norm, delta_z / norm
+def normalize_3d_rotation(delta_x, delta_y, delta_z):
+    if delta_x == 0 and delta_y == 0 and delta_z ==0:
+        return 0, 0, 0
+    norm = (delta_x ** 2 + delta_y ** 2 + delta_z ** 2) ** 0.5
+    return delta_x / norm, delta_y / norm, delta_z / norm
 
 def quaternion_rotate_vector(quat, v):
     vq = np.quaternion(0, 0, 0, 0)

@@ -24,6 +24,25 @@ class NavigatorResNet:
             strict=False
         )
 
+    def go_to_goal(self, env, obs):
+        done = False
+        mask = torch.zeros(size=(1,1))
+        hidden_states = torch.zeros(size=(nav.actor_critic.net.num_recurrent_layers,1,512))
+        prev_action = torch.zeros(1,1)
+        # episode_image = []
+        print("Episode Start")
+        while not done:
+            batch = batch_obs(obs)
+            # episode_image.append(env.get_depth_rgb())
+            # print(batch['pointgoal_with_gps_compass'])
+            action, hidden_states = nav.act(batch, hidden_states, prev_action, mask)
+            prev_action.copy_(_to_tensor(action))
+            mask = torch.ones(size=(1,1))
+            obs, _, done, _ = env.nav_step(action)
+        print("Episode Finish")
+
+
+
 
 import argparse
 import torch
@@ -52,7 +71,7 @@ if __name__ == '__main__':
     args.config_dict = {'max_episode_length': args.max_episode_length}
 
     env = McsNavEnv(config_dict=args.config_dict)
-    nav = NavigatorResNet(env.observation_spaces, env.action_space, "pointgoal_with_gps_compass")
+    nav = NavigatorResNet(env.observation_spaces, env.nav_action_space, "pointgoal_with_gps_compass")
     if env.rgb_sensor:
         if env.depth_sensor:
             raise NotImplementedError("No rgbd model")
@@ -73,23 +92,11 @@ if __name__ == '__main__':
     )
 
     while True:
-        print("Episode Start")
-        obs = env.reset()
-        done = False
-        mask = torch.zeros(size=(1,1))
-        hidden_states = torch.zeros(size=(nav.actor_critic.net.num_recurrent_layers,1,512))
-        prev_action = torch.zeros(1,1)
-        episode_image = []
-        while not done:
-            batch = batch_obs(obs)
-            # episode_image.append(env.get_depth_rgb())
-            # print(batch['pointgoal_with_gps_compass'])
-            action, hidden_states = nav.act(batch, hidden_states, prev_action, mask)
-            prev_action.copy_(_to_tensor(action))
-            mask = torch.ones(size=(1,1))
-            obs, _, done, _ = env.step(action)
-        print("Episode Finish")
-        # list_of_numpy_to_gif(episode_image, "episode_gif/1.gif")
+        init_obs = env.nav_reset() # set goal internally
+        nav.go_to_goal(env, init_obs)
+        break
+
+
 
 
 

@@ -69,17 +69,25 @@ class ExploreAllObjects(BaseTask):
         self.step_num = 0
 
 
-class Navigation(BaseTask):
+class NavigationToCoordinate(BaseTask):
 
-    SUCCESS_DISTANCE = 0.6
+    SUCCESS_DISTANCE = 1
 
-    def __init__(self, task_object, **kwargs):
+    def __init__(self, source, goal, **kwargs):
         super().__init__(kwargs)
-        self.prev_distance = task_object.distance
+        self.goal = goal
+        self.prev_distance = self.distance_to_goal(source)
+
+    def distance_to_goal(self, source):
+        x1, _, z1 = source
+        x2, _, z2 = self.goal
+        return ((x1 - x2) ** 2 + (z1 - z2) ** 2) ** 0.5
+
 
     def transition_reward(self, state):
-        new_distance, action_str = state
+        position, action_str = state
         reward, done = self.movement_reward, False
+        new_distance = self.distance_to_goal((position['x'], position['y'], position['z']))
         reward += self.prev_distance - new_distance
         self.prev_distance = new_distance
         # if action_str == "Stop":
