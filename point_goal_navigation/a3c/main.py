@@ -17,7 +17,7 @@ import os
 import torch
 import torch.multiprocessing as mp
 
-from gym_ai2thor.envs.mcs_nav_env import McsNavEnv
+from gym_ai2thor.envs.mcs_nav import McsNavEnv
 from point_goal_navigation.a3c import my_optim
 from point_goal_navigation.model.policy import PointNavResNetPolicy
 from point_goal_navigation.a3c.test import test

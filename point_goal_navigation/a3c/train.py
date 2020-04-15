@@ -17,7 +17,7 @@ import torch
 import torch.nn.functional as F
 import sys
 
-from gym_ai2thor.envs.mcs_nav_env import McsNavEnv
+from gym_ai2thor.envs.mcs_nav import McsNavEnv
 from point_goal_navigation.model.policy import PointNavResNetPolicy
 from point_goal_navigation.common.utils import batch_obs
 

@@ -1,29 +1,66 @@
-from gym_ai2thor.envs.mcs_nav_env import McsEnv
+from gym_ai2thor.envs.mcs_env import McsEnv
+import cv2
 
 
 class McsHumanControlEnv(McsEnv):
     def __init__(self):
         super().__init__()
+        self.hand_object = None
 
-    def step(self, action_str):
+    def step(self, action_str, **args):
         if "Move" in action_str:
-            self.controller.step(action=action_str, amount=0.25)
+            self.step_output = self.controller.step(action=action_str, amount=0.25)
         elif "Look" in action_str:
             if action_str == "LookUp":
-                self.controller.step(action="RotateLook", horizon=-10)
+                self.step_output = self.controller.step(action="RotateLook", horizon=-10)
             elif action_str == "LookDown":
-                self.controller.step(action="RotateLook", horizon=10)
+                self.step_output = self.controller.step(action="RotateLook", horizon=10)
             else:
                 raise NotImplementedError
         elif "Rotate" in action_str:
             if action_str == "RotateLeft":
-                self.controller.step(action="RotateLook", rotation=-10)
+                self.step_output = self.controller.step(action="RotateLook", rotation=-10)
             elif action_str == "RotateRight":
-                self.controller.step(action="RotateLook", rotation=10)
+                self.step_output = self.controller.step(action="RotateLook", rotation=10)
             else:
                 raise NotImplementedError
+        elif action_str == "PickupObject":
+            self.step_output = self.controller.step(action="PickupObject", **args)
+            if self.step_output.return_status == "SUCCESSFUL":
+                self.hand_object = args['objectId']
+        elif action_str == "PutObject":
+            args["objectId"] = self.hand_object
+            self.step_output = self.controller.step(action="PutObject", **args)
+            if self.step_output.return_status == "SUCCESSFUL":
+                self.hand_object = None
+        elif action_str == "DropObject":
+            args["objectId"] = self.hand_object
+            self.step_output = self.controller.step(action="DropObject", **args)
+            if self.step_output.return_status == "SUCCESSFUL":
+                self.hand_object = None
         else:
             raise NotImplementedError
+
+
+    def print_step_output(self):
+        print("- " * 20)
+        print("Previous Action Status: {}".format(self.step_output.return_status))
+        print(
+            "Agent at: ({:.2f}, {:.2f}, {:.2f}), HeadTilt: {:.2f}, Rotation: {:.2f}, HandObject: {}".format(
+                self.step_output.position['x'],
+                self.step_output.position['y'],
+                self.step_output.position['z'],
+                self.step_output.head_tilt,
+                self.step_output.rotation,
+                self.hand_object
+            )
+        )
+        print("Visible Objects:")
+        for obj in env.step_output.object_list:
+            print("Distance {:.3f} to {} ({:.3f},{:.3f},{:.3f})".format(
+                obj.distance, obj.uuid, obj.position['x'], obj.position['y'], obj.position['z'])
+            )
+
 
 
 
@@ -33,7 +70,9 @@ if __name__ == '__main__':
     env.reset() # set goal internally
 
     while True:
-        action = input()
+        env.print_step_output()
+        print("- "*10)
+        action = input("Enter Action: ")
         if action == "w":
             env.step("MoveAhead")
         elif action == "s":
@@ -50,11 +89,21 @@ if __name__ == '__main__':
             env.step("LookUp")
         elif action == "f":
             env.step("LookDown")
+        elif action == "U":
+            obj = input("Pickup Object! Enter the object ID: ")
+            env.step("PickupObject", objectId=obj)
+        elif action == "I":
+            rec = input("Put Object! Enter the receptacle ID: ")
+            env.step("PutObject", receptacleObjectId=rec)
+        elif action == "O":
+            print("Drop Object!")
+            env.step("DropObject")
         elif action == "z":
             break
         else:
             print("Invalid Action")
-        print(env.step_output.return_status)
+
+
 
 
 

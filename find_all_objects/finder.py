@@ -29,7 +29,7 @@ import argparse
 import torch
 import os
 
-from gym_ai2thor.envs.mcs_nav_env import McsNavEnv
+from gym_ai2thor.envs.mcs_nav import McsNavEnv
 from point_goal_navigation.common.utils import batch_obs, _to_tensor
 
 parser = argparse.ArgumentParser(description='Nav')

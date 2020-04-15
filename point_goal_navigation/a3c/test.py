@@ -11,7 +11,7 @@ import time
 import torch
 import torch.nn.functional as F
 
-from gym_ai2thor.envs.mcs_nav_env import McsNavEnv
+from gym_ai2thor.envs.mcs_nav import McsNavEnv
 from gym_ai2thor.utils import CSVLogger
 from point_goal_navigation.model.policy import PointNavResNetPolicy
 
