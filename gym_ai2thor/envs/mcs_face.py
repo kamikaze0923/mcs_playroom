@@ -6,8 +6,8 @@ CAMERA_HIGHT = 2
 
 class McsFaceWrapper(McsWrapper):
 
-    MICRO_ROTATION = 3
-    MICRO_HEADTILT = 3
+    MICRO_ROTATION = 4
+    MICRO_HEADTILT = 4
     MICRO_MOVE = 0.1
 
     def __init__(self, env):

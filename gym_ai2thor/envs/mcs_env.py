@@ -41,6 +41,7 @@ class McsEnv:
 
     def step(self, **kwargs):
         self.step_output = self.controller.step(**kwargs)
+        print(self.step_output.return_status)
 
     def reset(self):
         # self.rotation_state = random.sample(self.POSSIBLE_INIT_ROTATION, 1)[0]

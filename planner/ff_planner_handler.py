@@ -11,7 +11,7 @@ CAPS_ACTION_TO_PLAN_ACTION = {
     "FACETOOBJECT": "FaceToObject",
     "PICKUPOBJECT": "PickupObject",
     "PUTOBJECTINTORECEPTACLE": "PutObjectIntoReceptacle",
-    "LOOKTOFRONT": "LookToFront"
+    "FACETOFRONT": "FaceToFront"
 }
 
 def parse_line(line):

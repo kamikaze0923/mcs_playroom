@@ -1,5 +1,4 @@
 from point_goal_navigation.model.policy import PointNavResNetPolicy
-from gif_generator.make_gif import list_of_numpy_to_gif
 from point_goal_navigation.common.utils import batch_obs, _to_tensor
 from point_goal_navigation.common.utils import quaternion_rotate_vector, quat_from_angle_axis, normalize_3d_rotation
 
@@ -11,7 +10,7 @@ import torch
 
 class ObeserationSpace:
     def __init__(self):
-        self.spaces = None
+        self.spaces = {}
 
 class NavigatorResNet:
 
@@ -21,12 +20,11 @@ class NavigatorResNet:
 
     def __init__(self, action_space, goal_sensor_uuid):
         self.observation_spaces = ObeserationSpace()
-        self.observation_spaces.spaces = {
-            'pointgoal_with_gps_compass': Box(
+        self.observation_spaces.spaces['pointgoal_with_gps_compass'] = Box(
                 low=np.finfo(np.float32).min, high=np.finfo(np.float32).max,
                 dtype=np.float32, shape=(2,)
             )
-        }
+
         if self.RGB_SENSOR:
             self.observation_spaces.spaces['rgb'] = Box(low=0, high=255, dtype=np.uint8,
                                                         shape=(self.RESOLUTION[0], self.RESOLUTION[1], 3)
@@ -130,20 +128,14 @@ class NavigatorResNet:
         hidden_states = torch.zeros(size=(self.actor_critic.net.num_recurrent_layers,1,512))
         prev_action = torch.zeros(1,1)
         obs = self.get_observation(env.step_output)
-        # episode_image = []
-        # print("Start Navigation, Goal {}".format(goal))
         while not done:
             batch = batch_obs(obs)
-            # episode_image.append(env.get_depth_rgb())
             action, hidden_states = self.act(batch, hidden_states, prev_action, mask)
             prev_action.copy_(_to_tensor(action))
             mask = torch.ones(size=(1,1))
             step_output = env.step(action)
-
-            # self.print_target_info(step_output)
             obs = self.get_observation(step_output)
-            done = self.distance_to_goal(self.goal, step_output) <= env.max_reach_distance
-        # print("Navigation Success!!!")
+            done = self.distance_to_goal(self.goal, step_output) <= env.max_reach_distance - 0.8
 
 
 

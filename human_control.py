@@ -38,6 +38,10 @@ class McsHumanControlEnv(McsEnv):
             self.step_output = self.controller.step(action="DropObject", **args)
             if self.step_output.return_status == "SUCCESSFUL":
                 self.hand_object = None
+        elif action_str == "OpenObject":
+            self.step_output = self.controller.step(action="OpenObject", **args)
+        elif action_str == "CloseObject":
+            self.step_output = self.controller.step(action="CloseObject", **args)
         else:
             raise NotImplementedError
 
@@ -98,6 +102,12 @@ if __name__ == '__main__':
         elif action == "O":
             print("Drop Object!")
             env.step("DropObject")
+        elif action == "J":
+            obj = input("Open Object! Enter the object ID: ")
+            env.step("OpenObject", objectId=obj)
+        elif action == "K":
+            obj = input("Close Object! Enter the object ID: ")
+            env.step("CloseObject", objectId=obj)
         elif action == "z":
             break
         else:

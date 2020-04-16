@@ -49,7 +49,7 @@ class MetaController:
             self.env.step(
                 action="PutObject", objectId=action_dict['objectId'], receptacleObjectId=action_dict['receptacleId']
             )
-        elif action_dict['action'] == "LookToFront":
+        elif action_dict['action'] == "FaceToFront":
             self.face_env.look_to_front()
 
 
