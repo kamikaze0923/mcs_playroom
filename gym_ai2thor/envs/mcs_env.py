@@ -5,17 +5,15 @@ inheriting the predefined methods and can be extended for particular tasks.
 
 import os
 import platform
-
-
+import random
 import machine_common_sense
 
 class McsEnv:
     """
     Wrapper base class
     """
-    POSSIBLE_INIT_ROTATION = [i*10 for i in range(360)]
-    POSSIBLE_INIT_X = [-4, -3, 3, 4]
-    POSSIBLE_INIT_Z = [-4, -3, 3, 4]
+    POSSIBLE_INIT_ROTATION = [i*10 for i in range(36)]
+    POSSIBLE_INIT = [-4 + i for i in range(9)]
 
     def __init__(self):
 
@@ -27,62 +25,34 @@ class McsEnv:
             app = None
 
         self.controller = machine_common_sense.MCS_Controller_AI2THOR(
-            os.path.join(os.getcwd(), app),
-            # renderDepthImage=self.depth_sensor, renderObjectImage=True
+            os.path.join(app)
         )
 
         self.scene_config, status = machine_common_sense.MCS.load_config_json_file(
-            os.path.join(os.getcwd(), "gym_ai2thor/scenes/playroom.json")
+            os.path.join("gym_ai2thor/scenes/playroom_simplified.json")
         )
 
         self.step_output = None
         self.reset()
 
-
     def step(self, **kwargs):
         self.step_output = self.controller.step(**kwargs)
-        print(self.step_output.return_status)
+        # print(self.step_output.return_status)
 
-    def reset(self):
-        # self.rotation_state = random.sample(self.POSSIBLE_INIT_ROTATION, 1)[0]
-        # init_x = random.sample(self.POSSIBLE_INIT_X, 1)[0]
-        # init_z = random.sample(self.POSSIBLE_INIT_Z, 1)[0]
-        # self.scene_config["performerStart"] = {
-        #     "position": {
-        #         "x": init_x,
-        #         "z": init_z
-        #     },
-        #     "rotation": {
-        #         "y": self.rotation_state
-        #     }
-        # }
-        self.rotation_state = 90
-        init_x = 2
-        init_z = -2
-        self.scene_config["performerStart"] = {
-            "position": {
-                "x": init_x,
-                "z": init_z,
-            },
-            "rotation": {
-                "y": self.rotation_state
-            }
-        }
+    def reset(self, random_init=True):
+        if random_init:
+            self.rotation_state = random.sample(self.POSSIBLE_INIT_ROTATION, 1)[0]
+            self.scene_config["performerStart"]["rotation"] = self.rotation_state
+            n_objects = len(self.scene_config["objects"]) + 1
+            all_possible_loc = [(i,j) for i in self.POSSIBLE_INIT for j in self.POSSIBLE_INIT]
+            randon_sample_init_loc = random.sample(all_possible_loc, n_objects)
+            self.scene_config["performerStart"]["position"]["x"] = randon_sample_init_loc[-1][0]
+            self.scene_config["performerStart"]["position"]["z"] = randon_sample_init_loc[-1][1]
+            for i in range(n_objects - 1):
+                self.scene_config["objects"][i]["shows"][0]["position"]["x"] = randon_sample_init_loc[i][0]
+                self.scene_config["objects"][i]["shows"][0]["position"]["z"] = randon_sample_init_loc[i][1]
         self.step_output = self.controller.start_scene(self.scene_config)
 
-
-    # def get_rgb(self):
-    #     img = self.step_output.image_list[0].convert(mode="P").convert("RGB")
-    #     img = np.array(img).transpose(2, 0, 1)
-    #     return img
-    #
-    # def get_depth_rgb(self):
-    #     img1 = self.get_rgb()
-    #     assert self.depth_sensor
-    #     img2 = self.step_output.depth_mask_list[0].convert(mode="L").convert("RGB")
-    #     img2 = np.array(img2).transpose(2, 0, 1)
-    #     img = np.concatenate([img1, img2], axis=2)
-    #     return img
 
 
 

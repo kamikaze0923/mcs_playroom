@@ -56,11 +56,11 @@ class NavigatorResNet:
             strict=False
         )
 
-    def preprocess(self, img):
+    def preprocess(self, img, img_name):
         img = np.array(img)
         if len(img.shape) == 2:
             img = np.expand_dims(img, axis=-1)
-        img = transform.resize(img, self.observation_spaces, mode='reflect')
+        img = transform.resize(img, self.observation_spaces.spaces[img_name].shape, mode='reflect')
         img = img.astype(np.float32)
         return img
 
@@ -69,10 +69,10 @@ class NavigatorResNet:
         theta = self.get_polar_direction(self.goal, step_output)
         obs['pointgoal_with_gps_compass'] = np.array([self.distance_to_goal(self.goal, step_output), theta])
         if self.RGB_SENSOR:
-            frame_img = self.preprocess(step_output.image_list[0])
+            frame_img = self.preprocess(step_output.image_list[0], 'rgb')
             obs['rgb'] = frame_img
         if self.DEPTH_SENSOR:
-            depth_img = self.preprocess(step_output.depth_mask_list[0]) / 2
+            depth_img = self.preprocess(step_output.depth_mask_list[0], 'depth') / 2
             obs['depth'] = depth_img
         return [obs]
 
@@ -135,7 +135,7 @@ class NavigatorResNet:
             mask = torch.ones(size=(1,1))
             step_output = env.step(action)
             obs = self.get_observation(step_output)
-            done = self.distance_to_goal(self.goal, step_output) <= env.max_reach_distance - 0.8
+            done = self.distance_to_goal(self.goal, step_output) <= env.max_reach_distance - 0.5
 
 
 

@@ -3,6 +3,7 @@ import re
 import shlex
 import subprocess
 from planner.utils import replace_location_string
+import os
 
 DEBUG = False
 
@@ -104,6 +105,49 @@ class PlanParser(object):
             parsed_plans = [parsed_plan for parsed_plan in parsed_plans if parsed_plan[0] != "timeout"]
             parsed_plan = min(parsed_plans, key=len)
         return parsed_plan
+
+    @staticmethod
+    def scene_config_to_pddl(config, goal_predicates_str, fact_file):
+        AGENT_Y_INIT = 0.4625
+        tittle = "define (problem ball_and_bowl)\n"
+        domain = "\t(:domain playroom)\n"
+        metric = "\t(:metric minimize (totalCost))\n"
+
+        init_predicates_list = ["(= (totalCost) 0)", "(handEmpty agent1)"]
+        object_list = ["agent1 - agent"]
+
+
+        agent_init = config['performerStart']['position']
+        agent_init = PlanParser.replace_digital_number(
+            "loc|{:.2f}|{:.2f}|{:.2f}".format(agent_init['x'], AGENT_Y_INIT, agent_init['z'])
+        )
+        init_predicates_list.append("(agentAtLocation {} {})".format("agent1", agent_init))
+
+        location_list = [agent_init]
+        for obj in config['objects']:
+            object_list.append("{} - object".format(obj['id']))
+            obj_init = obj['shows'][0]['position']
+            obj_init = PlanParser.replace_digital_number(
+                "loc|{:.2f}|{:.2f}|{:.2f}".format(obj_init['x'], obj_init['y'], obj_init['z'])
+            )
+            location_list.append(obj_init + " - location")
+            init_predicates_list.append("(objectAtLocation {} {})".format(obj['id'], obj_init))
+        objects_str = "".join(["\t\t{}\n".format(obj) for obj in object_list + location_list])
+        objects = "\t(:objects\n" + objects_str + "\t)\n"
+
+        init_predicates_str = "".join(["\t\t{}\n".format(i) for i in init_predicates_list])
+        init_predicates = "\t(:init\n" + init_predicates_str + "\t)\n"
+
+        goal_predicates = "\t(:goal\n" + goal_predicates_str + "\t)\n"
+        all = "({}{}{}{}{}{})".format(tittle, domain, metric, objects, init_predicates, goal_predicates)
+        with open(fact_file, "w") as f:
+            f.write(all)
+
+
+    @staticmethod
+    def replace_digital_number(loc_str):
+        return loc_str.replace("-", "_minus_").replace(".", "_dot_").replace("|", "_bar_")
+
 
 
 

@@ -6,8 +6,8 @@ CAMERA_HIGHT = 2
 
 class McsFaceWrapper(McsWrapper):
 
-    MICRO_ROTATION = 4
-    MICRO_HEADTILT = 4
+    MICRO_ROTATION = 10
+    MICRO_HEADTILT = 10
     MICRO_MOVE = 0.1
 
     def __init__(self, env):
@@ -60,7 +60,7 @@ class McsFaceWrapper(McsWrapper):
 
     @staticmethod
     def get_head_tilt(goal, step_output):
-        distance_to_goal = NavigatorResNet.distance_to_goal(goal, step_output)
+        distance_to_goal = NavigatorResNet.distance_to_goal(goal, step_output) + 1e-6
         delta_y = step_output.position['y'] - goal[1]
         return np.arctan(delta_y/distance_to_goal) * 360 / (2 * np.pi)
 

@@ -1,8 +1,13 @@
 from planner.ff_planner_handler import PlanParser
 from gym_ai2thor.envs.mcs_env import McsEnv
 from metaController.metaController import MetaController
+import random
 
-
+def random_pick_up(config):
+    obj = random.sample(config['objects'], 1)[0]
+    print(obj['id'])
+    goal_predicates_str = "\t\t(held agent1 {})\n".format(obj['id'])
+    return goal_predicates_str
 
 if __name__ == "__main__":
     import time
@@ -13,14 +18,7 @@ if __name__ == "__main__":
 
     parser = PlanParser()
 
-    goal_predicates_list = [
-        "(inReceptacle plate_b box_a)", "(inReceptacle plate_a plate_b)",
-        "(inReceptacle bowl_a plate_a)", "(inReceptacle ball_b bowl_a)"
-    ]
-
-    goal_predicates_str = "\t\t(and\n" + "".join(["\t\t\t{}\n".format(i) for i in goal_predicates_list]) + "\t\t)\n"
-
-    PlanParser.scene_config_to_pddl(env.scene_config, goal_predicates_str, facts_file)
+    PlanParser.scene_config_to_pddl(env.scene_config, random_pick_up(env.scene_config), facts_file)
     result_plan = parser.get_plan_from_file(domain_file, facts_file)
 
     metaController = MetaController(env)

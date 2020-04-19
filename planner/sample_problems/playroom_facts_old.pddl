@@ -1,12 +1,8 @@
-
 (define (problem ball_and_bowl)
     (:domain playroom)
     (:metric minimize (totalCost))
     (:objects
         agent1 - agent
-        BallType - otype
-        BowlType - rtype
-        PlateType - rtype
 
         ball_a - object
         ball_b - object
@@ -21,8 +17,7 @@
         box_a - object
         box_b - object
 
-        ;loc_bar_0_dot_0_bar_0_dot_04625_bar__minus_1_dot_0                   ;agent1
-        loc_bar_1_dot_31_bar_0_dot_04625_bar_0_dot_40                         ;agent1
+        loc_bar_1_dot_31_bar_0_dot_04625_bar_0_dot_40 - location              ;agent1
         loc_bar_0_dot_0_bar_0_dot_0125_bar_1_dot_0 - location                 ;ball_a
         loc_bar_0_dot_0_bar_0_dot_025_bar_1_dot_25 - location                 ;ball_b
         loc_bar_0_dot_0_bar_0_dot_05_bar_1_dot_5 - location                   ;ball_c
@@ -81,11 +76,6 @@
             (inReceptacle plate_a box_a)
             (inReceptacle cup_b plate_a)
             (inReceptacle ball_a cup_b)
-
-            ;(objectAtLocation box_a loc_bar__minus_0_dot_5_bar_0_dot_054_bar__minus_0_dot_145)
-            ;(objectAtLocation plate_a loc_bar__minus_0_dot_5_bar_0_dot_054_bar__minus_0_dot_145)
-            ;(objectAtLocation cup_b loc_bar__minus_0_dot_5_bar_0_dot_054_bar__minus_0_dot_145)
-            ;(objectAtLocation ball_a loc_bar__minus_0_dot_5_bar_0_dot_054_bar__minus_0_dot_145)
         )
 
     )

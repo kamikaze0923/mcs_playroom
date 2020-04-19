@@ -94,9 +94,9 @@
                     (lookingAtObject ?a ?o2)
                     (held ?a ?o1)
                     (not (handEmpty ?a))
-                    (and
-                        (canPutin ?o1 ?o2)
-                    )
+                    ;(and
+                        ;(canPutin ?o1 ?o2)
+                    ;)
 
                   )
     :effect (and
