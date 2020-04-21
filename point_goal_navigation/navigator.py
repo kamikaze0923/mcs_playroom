@@ -121,7 +121,7 @@ class NavigatorResNet:
             )
         )
 
-    def go_to_goal(self, env, goal):
+    def go_to_goal(self, env, goal, epsd_collector=None):
         self.set_goal(goal)
         done = False
         mask = torch.zeros(size=(1,1))
@@ -133,7 +133,7 @@ class NavigatorResNet:
             action, hidden_states = self.act(batch, hidden_states, prev_action, mask)
             prev_action.copy_(_to_tensor(action))
             mask = torch.ones(size=(1,1))
-            step_output = env.step(action)
+            step_output = env.step(action, epsd_collector)
             obs = self.get_observation(step_output)
             done = self.distance_to_goal(self.goal, step_output) <= env.max_reach_distance - 0.5
 

@@ -35,16 +35,17 @@ class MetaController:
             )
         )
 
-    def step(self, action_dict):
+    def step(self, action_dict, epsd_collector=None):
         assert 'action' in action_dict
         if action_dict['action'] == "GotoLocation":
             goal = get_goal(action_dict['location'])
-            self.nav.go_to_goal(self.nav_env, goal)
+            self.nav.go_to_goal(self.nav_env, goal, epsd_collector)
         elif action_dict['action'] == "FaceToObject":
             goal = get_goal(action_dict['location'])
-            self.face_env.look_to_direction(goal)
+            self.face_env.look_to_direction(goal, epsd_collector)
         elif action_dict['action'] == "PickupObject":
             self.env.step(action="PickupObject", objectId=action_dict['objectId'])
+            epsd_collector.add_experience(self.env.step_output, "PickupObject")
         elif action_dict['action'] == "PutObjectIntoReceptacle":
             self.env.step(
                 action="PutObject", objectId=action_dict['objectId'], receptacleObjectId=action_dict['receptacleId']
@@ -52,10 +53,3 @@ class MetaController:
             print(self.env.step_output.return_status)
         elif action_dict['action'] == "FaceToFront":
             self.face_env.look_to_front()
-
-
-
-
-
-
-
