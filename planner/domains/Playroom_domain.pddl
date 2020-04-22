@@ -20,7 +20,9 @@
     (headTiltZero ?a - agent)                                 ; agent ?a is looking straightly to front
 
     (inReceptacle ?o1 - object ?o2 - object)                  ; object ?o1 is in receptacle ?o2
-    (canPutin ?o1 - object ?o2 - object)                      ; true if ?o1 can be put in ?o2
+    (isType ?o - object ?t - objType)                         ; object type of ?o1 is ?t
+    (isReceptacle ?o - object)                                ; object ?o is a receptacle
+    (canNotPutin ?o1 - object ?o2 - object)                   ; true if ?o1 cannot be put in ?o2
  )
 
  (:functions
@@ -40,7 +42,6 @@
                 (increase (totalCost) 1)
             )
  )
-
 
  (:action GotoLocation
     :parameters (?a - agent ?lStart - location ?lEnd - location)
@@ -92,12 +93,10 @@
     :precondition (and
                     (objectAtLocation ?o2 ?l)
                     (lookingAtObject ?a ?o2)
+                    (isReceptacle ?o2)
                     (held ?a ?o1)
                     (not (handEmpty ?a))
-                    ;(and
-                        ;(canPutin ?o1 ?o2)
-                    ;)
-
+                    (not (canNotPutin ?o1 ?o2))
                   )
     :effect (and
                 (not (held ?a ?o1))

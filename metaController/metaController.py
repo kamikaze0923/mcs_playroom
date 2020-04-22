@@ -2,6 +2,9 @@ from point_goal_navigation.navigator import NavigatorResNet
 from gym_ai2thor.envs.mcs_nav import McsNavWrapper
 from gym_ai2thor.envs.mcs_face import McsFaceWrapper
 import os
+from planner.ff_planner_handler import PlanParser
+from metaController.plannerState import GameState
+import time
 
 def get_goal(goal_string):
     goal = goal_string.split("|")
@@ -28,28 +31,63 @@ class MetaController:
                 model_file = "gibson-4plus-resnet50.pth"
             else:
                 model_file = "gibson-0plus-mp3d-train-val-test-blind.pth"
-        print(model_file)
         self.nav.load_checkpoint(
             os.path.join(
                 os.getcwd(), "point_goal_navigation/model/model_pretrained/{}".format(model_file)
             )
         )
+        self.planner = PlanParser()
+        self.plannerState = GameState(env.scene_config)
+
+
+    def plan_on_current_state(self):
+        self.planner.planner_state_to_pddl(self.plannerState)
+        return self.planner.get_plan()
 
     def step(self, action_dict, epsd_collector=None):
         assert 'action' in action_dict
         if action_dict['action'] == "GotoLocation":
             goal = get_goal(action_dict['location'])
             self.nav.go_to_goal(self.nav_env, goal, epsd_collector)
+            self.plannerState.agent_loc_info[self.plannerState.AGENT_NAME] = goal
+            self.plannerState.object_facing = None
         elif action_dict['action'] == "FaceToObject":
             goal = get_goal(action_dict['location'])
             self.face_env.look_to_direction(goal, epsd_collector)
+            self.plannerState.object_facing = action_dict['objectId']
+            self.plannerState.face_to_front = False
         elif action_dict['action'] == "PickupObject":
             self.env.step(action="PickupObject", objectId=action_dict['objectId'])
-            epsd_collector.add_experience(self.env.step_output, "PickupObject")
+            if self.env.step_output.return_status == "SUCCESSFUL":
+                self.plannerState.object_in_hand = action_dict['objectId']
+            else:
+                print("Pickup {} fail!".format(action_dict['objectId']))
+                exit(0)
+            if epsd_collector:
+                epsd_collector.add_experience(self.env.step_output, "PickupObject")
         elif action_dict['action'] == "PutObjectIntoReceptacle":
             self.env.step(
                 action="PutObject", objectId=action_dict['objectId'], receptacleObjectId=action_dict['receptacleId']
             )
-            print(self.env.step_output.return_status)
+            if self.env.step_output.return_status == "SUCCESSFUL":
+                self.plannerState.object_in_hand = None
+                self.plannerState.object_containment_info[action_dict['objectId']] = action_dict['receptacleId']
+            else:
+                self.plannerState.knowledge.canNotPutin.add((action_dict['objectId'], action_dict['receptacleId']))
         elif action_dict['action'] == "FaceToFront":
             self.face_env.look_to_front()
+            self.plannerState.face_to_front = True
+            self.plannerState.object_facing = None
+
+    def excecute(self):
+        meta_stage = 0
+        while True:
+            print("Meta-Stage: {}".format(meta_stage))
+            result_plan = self.plan_on_current_state()
+            for plan in result_plan:
+                print(plan)
+            if result_plan[0]['action'] == "End":
+                break
+            self.step(result_plan[0])
+            meta_stage += 1
+        time.sleep(2)

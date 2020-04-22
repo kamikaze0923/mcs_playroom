@@ -34,7 +34,7 @@ class Episode_collector:
 
         self.prev_obs = obs
 
-    def tuncate_last_ten(self):
+    def truncate_last_ten(self):
         assert self.__len__() >= 10
         self.episode['obs'] = self.episode['obs'][-10:]
         self.episode['action'] = self.episode['action'][-10:]
@@ -73,7 +73,7 @@ if __name__ == "__main__":
         if len(epsd_collector) < 10:
             continue
         else:
-            epsd_collector.tuncate_last_ten()
+            epsd_collector.truncate_last_ten()
             assert len(epsd_collector) == 10
             replay_buffer.append(epsd_collector.episode)
             episode += 1
