@@ -38,6 +38,15 @@ class McsHumanControlEnv(McsEnv):
             self.step_output = self.controller.step(action="DropObject", **args)
             if self.step_output.return_status == "SUCCESSFUL":
                 self.hand_object = None
+        elif action_str == "ThrowObject":
+            args["objectId"] = self.hand_object
+            self.step_output = self.controller.step(action="ThrowObject", **args)
+            if self.step_output.return_status == "SUCCESSFUL":
+                self.hand_object = None
+        elif action_str == "PushObject":
+            self.step_output = self.controller.step(action="PushObject", **args)
+        elif action_str == "PullObject":
+            self.step_output = self.controller.step(action="PullObject", **args)
         elif action_str == "OpenObject":
             self.step_output = self.controller.step(action="OpenObject", **args)
         elif action_str == "CloseObject":
@@ -49,6 +58,8 @@ class McsHumanControlEnv(McsEnv):
     def print_step_output(self):
         print("- " * 20)
         print("Previous Action Status: {}".format(self.step_output.return_status))
+        if hasattr(env.step_output, "reward"):
+            print("Previous Reward: {}".format(env.step_output.reward))
         print(
             "Agent at: ({:.2f}, {:.2f}, {:.2f}), HeadTilt: {:.2f}, Rotation: {:.2f}, HandObject: {}".format(
                 self.step_output.position['x'],
@@ -62,8 +73,9 @@ class McsHumanControlEnv(McsEnv):
         print("Visible Objects:")
         for obj in env.step_output.object_list:
             print("Distance {:.3f} to {} ({:.3f},{:.3f},{:.3f})".format(
-                obj.distance, obj.uuid, obj.position['x'], obj.position['y'], obj.position['z'])
+                obj.distance_in_world, obj.uuid, obj.position['x'], obj.position['y'], obj.position['z'])
             )
+
 
 
 
@@ -71,7 +83,6 @@ class McsHumanControlEnv(McsEnv):
 
 if __name__ == '__main__':
     env = McsHumanControlEnv()
-    env.reset() # set goal internally
 
     while True:
         env.print_step_output()
@@ -102,10 +113,20 @@ if __name__ == '__main__':
         elif action == "O":
             print("Drop Object!")
             env.step("DropObject")
+        elif action == "P":
+            print("Throw Object!")
+            force = input("Throw Object! Enter the force: ")
+            env.step("ThrowObject", force=int(force), objectDirectionY=env.step_output.head_tilt)
         elif action == "J":
+            obj = input("Push Object! Enter the object ID: ")
+            env.step("PushObject", objectId=obj)
+        elif action == "K":
+            obj = input("Pull Object! Enter the object ID: ")
+            env.step("PullObject", objectId=obj)
+        elif action == "N":
             obj = input("Open Object! Enter the object ID: ")
             env.step("OpenObject", objectId=obj)
-        elif action == "K":
+        elif action == "M":
             obj = input("Close Object! Enter the object ID: ")
             env.step("CloseObject", objectId=obj)
         elif action == "z":

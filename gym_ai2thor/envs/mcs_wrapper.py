@@ -1,3 +1,5 @@
+import machine_common_sense
+
 class McsWrapper:
 
     ABS_ROTATION = 10 # same as settings in habitat, right is positive
@@ -18,4 +20,4 @@ class McsWrapper:
 
     @property
     def max_reach_distance(self):
-        return self.env.controller.MAX_REACH_DISTANCE
+        return machine_common_sense.mcs_controller_ai2thor.MAX_REACH_DISTANCE

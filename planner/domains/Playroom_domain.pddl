@@ -23,6 +23,8 @@
     (isType ?o - object ?t - objType)                         ; object type of ?o1 is ?t
     (isReceptacle ?o - object)                                ; object ?o is a receptacle
     (canNotPutin ?o1 - object ?o2 - object)                   ; true if ?o1 cannot be put in ?o2
+    (openable ?o)                                             ; true if ?o can be opened
+    (isOpened ?o)                                             ; true if ?o is opened
  )
 
  (:functions
@@ -95,6 +97,9 @@
                     (lookingAtObject ?a ?o2)
                     (isReceptacle ?o2)
                     (held ?a ?o1)
+                    (or (not (openable ?o2))
+                        (isOpened ?o2)
+                    )
                     (not (handEmpty ?a))
                     (not (canNotPutin ?o1 ?o2))
                   )
@@ -103,6 +108,21 @@
                 (inReceptacle ?o1 ?o2)
                 (objectAtLocation ?o1 ?l)
                 (handEmpty ?a)
+                (increase (totalCost) 1)
+            )
+ )
+
+ (:action OpenObject
+    :parameters (?a - agent ?o - object ?l - location)
+    :precondition (and
+                    (objectAtLocation ?o ?l)
+                    (lookingAtObject ?a ?o)
+                    (isReceptacle ?o)
+                    (openable ?o)
+                    (not (isOpened ?o))
+                  )
+    :effect (and
+                (isOpened ?o)
                 (increase (totalCost) 1)
             )
  )

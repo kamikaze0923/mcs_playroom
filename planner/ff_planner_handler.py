@@ -4,6 +4,7 @@ import shlex
 import subprocess
 from planner.utils import replace_location_string
 
+
 DEBUG = False
 
 CAPS_ACTION_TO_PLAN_ACTION = {
@@ -11,7 +12,8 @@ CAPS_ACTION_TO_PLAN_ACTION = {
     "FACETOOBJECT": "FaceToObject",
     "PICKUPOBJECT": "PickupObject",
     "PUTOBJECTINTORECEPTACLE": "PutObjectIntoReceptacle",
-    "FACETOFRONT": "FaceToFront"
+    "FACETOFRONT": "FaceToFront",
+    "OPENOBJECT": "OpenObject"
 }
 
 def parse_line(line):
@@ -39,6 +41,10 @@ def parse_line(line):
         action_dict["objectId"] = object_id
         action_dict["receptacleId"] = receptacle_id
 
+    elif action in ["OpenObject"]:
+        object_id = line_args[-2].lower()
+        action_dict["objectId"] = object_id
+
     return action_dict
 
 def parse_plan(lines):
@@ -53,7 +59,7 @@ def get_plan_from_file(args):
     domain, filepath, solver_type = args
     try:
         command = "ff_planner/ff -o {:s} -s {:d} -f {:s}".format(domain, solver_type, filepath)
-        planner_output = subprocess.check_output(shlex.split(command), timeout=5)
+        planner_output = subprocess.check_output(shlex.split(command), timeout=20)
     except subprocess.CalledProcessError as error:
         # Plan is done
         output_str = error.output.decode("utf-8")
@@ -90,17 +96,35 @@ def get_plan_from_file(args):
 
 class PlanParser(object):
 
-    DOMAIN_FILE = "planner/domains/Playroom_domain.pddl"
     FACTS_FILE = "planner/sample_problems/playroom_facts.pddl"
     GOALS_FILE = "planner/sample_problems/playroom_goals.pddl"
+    CONSIDER_OBJECT_TYPES = [
+        "ballType", "appleType", "cupType", "boxType", "bowlType",
+        "plateType", "sofaType", "sofa_chairType", "chairType"
+    ]
+    CONSIDER_RECEPTACLE_TYPES = [
+        "cupType", "boxType", "bowlType",
+        "plateType"
+        #, "sofaType", "sofa_chairType"
+    ]
+    CONSIDER_OPENABLE_TYPES = [
+        "boxType"
+    ]
 
-    def __init__(self):
-        self.process_pool = multiprocessing.Pool(3)
-        self.goal_predicates = "".join(open(self.GOALS_FILE).readlines())
+    def __init__(self, plannerState=None):
+        self.process_pool = multiprocessing.Pool(1)
+        if plannerState.goal_predicate_list is None:
+            self.goal_predicates = PlanParser.create_goal_str(open(self.GOALS_FILE))
+            self.domain_file = "planner/domains/Playroom_domain.pddl"
+        else:
+            self.goal_predicates = PlanParser.create_goal_str(plannerState.goal_predicate_list)
+            if plannerState.goal_category == "traversal":
+                self.domain_file = "planner/domains/Traversal_domain.pddl"
+
 
     def get_plan(self):
         parsed_plans = self.process_pool.map(
-            get_plan_from_file, zip([self.DOMAIN_FILE] * 3, [self.FACTS_FILE] * 3, range(3, 6))
+            get_plan_from_file, zip([self.domain_file] * 1, [self.FACTS_FILE] * 1, range(3, 4))
         )
         return self.find_best_plan(parsed_plans)
 
@@ -144,23 +168,16 @@ class PlanParser(object):
                 gameState.agent_loc_info[gameState.AGENT_NAME][2]
             )
         )
-        init_predicates_list.append("(agentAtLocation {} {})".format("agent1", agent_init_loc))
+        init_predicates_list.append("(agentAtLocation {} {})".format(gameState.AGENT_NAME, agent_init_loc))
 
         location_list = ["{} - location".format(agent_init_loc)]
 
         object_types = set()
-        for obj_key, obj_loc_info in gameState.object_loc_info.items():
-            object_list.append("{} - object".format(obj_key))
-            obj_init_loc = PlanParser.replace_digital_number(
-                "loc|{:.2f}|{:.2f}|{:.2f}".format(obj_loc_info[0], obj_loc_info[1], obj_loc_info[2])
-            )
-            location_list.append("{} - location".format(obj_init_loc))
-            init_predicates_list.append("(objectAtLocation {} {})".format(obj_key, obj_init_loc))
-            obj_type = obj_key.split('_')[0] + "Type"
-            object_types.add("{} - objType".format(obj_type))
-            init_predicates_list.append("(isType {} {})".format(obj_key, obj_type))
-            if obj_type in ["cupType", "boxType", "bowlType", "plateType"]:
-                init_predicates_list.append("(isReceptacle {})".format(obj_key))
+
+        if gameState.goal_predicate_list is None:
+            self.generate_playroom_object_str(object_list, location_list, init_predicates_list, object_types, gameState)
+        else:
+            self.generate_interactive_scene_object_str(object_list, location_list, init_predicates_list, gameState)
 
         objects_str = "".join(["\t\t{}\n".format(obj) for obj in object_list + location_list + list(object_types)])
         objects = "\t(:objects\n" + objects_str + "\t)\n"
@@ -172,10 +189,73 @@ class PlanParser(object):
         with open(self.FACTS_FILE, "w") as f:
             f.write(all)
 
+    def generate_playroom_object_str(self, object_list, location_list, init_predicates_list, object_types, gameState):
+        for obj_key, obj_loc_info in gameState.object_loc_info.items():
+            obj_type = PlanParser.get_obj_type(obj_key)
+            if obj_type not in self.CONSIDER_OBJECT_TYPES:
+                continue
+            object_list.append("{} - object".format(obj_key))
+            obj_init_loc = PlanParser.replace_digital_number(
+                "loc|{:.2f}|{:.2f}|{:.2f}".format(obj_loc_info[0], obj_loc_info[1], obj_loc_info[2])
+            )
+            location_list.append("{} - location".format(obj_init_loc))
+            init_predicates_list.append("(objectAtLocation {} {})".format(obj_key, obj_init_loc))
+
+            object_types.add("{} - objType".format(obj_type))
+            init_predicates_list.append("(isType {} {})".format(obj_key, obj_type))
+            if obj_type in self.CONSIDER_RECEPTACLE_TYPES:
+                init_predicates_list.append("(isReceptacle {})".format(obj_key))
+            if obj_type in self.CONSIDER_OPENABLE_TYPES:
+                init_predicates_list.append("(openable {})".format(obj_key))
+                for obj_canBe_open, isOpen in gameState.object_open_close_info.items():
+                    if isOpen:
+                        init_predicates_list.append("(isOpened {})".format(obj_canBe_open))
+
+
+    def generate_interactive_scene_object_str(
+            self, object_list, location_list, init_predicates_list, gameState
+    ):
+        for obj_key, obj_loc_info in gameState.object_loc_info.items():
+            obj_key = PlanParser.create_legal_object_name(obj_key)
+            object_list.append("{} - object".format(obj_key))
+            obj_init_loc = PlanParser.replace_digital_number(
+                "loc|{:.2f}|{:.2f}|{:.2f}".format(obj_loc_info[0], obj_loc_info[1], obj_loc_info[2])
+            )
+            location_list.append("{} - location".format(obj_init_loc))
+            init_predicates_list.append("(objectAtLocation {} {})".format(obj_key, obj_init_loc))
+
+
+    @staticmethod
+    def get_obj_type(obj_key):
+        splits = obj_key.split("_")
+        last_split = splits[-1]
+        if len(last_split) == 1:
+            t = "_".join(splits[:-1])
+        else:
+            t = obj_key
+        return t + "Type"
 
     @staticmethod
     def replace_digital_number(loc_str):
         return loc_str.replace("-", "_minus_").replace(".", "_dot_").replace("|", "_bar_")
+
+    @staticmethod
+    def create_legal_object_name(obj_str):
+        return "legal_" + obj_str.replace("-", "_")
+
+    @staticmethod
+    def create_goal_str(source):
+        if isinstance(source, list):
+            string = ["\t(:goal\n", "\t\t(and\n"] \
+                                   + ["\t\t\t{}\n".format(p) for p in source] \
+                                   + ["\t\t)\n" + "\t)\n"]
+        else:
+            string = source.readlines()
+        return "".join(string)
+
+
+
+
 
 
 

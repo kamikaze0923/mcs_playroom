@@ -36,8 +36,9 @@ class MetaController:
                 os.getcwd(), "point_goal_navigation/model/model_pretrained/{}".format(model_file)
             )
         )
-        self.planner = PlanParser()
+
         self.plannerState = GameState(env.scene_config)
+        self.planner = PlanParser(self.plannerState)
 
 
     def plan_on_current_state(self):
@@ -78,16 +79,23 @@ class MetaController:
             self.face_env.look_to_front()
             self.plannerState.face_to_front = True
             self.plannerState.object_facing = None
+        elif action_dict['action'] == "OpenObject":
+            self.env.step(action="OpenObject", objectId=action_dict['objectId'])
+            if self.env.step_output.return_status == "SUCCESSFUL":
+                self.plannerState.object_open_close_info[action_dict['objectId']] = True
 
     def excecute(self):
         meta_stage = 0
         while True:
-            print("Meta-Stage: {}".format(meta_stage))
+            # print("Meta-Stage: {}".format(meta_stage))
             result_plan = self.plan_on_current_state()
-            for plan in result_plan:
-                print(plan)
+            # for plan in result_plan:
+            #     print(plan)
             if result_plan[0]['action'] == "End":
                 break
             self.step(result_plan[0])
             meta_stage += 1
-        time.sleep(2)
+        # time.sleep(2)
+        assert self.env.step_output.return_status == "SUCCESSFUL"
+        assert self.env.step_output.reward == 1
+        return True

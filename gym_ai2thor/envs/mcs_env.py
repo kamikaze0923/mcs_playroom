@@ -15,33 +15,38 @@ class McsEnv:
     POSSIBLE_INIT_ROTATION = [i*10 for i in range(36)]
     POSSIBLE_INIT = [-4 + i for i in range(9)]
 
-    def __init__(self):
+    def __init__(self, interaction_sceces=True):
 
         if platform.system() == "Linux":
-            app = "gym_ai2thor/unity_app/MCS-AI2-THOR-Unity-App-v0.0.2.x86_64"
+            app = "unity_app/MCS-AI2-THOR-Unity-App-v0.0.2.x86_64"
         elif platform.system() == "Darwin":
-            app = "gym_ai2thor/unity_app/MCSai2thor.app/Contents/MacOS/MCSai2thor"
+            app = "unity_app/MCSai2thor.app/Contents/MacOS/MCSai2thor"
         else:
             app = None
 
-        self.controller = machine_common_sense.MCS_Controller_AI2THOR(
+        self.controller = machine_common_sense.MCS.create_controller(
             os.path.join(app)
         )
 
-        self.scene_config, status = machine_common_sense.MCS.load_config_json_file(
-            os.path.join("gym_ai2thor/scenes/playroom_simplified.json")
-        )
+        if interaction_sceces:
+            goal_dir = os.path.join("interaction_scenes", "traversal")
+            all_scenes = sorted(os.listdir(goal_dir))
+            self.all_scenes = [os.path.join(goal_dir, one_scene) for one_scene in all_scenes]
+        else:
+            self.all_scenes = [os.path.join("scenes", "playroom.json")]
 
-        self.step_output = None
+        self.current_scence = 0
         self.reset()
 
     def step(self, **kwargs):
         self.step_output = self.controller.step(**kwargs)
         # print(self.step_output.return_status)
 
-    def reset(self, random_init=True):
+    def reset(self, random_init=False):
+        self.scene_config, status = machine_common_sense.MCS.load_config_json_file(self.all_scenes[self.current_scence])
+        self.current_scence += 1
         if random_init:
-            self.rotation_state = random.sample(self.POSSIBLE_INIT_ROTATION, 1)[0]
+            self.rotation_state = random.choice(self.POSSIBLE_INIT_ROTATION)
             self.scene_config["performerStart"]["rotation"] = self.rotation_state
             n_objects = len(self.scene_config["objects"]) + 1
             all_possible_loc = [(i,j) for i in self.POSSIBLE_INIT for j in self.POSSIBLE_INIT]
@@ -51,9 +56,9 @@ class McsEnv:
             for i in range(n_objects - 1):
                 self.scene_config["objects"][i]["shows"][0]["position"]["x"] = randon_sample_init_loc[i][0]
                 self.scene_config["objects"][i]["shows"][0]["position"]["z"] = randon_sample_init_loc[i][1]
+
         self.step_output = self.controller.start_scene(self.scene_config)
-
-
+        self.step_output = self.controller.step(action="Pass")
 
 
 
