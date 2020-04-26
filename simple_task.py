@@ -5,7 +5,13 @@ from metaController.metaController import MetaController
 
 if __name__ == "__main__":
     env = McsEnv()
-    for i in range(len(env.all_scenes)):
+    # metaController = MetaController(env)
+    # result = metaController.excecute()
+    # exit(0)
+
+
+
+    for i in range(5, len(env.all_scenes)):
         print(i)
         metaController = MetaController(env)
         result = metaController.excecute()
