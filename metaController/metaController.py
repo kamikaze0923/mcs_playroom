@@ -89,6 +89,7 @@ class MetaController:
         while True:
             # print("Meta-Stage: {}".format(meta_stage))
             result_plan = self.plan_on_current_state()
+
             # for plan in result_plan:
             #     print(plan)
             if result_plan[0]['action'] == "End":

@@ -21,7 +21,7 @@ class McsNavWrapper(McsWrapper):
             super().step(action=action_str, amount=0.5)
         else:
             assert action_str == 'Stop'
-            raise AttributeError('Navigator Should End Before Stop')
+            # raise AttributeError('Navigator Should End Before Stop')
         if epsd_collector is not None:
             epsd_collector.add_experience(self.step_output, action_str)
 
