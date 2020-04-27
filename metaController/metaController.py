@@ -1,6 +1,7 @@
 from point_goal_navigation.navigator import NavigatorResNet
 from gym_ai2thor.envs.mcs_nav import McsNavWrapper
 from gym_ai2thor.envs.mcs_face import McsFaceWrapper
+from gym_ai2thor.envs.mcs_obj import McsObjWrapper
 import os
 from planner.ff_planner_handler import PlanParser
 from metaController.plannerState import GameState
@@ -20,6 +21,7 @@ class MetaController:
         self.env = env
         self.nav_env = McsNavWrapper(env)
         self.face_env = McsFaceWrapper(env)
+        self.obj_env = McsObjWrapper(env)
         self.nav = NavigatorResNet(self.nav_env.action_space, "pointgoal_with_gps_compass")
         if self.nav.RGB_SENSOR:
             if self.nav.DEPTH_SENSOR:
@@ -40,7 +42,6 @@ class MetaController:
         self.plannerState = GameState(env.scene_config)
         self.planner = PlanParser(self.plannerState)
 
-
     def plan_on_current_state(self):
         self.planner.planner_state_to_pddl(self.plannerState)
         return self.planner.get_plan()
@@ -58,31 +59,30 @@ class MetaController:
             self.plannerState.object_facing = action_dict['objectId']
             self.plannerState.face_to_front = False
         elif action_dict['action'] == "PickupObject":
-            self.env.step(action="PickupObject", objectId=action_dict['objectId'])
+            self.obj_env.step("PickupObject", object_id=action_dict['objectId'], epsd_collector=epsd_collector)
             if self.env.step_output.return_status == "SUCCESSFUL":
                 self.plannerState.object_in_hand = action_dict['objectId']
             else:
                 print("Pickup {} fail!".format(action_dict['objectId']))
-                exit(0)
-            if epsd_collector:
-                epsd_collector.add_experience(self.env.step_output, "PickupObject")
         elif action_dict['action'] == "PutObjectIntoReceptacle":
-            self.env.step(
-                action="PutObject", objectId=action_dict['objectId'], receptacleObjectId=action_dict['receptacleId']
+            self.obj_env.step(
+                "PutObjectIntoReceptacle", object_id=action_dict['objectId'],
+                receptacleObjectId=action_dict['receptacleId'], epsd_collector=epsd_collector
             )
             if self.env.step_output.return_status == "SUCCESSFUL":
                 self.plannerState.object_in_hand = None
                 self.plannerState.object_containment_info[action_dict['objectId']] = action_dict['receptacleId']
             else:
                 self.plannerState.knowledge.canNotPutin.add((action_dict['objectId'], action_dict['receptacleId']))
+        elif action_dict['action'] == "OpenObject":
+            self.obj_env.step("OpenObject", object_id=action_dict['objectId'], epsd_collector=epsd_collector)
+            if self.env.step_output.return_status == "SUCCESSFUL":
+                self.plannerState.object_open_close_info[action_dict['objectId']] = True
         elif action_dict['action'] == "FaceToFront":
             self.face_env.look_to_front()
             self.plannerState.face_to_front = True
             self.plannerState.object_facing = None
-        elif action_dict['action'] == "OpenObject":
-            self.env.step(action="OpenObject", objectId=action_dict['objectId'])
-            if self.env.step_output.return_status == "SUCCESSFUL":
-                self.plannerState.object_open_close_info[action_dict['objectId']] = True
+
 
     def excecute(self):
         meta_stage = 0
@@ -94,8 +94,9 @@ class MetaController:
             if result_plan[0]['action'] == "End":
                 break
             self.step(result_plan[0])
+            if self.env.step_output.return_status == "OUT_OF_REACH":
+                break
             meta_stage += 1
         # time.sleep(2)
-        assert self.env.step_output.return_status == "SUCCESSFUL"
-        assert self.env.step_output.reward == 1
+        # assert self.env.step_output.return_status == "SUCCESSFUL"
         return True

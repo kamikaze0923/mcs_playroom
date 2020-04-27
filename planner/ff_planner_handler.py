@@ -120,6 +120,8 @@ class PlanParser(object):
             self.goal_predicates = PlanParser.create_goal_str(plannerState.goal_predicate_list)
             if plannerState.goal_category == "traversal":
                 self.domain_file = "planner/domains/Traversal_domain.pddl"
+            elif plannerState.goal_category == "retrieval":
+                self.domain_file = "planner/domains/Retrieval_domain.pddl"
 
 
     def get_plan(self):
@@ -212,9 +214,7 @@ class PlanParser(object):
                         init_predicates_list.append("(isOpened {})".format(obj_canBe_open))
 
 
-    def generate_interactive_scene_object_str(
-            self, object_list, location_list, init_predicates_list, gameState
-    ):
+    def generate_interactive_scene_object_str(self, object_list, location_list, init_predicates_list, gameState):
         for obj_key, obj_loc_info in gameState.object_loc_info.items():
             obj_key = PlanParser.create_legal_object_name(obj_key)
             object_list.append("{} - object".format(obj_key))
@@ -223,7 +223,6 @@ class PlanParser(object):
             )
             location_list.append("{} - location".format(obj_init_loc))
             init_predicates_list.append("(objectAtLocation {} {})".format(obj_key, obj_init_loc))
-
 
     @staticmethod
     def get_obj_type(obj_key):
@@ -242,6 +241,10 @@ class PlanParser(object):
     @staticmethod
     def create_legal_object_name(obj_str):
         return "legal_" + obj_str.replace("-", "_")
+
+    @staticmethod
+    def map_legal_object_name_back(obj_str):
+        return obj_str.replace("legal_", "").replace("_", "-")
 
     @staticmethod
     def create_goal_str(source):

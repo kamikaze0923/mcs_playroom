@@ -9,11 +9,9 @@ if __name__ == "__main__":
     # result = metaController.excecute()
     # exit(0)
 
-
-
-    for i in range(5, len(env.all_scenes)):
-        print(i)
+    while env.current_scence != len(env.all_scenes):
+        print(env.current_scence)
         metaController = MetaController(env)
         result = metaController.excecute()
+        # assert env.step_output.reward == 1
         env.reset()
-

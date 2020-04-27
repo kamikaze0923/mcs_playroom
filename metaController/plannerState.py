@@ -48,6 +48,12 @@ class GameState:
                 self.goal_predicate_list.append(
                     "(agentAtLocation {} {})".format(self.AGENT_NAME, agent_final_loc)
                 )
+            elif self.goal_category == "retrieval":
+                goal_object_id = config['goal']['metadata']['target']['id']
+                self.goal_predicate_list.append(
+                    "(held {} {})".format(self.AGENT_NAME, PlanParser.create_legal_object_name(goal_object_id))
+                )
+
 
 
 class GameKnowlege:

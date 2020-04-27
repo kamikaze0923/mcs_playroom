@@ -29,13 +29,13 @@ class McsEnv:
         )
 
         if interaction_sceces:
-            goal_dir = os.path.join("interaction_scenes", "traversal")
+            goal_dir = os.path.join("interaction_scenes", "retrival")
             all_scenes = sorted(os.listdir(goal_dir))
             self.all_scenes = [os.path.join(goal_dir, one_scene) for one_scene in all_scenes]
         else:
             self.all_scenes = [os.path.join("scenes", "playroom.json")]
 
-        self.current_scence = 5
+        self.current_scence = 0
         self.reset()
 
     def step(self, **kwargs):
