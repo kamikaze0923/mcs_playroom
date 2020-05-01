@@ -64,6 +64,7 @@ def get_plan_from_file(args):
         # planner_output = subprocess.check_output(shlex.split(command), timeout=20)
         stream = os.popen(command)
         planner_output = stream.read()
+        stream.close()
     except subprocess.CalledProcessError as error:
         # Plan is done
         output_str = error.output.decode("utf-8")

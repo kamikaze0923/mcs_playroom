@@ -3,23 +3,29 @@
 	(:metric minimize (totalCost))
 	(:objects
 		agent1 - agent
-		legal_1daab986_cd2b_4825_bea7_9390bb7a291c - object
-		legal_wall_259aada8_45cf_45d5_942e_da0a17651188 - object
-		loc_bar__minus_3_dot_37_bar_0_dot_46_bar_1_dot_35 - location
-		loc_bar__minus_1_dot_60_bar_0_dot_00_bar_3_dot_21 - location
-		loc_bar_1_dot_98_bar_1_dot_50_bar__minus_0_dot_57 - location
+		legal_6939183f_c90f_43d4_a9fa_35210461a4f5 - object
+		legal_wall_1542d192_c706_4ba7_a334_c3ec6fb3cc74 - object
+		legal_wall_533d8851_3bfc_4104_b59b_f92be04fa14e - object
+		legal_wall_16d68ea3_cde0_44c0_bc59_c21ced776ca5 - object
+		loc_bar__minus_0_dot_99_bar_0_dot_00_bar_0_dot_69 - location
+		loc_bar__minus_0_dot_99_bar_0_dot_00_bar_0_dot_69 - location
+		loc_bar__minus_2_dot_56_bar_1_dot_50_bar_1_dot_62 - location
+		loc_bar_2_dot_51_bar_1_dot_50_bar__minus_2_dot_99 - location
+		loc_bar__minus_2_dot_72_bar_1_dot_50_bar_2_dot_46 - location
 	)
 	(:init
 		(= (totalCost) 0)
 		(handEmpty agent1)
 		(headTiltZero agent1)
-		(agentAtLocation agent1 loc_bar__minus_3_dot_37_bar_0_dot_46_bar_1_dot_35)
-		(objectAtLocation legal_1daab986_cd2b_4825_bea7_9390bb7a291c loc_bar__minus_1_dot_60_bar_0_dot_00_bar_3_dot_21)
-		(objectAtLocation legal_wall_259aada8_45cf_45d5_942e_da0a17651188 loc_bar_1_dot_98_bar_1_dot_50_bar__minus_0_dot_57)
+		(agentAtLocation agent1 loc_bar__minus_0_dot_99_bar_0_dot_00_bar_0_dot_69)
+		(objectAtLocation legal_6939183f_c90f_43d4_a9fa_35210461a4f5 loc_bar__minus_0_dot_99_bar_0_dot_00_bar_0_dot_69)
+		(objectAtLocation legal_wall_1542d192_c706_4ba7_a334_c3ec6fb3cc74 loc_bar__minus_2_dot_56_bar_1_dot_50_bar_1_dot_62)
+		(objectAtLocation legal_wall_533d8851_3bfc_4104_b59b_f92be04fa14e loc_bar_2_dot_51_bar_1_dot_50_bar__minus_2_dot_99)
+		(objectAtLocation legal_wall_16d68ea3_cde0_44c0_bc59_c21ced776ca5 loc_bar__minus_2_dot_72_bar_1_dot_50_bar_2_dot_46)
 	)
 	(:goal
 		(and
-			(held agent1 legal_1daab986_cd2b_4825_bea7_9390bb7a291c)
+			(held agent1 legal_6939183f_c90f_43d4_a9fa_35210461a4f5)
 		)
 	)
 )
