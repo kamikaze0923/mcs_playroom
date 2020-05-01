@@ -71,6 +71,7 @@ class MetaController:
                 self.plannerState.object_facing = action_dict['objectId']
             else:
                 del self.plannerState.object_loc_info[action_dict['objectId']]
+                print("Object {} not at {}".format(action_dict['objectId'], action_dict['location']))
             self.plannerState.face_to_front = False
         elif action_dict['action'] == "PickupObject":
             self.obj_env.step("PickupObject", object_id=action_dict['objectId'], epsd_collector=epsd_collector)

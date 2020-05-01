@@ -128,10 +128,12 @@ class PlanParser(object):
 
 
     def get_plan(self):
-        parsed_plans = self.process_pool.map(
-            get_plan_from_file, zip([self.domain_file] * 1, [self.FACTS_FILE] * 1, range(3, 4))
-        )
-        return self.find_best_plan(parsed_plans)
+        # parsed_plans = self.process_pool.map(
+        #     get_plan_from_file, zip([self.domain_file] * 1, [self.FACTS_FILE] * 1, range(3, 4))
+        # )
+        parsed_plans = get_plan_from_file((self.domain_file, self.FACTS_FILE, 3))
+        return parsed_plans
+        # return self.find_best_plan(parsed_plans)
 
     def find_best_plan(self, parsed_plans):
         if all([parsed_plan[0] == "timeout" for parsed_plan in parsed_plans]):
