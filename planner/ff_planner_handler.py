@@ -3,6 +3,7 @@ import re
 import shlex
 import subprocess
 from planner.utils import replace_location_string
+import os
 
 
 DEBUG = False
@@ -60,7 +61,9 @@ def get_plan_from_file(args):
     domain, filepath, solver_type = args
     try:
         command = "ff_planner/ff -o {:s} -s {:d} -f {:s}".format(domain, solver_type, filepath)
-        planner_output = subprocess.check_output(shlex.split(command), timeout=20)
+        # planner_output = subprocess.check_output(shlex.split(command), timeout=20)
+        stream = os.popen(command)
+        planner_output = stream.read()
     except subprocess.CalledProcessError as error:
         # Plan is done
         output_str = error.output.decode("utf-8")
@@ -87,7 +90,8 @@ def get_plan_from_file(args):
         print("Empty plan")
         return ["timeout", {"action": "End", "value": 0}]
 
-    unparsed_plan = planner_output.decode("utf-8").split("\n")
+    # unparsed_plan = planner_output.decode("utf-8").split("\n")
+    unparsed_plan = planner_output.split("\n")
 
     parsed_plan = parse_plan(unparsed_plan)
 
