@@ -35,7 +35,7 @@ class McsEnv:
         else:
             self.all_scenes = [os.path.join("scenes", "playroom.json")]
 
-        self.current_scence = 0
+        self.current_scence = 169
         self.reset()
 
     def step(self, **kwargs):
