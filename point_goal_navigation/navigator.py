@@ -139,7 +139,7 @@ class NavigatorResNet:
             obs = self.get_observation(step_output)
             done = self.distance_to_goal(self.goal, step_output) <= success_distance - 0.7
             step_cnt += 1
-            if step_cnt > 100:
+            if step_cnt > 200:
                 return False
         return True
 
