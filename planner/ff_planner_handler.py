@@ -65,7 +65,7 @@ def get_plan_from_file(args):
     stream = os.popen(command)
     planner_output = stream.read()
     stream.close()
-    stream._proc.terminate()
+    stream._proc.kill()
 
     # unparsed_plan = planner_output.decode("utf-8").split("\n")
     unparsed_plan = planner_output.split("\n")
