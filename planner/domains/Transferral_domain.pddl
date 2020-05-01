@@ -19,8 +19,8 @@
     (headTiltZero ?a - agent)                                 ; agent ?a is looking straightly to front
     (lookingAtObject ?a - agent ?o - object)                  ; agent ?a is looking at object ?o
     (inReceptacle ?o1 - object ?o2 - object)                  ; object ?o1 is in receptacle ?o2
-    (openable ?o)                                             ; true if ?o can be opened
-    (isOpened ?o)                                             ; true if ?o is opened
+    (objectNextTo ?o ?g)                                      ; object ?o is next to object ?g
+    (objectOnTopOf ?o ?g)                                     ; object ?o is on top of object ?g
  )
 
  (:functions
@@ -73,26 +73,8 @@
  (:action PickUpObject
     :parameters (?a - agent ?o - object ?l - location)
     :precondition (and
-                      (or
-                        (and
-                          (objectAtLocation ?o ?l)
-                          (lookingAtObject ?a ?o)
-                        )
-                        (exists (?r - object)
-                          (and
-                            (objectAtLocation ?r ?l)
-                            (lookingAtObject ?a ?r)
-                            (inReceptacle ?o ?r)
-                            (or
-                              (not (openable ?r))
-                              (and
-                                (isOpened ?r)
-                                (openable ?r)
-                              )
-                            )
-                          )
-                        )
-                      )
+                      (objectAtLocation ?o ?l)
+                      (lookingAtObject ?a ?o)
                       (handEmpty ?a)
                   )
     :effect (and
@@ -104,16 +86,36 @@
             )
  )
 
- (:action OpenObject
-    :parameters (?a - agent ?o - object ?l - location)
+ (:action DropObjectNextTo
+    :parameters (?a - agent ?g - object ?o - object ?l - location)
     :precondition (and
-                    (objectAtLocation ?o ?l)
-                    (lookingAtObject ?a ?o)
-                    (openable ?o)
-                    (not (isOpened ?o))
+                    (agentAtLocation ?a ?l)
+                    (objectAtLocation ?g ?l)
+                    (headTiltZero ?a)
+                    (held ?a ?o)
+                    (not (handEmpty ?a))
                   )
     :effect (and
-                (isOpened ?o)
+                (not (held ?a ?o))
+                (objectNextTo ?o ?g)
+                (handEmpty ?a)
+                (increase (totalCost) 1)
+            )
+ )
+
+  (:action DropObjectOnTopOf
+    :parameters (?a - agent ?g - object ?o - object ?l - location)
+    :precondition (and
+                    (agentAtLocation ?a ?l)
+                    (objectAtLocation ?g ?l)
+                    (headTiltZero ?a)
+                    (held ?a ?o)
+                    (not (handEmpty ?a))
+                  )
+    :effect (and
+                (not (held ?a ?o))
+                (objectOnTopOf ?o ?g)
+                (handEmpty ?a)
                 (increase (totalCost) 1)
             )
  )

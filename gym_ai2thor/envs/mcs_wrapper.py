@@ -18,6 +18,3 @@ class McsWrapper:
     def step_output(self):
         return self.env.step_output
 
-    @property
-    def max_reach_distance(self):
-        return machine_common_sense.mcs_controller_ai2thor.MAX_REACH_DISTANCE

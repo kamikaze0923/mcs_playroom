@@ -12,5 +12,4 @@ if __name__ == "__main__":
         print(env.current_scence)
         metaController = MetaController(env)
         result = metaController.excecute()
-        # assert env.step_output.reward == 1
         env.reset()

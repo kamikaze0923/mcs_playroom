@@ -10,7 +10,7 @@ class McsObjWrapper(McsWrapper):
     def step(self, action, object_id=None, receptacleObjectId=None, epsd_collector=None):
         assert object_id is not None
         object_id = PlanParser.map_legal_object_name_back(object_id)
-        if action in ["PickupObject", "OpenObject", "CloseObject"]:
+        if action in ["PickupObject", "OpenObject", "DropObject"]:
             super().step(action=action, objectId=object_id)
         elif action == "PutObjectIntoReceptacle":
             assert receptacleObjectId is not None

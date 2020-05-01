@@ -101,14 +101,14 @@ class NavigatorResNet:
         # souce_rotation = quat_from_angle_axis(theta)
         # direction_vec_unit = [delta_x_unit_3d, delta_y_unit_3d, delta_z_unit_3d]
         # direction_vec_unit_agent = quaternion_rotate_vector(souce_rotation.inverse(), direction_vec_unit)
-        # dir_3d = np.round(np.arctan2(-direction_vec_unit_agent[0], direction_vec_unit_agent[2]), 2)
+        # dir_3d = np.arctan2(-direction_vec_unit_agent[0], direction_vec_unit_agent[2])
 
         theta = 2 * np.pi * step_output.rotation / 360
         reverse_rotate_complex = np.array(np.cos(theta) + np.sin(theta) * 1j)
         delta_x_unit_2d, _, delta_z_unit_2d = normalize_3d_rotation(delta_x_unit_3d, 0, delta_z_unit_3d)
         relative_complex = np.array(delta_z_unit_2d - delta_x_unit_2d * 1j)
         rotate_direction = relative_complex * reverse_rotate_complex
-        dir_2d = np.round(np.arctan2(rotate_direction.imag, rotate_direction.real), 2)
+        dir_2d = np.arctan2(rotate_direction.imag, rotate_direction.real)
         # print(dir_3d, dir_2d)
         return dir_2d
 
@@ -121,13 +121,15 @@ class NavigatorResNet:
             )
         )
 
-    def go_to_goal(self, env, goal, epsd_collector=None):
+    def go_to_goal(self, env, goal, success_distance, epsd_collector=None):
+        assert success_distance is not None
         self.set_goal(goal)
         done = False
         mask = torch.zeros(size=(1,1))
         hidden_states = torch.zeros(size=(self.actor_critic.net.num_recurrent_layers,1,512))
         prev_action = torch.zeros(1,1)
         obs = self.get_observation(env.step_output)
+        step_cnt = 0
         while not done:
             batch = batch_obs(obs)
             action, hidden_states = self.act(batch, hidden_states, prev_action, mask)
@@ -135,7 +137,13 @@ class NavigatorResNet:
             mask = torch.ones(size=(1,1))
             step_output = env.step(action, epsd_collector)
             obs = self.get_observation(step_output)
-            done = self.distance_to_goal(self.goal, step_output) <= env.max_reach_distance
+            done = self.distance_to_goal(self.goal, step_output) <= success_distance - 0.7
+            step_cnt += 1
+            if step_cnt > 100:
+                return False
+        return True
+
+
 
 
 

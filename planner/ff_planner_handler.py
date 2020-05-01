@@ -13,7 +13,9 @@ CAPS_ACTION_TO_PLAN_ACTION = {
     "PICKUPOBJECT": "PickupObject",
     "PUTOBJECTINTORECEPTACLE": "PutObjectIntoReceptacle",
     "FACETOFRONT": "FaceToFront",
-    "OPENOBJECT": "OpenObject"
+    "OPENOBJECT": "OpenObject",
+    "DROPOBJECTNEXTTO": "DropObjectNextTo",
+    "DROPOBJECTONTOPOF": "DropObjectOnTopOf"
 }
 
 def parse_line(line):
@@ -31,19 +33,17 @@ def parse_line(line):
         if action == "FaceToObject":
             action_dict["objectId"] = line_args[-2].lower()
 
-    elif action in ["PickupObject"]:
+    elif action in ["PickupObject", "OpenObject", "DropObjectNextTo", "DropObjectOnTopOf"]:
         object_id = line_args[-2].lower()
         action_dict["objectId"] = object_id
+        if action in ["DropObjectNextTo", "DropObjectOnTopOf"]:
+            action_dict["goal_objectId"] = line_args[-3].lower()
 
     elif action in ["PutObjectIntoReceptacle"]:
         object_id = line_args[-3].lower()
         receptacle_id = line_args[-2].lower()
         action_dict["objectId"] = object_id
         action_dict["receptacleId"] = receptacle_id
-
-    elif action in ["OpenObject"]:
-        object_id = line_args[-2].lower()
-        action_dict["objectId"] = object_id
 
     return action_dict
 
@@ -96,8 +96,8 @@ def get_plan_from_file(args):
 
 class PlanParser(object):
 
-    FACTS_FILE = "planner/sample_problems/playroom_facts.pddl"
-    GOALS_FILE = "planner/sample_problems/playroom_goals.pddl"
+    FACTS_FILE = "planner/sample_problems/running_facts.pddl"
+    GOALS_FILE = "planner/sample_problems/running_goals.pddl"
     CONSIDER_OBJECT_TYPES = [
         "ballType", "appleType", "cupType", "boxType", "bowlType",
         "plateType", "sofaType", "sofa_chairType", "chairType"
@@ -122,6 +122,8 @@ class PlanParser(object):
                 self.domain_file = "planner/domains/Traversal_domain.pddl"
             elif plannerState.goal_category == "retrieval":
                 self.domain_file = "planner/domains/Retrieval_domain.pddl"
+            elif plannerState.goal_category == "transferral":
+                self.domain_file = "planner/domains/Transferral_domain.pddl"
 
 
     def get_plan(self):
@@ -155,13 +157,19 @@ class PlanParser(object):
         if gameState.object_facing:
             init_predicates_list.append("(lookingAtObject {} {})".format(gameState.AGENT_NAME, gameState.object_facing))
 
+        object_list = ["{} - agent".format(gameState.AGENT_NAME)]
+
+        if gameState.object_in_hand not in gameState.object_loc_info and gameState.object_in_hand is not None:
+            object_list.append("{} - object".format(gameState.object_in_hand))
+
         for obj, rcp in gameState.object_containment_info.items():
             init_predicates_list.append("(inReceptacle {} {})".format(obj, rcp))
+            if obj not in gameState.object_loc_info:
+                object_list.append("{} - object".format(obj))
 
         for obj, rcp in gameState.knowledge.canNotPutin:
             init_predicates_list.append("(canNotPutin {} {})".format(obj, rcp))
 
-        object_list = ["{} - agent".format(gameState.AGENT_NAME)]
 
         agent_init_loc = PlanParser.replace_digital_number(
             "loc|{:.2f}|{:.2f}|{:.2f}".format(
@@ -216,13 +224,21 @@ class PlanParser(object):
 
     def generate_interactive_scene_object_str(self, object_list, location_list, init_predicates_list, gameState):
         for obj_key, obj_loc_info in gameState.object_loc_info.items():
-            obj_key = PlanParser.create_legal_object_name(obj_key)
             object_list.append("{} - object".format(obj_key))
             obj_init_loc = PlanParser.replace_digital_number(
                 "loc|{:.2f}|{:.2f}|{:.2f}".format(obj_loc_info[0], obj_loc_info[1], obj_loc_info[2])
             )
             location_list.append("{} - location".format(obj_init_loc))
             init_predicates_list.append("(objectAtLocation {} {})".format(obj_key, obj_init_loc))
+        for obj, goal_obj in gameState.knowledge.objectNextTo.items():
+            init_predicates_list.append("(objectNextTo {} {})".format(obj, goal_obj))
+        for obj, goal_obj in gameState.knowledge.objectOnTopOf.items():
+            init_predicates_list.append("(objectOnTopOf {} {})".format(obj, goal_obj))
+
+        for obj_canBe_open, isOpen in gameState.object_open_close_info.items():
+            init_predicates_list.append("(openable {})".format(obj_canBe_open))
+            if isOpen:
+                init_predicates_list.append("(isOpened {})".format(obj_canBe_open))
 
     @staticmethod
     def get_obj_type(obj_key):

@@ -52,7 +52,7 @@ class McsHumanControlEnv(McsEnv):
         elif action_str == "CloseObject":
             self.step_output = self.controller.step(action="CloseObject", **args)
         else:
-            raise NotImplementedError
+            self.step_output = self.controller.step(action=action_str)
 
 
     def print_step_output(self):
@@ -129,6 +129,9 @@ if __name__ == '__main__':
         elif action == "M":
             obj = input("Close Object! Enter the object ID: ")
             env.step("CloseObject", objectId=obj)
+        elif action == "L":
+            action_command = input("Input pose action:")
+            env.step(action_command)
         elif action == "z":
             break
         else:
