@@ -137,7 +137,7 @@ class NavigatorResNet:
             mask = torch.ones(size=(1,1))
             step_output = env.step(action, epsd_collector)
             obs = self.get_observation(step_output)
-            done = self.distance_to_goal(self.goal, step_output) <= success_distance - 0.7
+            done = self.distance_to_goal(self.goal, step_output) <= success_distance - 0.5
             step_cnt += 1
             if step_cnt > 200:
                 return False
