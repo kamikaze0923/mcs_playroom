@@ -1,7 +1,7 @@
 import multiprocessing
 import re
-import shlex
-import subprocess
+# import shlex
+# import subprocess
 from planner.utils import replace_location_string
 import os
 
@@ -59,37 +59,13 @@ def parse_plan(lines):
 
 def get_plan_from_file(args):
     domain, filepath, solver_type = args
-    try:
-        command = "ff_planner/ff -o {:s} -s {:d} -f {:s}".format(domain, solver_type, filepath)
-        # planner_output = subprocess.check_output(shlex.split(command), timeout=20)
-        stream = os.popen(command)
-        planner_output = stream.read()
-        stream.close()
-    except subprocess.CalledProcessError as error:
-        # Plan is done
-        output_str = error.output.decode("utf-8")
-        if DEBUG:
-            print("output", output_str)
-        if "goal can be simplified to FALSE" in output_str or "won't get here: simplify, non logical" in output_str:
-            return [{"action": "End", "value": 0}]
-        elif "goal can be simplified to TRUE" in output_str:
-            return [{"action": "End", "value": 1}]
-        elif len(output_str) == 0:
-            # Usually indicates segfault with ffplanner
-            # This happens when the goal needs an object that hasn't been seen yet like
-            # Q: "is there an egg in the garbage can," but no garbage can has been seen.
-            print("Empty plan")
-            print("Seg Fault")
-            return [{"action": "End", "value": 0}]
-        else:
-            print("problem", filepath)
-            print(output_str)
-            print("Empty plan")
-            return [{"action": "End", "value": 0}]
-    except subprocess.TimeoutExpired:
-        print("timeout solver", solver_type, "problem", filepath)
-        print("Empty plan")
-        return ["timeout", {"action": "End", "value": 0}]
+
+    command = "ff_planner/ff -o {:s} -s {:d} -f {:s}".format(domain, solver_type, filepath)
+    # planner_output = subprocess.check_output(shlex.split(command), timeout=20)
+    stream = os.popen(command)
+    planner_output = stream.read()
+    stream.close()
+
 
     # unparsed_plan = planner_output.decode("utf-8").split("\n")
     unparsed_plan = planner_output.split("\n")
