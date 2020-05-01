@@ -1,4 +1,5 @@
 from planner.ff_planner_handler import PlanParser
+from collections import defaultdict
 
 class GameState:
 
@@ -29,7 +30,8 @@ class GameState:
             )
             if "opened" in obj:
                 self.object_open_close_info[object_id] = obj["opened"]
-        self.object_containment_info = {}
+
+        self.object_containment_info = defaultdict(lambda : [])
         self.object_knowledge_info = {}
 
         self.goal_predicate_list = None
@@ -56,7 +58,7 @@ class GameState:
                         continue
                     if "openable" in obj and obj["openable"] == True:
                         receptacle_object_id = PlanParser.create_legal_object_name(obj['id'])
-                        self.object_containment_info[goal_object_id] = receptacle_object_id
+                        self.object_containment_info[goal_object_id].append(receptacle_object_id)
                         if "opened" in obj:
                             self.object_open_close_info[receptacle_object_id] = True
                         else:

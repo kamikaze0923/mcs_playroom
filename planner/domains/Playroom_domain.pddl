@@ -91,7 +91,7 @@
  )
 
  (:action PutObjectIntoReceptacle
-    :parameters (?a - agent ?o1 - object ?o2 - object ?l - location)
+    :parameters (?a - agent ?o2 - object ?o1 - object ?l - location)
     :precondition (and
                     (objectAtLocation ?o2 ?l)
                     (lookingAtObject ?a ?o2)

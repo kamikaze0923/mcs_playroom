@@ -11,6 +11,7 @@ CAPS_ACTION_TO_PLAN_ACTION = {
     "GOTOLOCATION": "GotoLocation",
     "FACETOOBJECT": "FaceToObject",
     "PICKUPOBJECT": "PickupObject",
+    "PICKUPOBJECTFROMRECEPTACLE": "PickupObjectFromReceptacle",
     "PUTOBJECTINTORECEPTACLE": "PutObjectIntoReceptacle",
     "FACETOFRONT": "FaceToFront",
     "OPENOBJECT": "OpenObject",
@@ -39,9 +40,9 @@ def parse_line(line):
         if action in ["DropObjectNextTo", "DropObjectOnTopOf"]:
             action_dict["goal_objectId"] = line_args[-3].lower()
 
-    elif action in ["PutObjectIntoReceptacle"]:
-        object_id = line_args[-3].lower()
-        receptacle_id = line_args[-2].lower()
+    elif action in ["PutObjectIntoReceptacle", "PickupObjectFromReceptacle"]:
+        object_id = line_args[-2].lower()
+        receptacle_id = line_args[-3].lower()
         action_dict["objectId"] = object_id
         action_dict["receptacleId"] = receptacle_id
 
@@ -162,8 +163,9 @@ class PlanParser(object):
         if gameState.object_in_hand not in gameState.object_loc_info and gameState.object_in_hand is not None:
             object_list.append("{} - object".format(gameState.object_in_hand))
 
-        for obj, rcp in gameState.object_containment_info.items():
-            init_predicates_list.append("(inReceptacle {} {})".format(obj, rcp))
+        for obj, rcp_list in gameState.object_containment_info.items():
+            for rcp in rcp_list:
+                init_predicates_list.append("(inReceptacle {} {})".format(obj, rcp))
             if obj not in gameState.object_loc_info:
                 object_list.append("{} - object".format(obj))
 

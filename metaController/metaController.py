@@ -78,6 +78,13 @@ class MetaController:
                 self.plannerState.object_in_hand = action_dict['objectId']
             else:
                 print("Pickup {} fail!".format(action_dict['objectId']))
+        elif action_dict['action'] == "PickupObjectFromReceptacle":
+            self.obj_env.step("PickupObject", object_id=action_dict['objectId'], epsd_collector=epsd_collector)
+            if self.env.step_output.return_status == "SUCCESSFUL":
+                self.plannerState.object_in_hand = action_dict['objectId']
+            else:
+                print("{} not in {}".format(action_dict['objectId'], action_dict['receptacleId']))
+                self.plannerState.object_containment_info[action_dict['objectId']].remove(action_dict['receptacleId'])
         elif action_dict['action'] == "PutObjectIntoReceptacle":
             self.obj_env.step(
                 "PutObjectIntoReceptacle", object_id=action_dict['objectId'],
