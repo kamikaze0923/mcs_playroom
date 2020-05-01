@@ -1,9 +1,9 @@
 import multiprocessing
 import re
-# import shlex
-# import subprocess
+import shlex
+import subprocess
 from planner.utils import replace_location_string
-import os
+
 
 
 DEBUG = False
@@ -61,15 +61,8 @@ def get_plan_from_file(args):
     domain, filepath, solver_type = args
 
     command = "ff_planner/ff -o {:s} -s {:d} -f {:s}".format(domain, solver_type, filepath)
-    # planner_output = subprocess.check_output(shlex.split(command), timeout=20)
-    stream = os.popen(command)
-    planner_output = stream.read()
-    stream.close()
-    stream._proc.kill()
-
-    # unparsed_plan = planner_output.decode("utf-8").split("\n")
-    unparsed_plan = planner_output.split("\n")
-
+    proc = subprocess.run(shlex.split(command), stdout=subprocess.PIPE)
+    unparsed_plan = proc.stdout.decode("utf-8").split("\n")
     parsed_plan = parse_plan(unparsed_plan)
 
     if len(parsed_plan) == 0:
