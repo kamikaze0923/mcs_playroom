@@ -148,13 +148,20 @@ class NavigatorResNet:
         reward = -0.01
         done = False
         previous_distance = NavigatorResNet.distance_to_goal(self.goal, env.step_output)
+        previous_xz = (env.step_output.position['x'], env.step_output.position['z'])
         env.step(action_int)
         new_distance = NavigatorResNet.distance_to_goal(self.goal, env.step_output)
+        new_xz = (env.step_output.position['x'], env.step_output.position['z'])
         reward += (previous_distance - new_distance)
         if env.action_names[action_int] == "Stop":
             done = True
             if new_distance < machine_common_sense.mcs_controller_ai2thor.MAX_REACH_DISTANCE:
                 reward += 10
+        elif env.action_names[action_int] == "MoveAhead":
+            move_amount = ((previous_xz[0] - new_xz[0]) ** 2 + (previous_xz[1] - new_xz[1]) ** 2) ** 0.5
+            if abs(move_amount - 0.25) > 1e-3:
+                reward -= 10
+                done = True
         return reward, done
 
 
