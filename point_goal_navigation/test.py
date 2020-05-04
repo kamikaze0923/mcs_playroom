@@ -48,7 +48,7 @@ def test(rank, args, shared_model, counter):
 
     episode_length = 0
     ckpt_counter = 0
-    n_test_episode = 40
+    n_test_episode = 20
     while True:
         success_cnt = 0
         for _ in range(n_test_episode):
@@ -93,7 +93,7 @@ def test(rank, args, shared_model, counter):
 
                     reward_sum = 0
                     episode_length = 0
-                    nav_env.reset()
+                    nav_env.reset(random_init=True)
                     set_random_object_goal(navigator, env.scene_config)
                     state = navigator.get_observation(nav_env.step_output)
 
