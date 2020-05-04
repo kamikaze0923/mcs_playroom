@@ -41,15 +41,17 @@ def test(rank, args, shared_model, counter):
 
 
     logger = CSVLogger(os.path.join(save, 'test.csv'))
-    fileds = ['episode_reward', 'frames_rendered']
+    fileds = ['episode_success_rate', 'frames_rendered']
     logger.log(fileds)
 
     start_time = time.time()
 
     episode_length = 0
     ckpt_counter = 0
+    n_test_episode = 40
     while True:
-        for _ in range(10):
+        success_cnt = 0
+        for _ in range(n_test_episode):
             while True:
                 done_mask = torch.zeros(size=(1,1)).to(args.device)
                 undone_mask = torch.ones(size=(1,1)).to(args.device)
@@ -78,6 +80,8 @@ def test(rank, args, shared_model, counter):
                 reward_sum += reward
 
                 if done:
+                    if reward == 9.99:
+                        success_cnt += 1
                     print(
                         "Time {}, num steps over all threads {}, FPS {:.0f}, episode reward {: .2f}, success {}, episode length {}".format(
                         time.strftime("%Hh %Mm %Ss", time.gmtime(time.time() - start_time)),
@@ -87,7 +91,6 @@ def test(rank, args, shared_model, counter):
                     if args.device != "cpu:":
                         env, nav_env = check_gpu_usage_and_restart_env(env, nav_env)
 
-                    logger.log(["{: .2f}".format(reward_sum), counter.value])
                     reward_sum = 0
                     episode_length = 0
                     nav_env.reset()
@@ -95,6 +98,7 @@ def test(rank, args, shared_model, counter):
                     state = navigator.get_observation(nav_env.step_output)
 
         torch.save(model.state_dict(), os.path.join(save, "ckpt{}.pth".format(ckpt_counter)))
+        logger.log(["{: .2f}".format(success_cnt / n_test_episode), counter.value])
         time.sleep(args.test_sleep_time)
         ckpt_counter += 1
         if ckpt_counter == 24 * 6:
