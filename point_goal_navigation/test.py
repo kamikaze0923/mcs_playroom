@@ -48,7 +48,7 @@ def test(rank, args, shared_model, counter):
 
     episode_length = 0
     ckpt_counter = 0
-    n_test_episode = 20
+    n_test_episode = 40
     while True:
         success_cnt = 0
         for _ in range(n_test_episode):
@@ -96,6 +96,7 @@ def test(rank, args, shared_model, counter):
                     nav_env.reset(random_init=True)
                     set_random_object_goal(navigator, env.scene_config)
                     state = navigator.get_observation(nav_env.step_output)
+                    break
 
         torch.save(model.state_dict(), os.path.join(save, "ckpt{}.pth".format(ckpt_counter)))
         logger.log(["{: .2f}".format(success_cnt / n_test_episode), counter.value])
