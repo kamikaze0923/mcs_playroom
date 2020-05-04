@@ -88,8 +88,8 @@ def test(rank, args, shared_model, counter):
                         counter.value, counter.value / (time.time() - start_time),
                         reward_sum, reward == 9.99, episode_length)
                     )
-                    if args.device != "cpu:":
-                        env, nav_env = check_gpu_usage_and_restart_env(env, nav_env)
+                    # if args.device != "cpu:":
+                    #     env, nav_env = check_gpu_usage_and_restart_env(env, nav_env)
 
                     reward_sum = 0
                     episode_length = 0

@@ -108,8 +108,8 @@ def train(rank, args, shared_model, counter, lock, optimizer):
                 print('Process {} Episode {} Over with Length: {} and Reward: {: .2f}, Success: {}. Total Trained Length: {}'.format(
                     rank, n_episode, episode_length, total_reward_for_episode, reward == 9.99, total_length))
 
-                if args.device != "cpu:":
-                    env, nav_env = check_gpu_usage_and_restart_env(env, nav_env)
+                # if args.device != "cpu:":
+                #     env, nav_env = check_gpu_usage_and_restart_env(env, nav_env)
 
                 nav_env.reset(random_init=True)
                 set_random_object_goal(navigator, env.scene_config)
