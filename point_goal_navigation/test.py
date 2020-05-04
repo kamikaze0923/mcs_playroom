@@ -101,7 +101,7 @@ def test(rank, args, shared_model, counter):
         logger.log(["{: .2f}".format(success_cnt / n_test_episode), counter.value])
         time.sleep(args.test_sleep_time)
         ckpt_counter += 1
-        if ckpt_counter == 24 * 6:
+        if ckpt_counter == 12 * 2:
             env.controller.end_scene(None, None)
             logger.close()
             break

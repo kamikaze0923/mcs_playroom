@@ -40,7 +40,7 @@ parser.add_argument('--max-grad-norm', type=float, default=50,
                     help='value loss coefficient (default: 50)')
 parser.add_argument('--seed', type=int, default=1,
                     help='random seed (default: 1)')
-parser.add_argument('--test-sleep-time', type=int, default=600,
+parser.add_argument('--test-sleep-time', type=int, default=1800,
                     help='number of seconds to wait before testing again (default: 10)')
 parser.add_argument('--num-processes', type=int, default=5,
                     help='how many training processes to use (default: 1)')
