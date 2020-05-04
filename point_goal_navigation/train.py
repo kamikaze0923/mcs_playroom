@@ -19,6 +19,7 @@ import sys
 from a3c.task_util import get_model_from_task
 from gym_ai2thor.envs.mcs_env import McsEnv
 from point_goal_navigation.common.utils import batch_obs, set_random_object_goal
+from a3c.task_util import check_gpu_usage_and_restart_env
 
 
 def ensure_shared_grads(model, shared_model):
@@ -103,6 +104,10 @@ def train(rank, args, shared_model, counter, lock, optimizer):
                 all_rewards_in_episode = []
                 print('Process {} Episode {} Over with Length: {} and Reward: {: .2f}. Total Trained Length: {}'.format(
                     rank, n_episode, episode_length, total_reward_for_episode, total_length))
+
+                if args.device != "cpu:":
+                    env, nav_env = check_gpu_usage_and_restart_env(env, nav_env)
+
                 nav_env.reset(random_init=True)
                 set_random_object_goal(navigator, env.scene_config)
                 state = navigator.get_observation(nav_env.step_output)

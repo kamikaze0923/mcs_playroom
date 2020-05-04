@@ -12,8 +12,9 @@ import torch
 
 from a3c.task_util import get_model_from_task
 from gym_ai2thor.envs.mcs_env import McsEnv
-from point_goal_navigation.common.utils import batch_obs, set_random_object_goal
+from point_goal_navigation.common.utils import set_random_object_goal
 from gym_ai2thor.utils import CSVLogger
+from a3c.task_util import check_gpu_usage_and_restart_env
 
 import os
 from copy import deepcopy
@@ -83,12 +84,15 @@ def test(rank, args, shared_model, counter):
                 counter.value, counter.value / (time.time() - start_time),
                 reward_sum, episode_length)
             )
+            if args.device != "cpu:":
+                env, nav_env = check_gpu_usage_and_restart_env(env, nav_env)
             if not args.model:
                 logger.log(["{: .2f}".format(reward_sum), counter.value])
                 torch.save(model.state_dict(), os.path.join(save, "ckpt{}.pth".format(ckpt_counter)))
-                # env.close()
-                # logger.close()
-                # break
+                if ckpt_counter == 24 * 60:
+                    env.controller.end_scene(None, None)
+                    logger.close()
+                    break
 
             reward_sum = 0
             episode_length = 0
