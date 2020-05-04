@@ -89,7 +89,7 @@ def test(rank, args, shared_model, counter):
             if not args.model:
                 logger.log(["{: .2f}".format(reward_sum), counter.value])
                 torch.save(model.state_dict(), os.path.join(save, "ckpt{}.pth".format(ckpt_counter)))
-                if ckpt_counter == 24 * 60:
+                if ckpt_counter == 24 * 6:
                     env.controller.end_scene(None, None)
                     logger.close()
                     break
