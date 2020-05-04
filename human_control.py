@@ -23,7 +23,7 @@ class McsHumanControlEnv(McsEnv):
             elif action_str == "RotateRight":
                 self.step_output = self.controller.step(action="RotateLook", rotation=10)
             else:
-                raise NotImplementedError
+                self.step_output = self.controller.step(action="RotateObject", objectId=args['objectId'], rotationY=10)
         elif action_str == "PickupObject":
             self.step_output = self.controller.step(action="PickupObject", **args)
             if self.step_output.return_status == "SUCCESSFUL":
@@ -123,13 +123,16 @@ if __name__ == '__main__':
         elif action == "K":
             obj = input("Pull Object! Enter the object ID: ")
             env.step("PullObject", objectId=obj)
+        elif action == "L":
+            obj = input("Rotate Object! Enter the object ID: ")
+            env.step("RotateObject", objectId=obj)
         elif action == "N":
             obj = input("Open Object! Enter the object ID: ")
             env.step("OpenObject", objectId=obj)
         elif action == "M":
             obj = input("Close Object! Enter the object ID: ")
             env.step("CloseObject", objectId=obj)
-        elif action == "L":
+        elif action == "Y":
             action_command = input("Input pose action:")
             env.step(action_command)
         elif action == "z":
