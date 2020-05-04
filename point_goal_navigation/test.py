@@ -39,19 +39,17 @@ def test(rank, args, shared_model, counter):
     save = os.path.join('logs', save)
     os.makedirs(save, exist_ok=True)
 
-    if args.model:
-        shared_model.load_state_dict(torch.load(os.path.join(save, "solved_ai2thor.pth")))
-    else:
-        logger = CSVLogger(os.path.join(save, 'test.csv'))
-        fileds = ['episode_reward', 'frames_rendered']
-        logger.log(fileds)
+
+    logger = CSVLogger(os.path.join(save, 'test.csv'))
+    fileds = ['episode_reward', 'frames_rendered']
+    logger.log(fileds)
 
     start_time = time.time()
 
     episode_length = 0
+    ckpt_counter = 0
     while True:
         for _ in range(10):
-            ckpt_counter = 0
             done_mask = torch.zeros(size=(1,1)).to(args.device)
             undone_mask = torch.ones(size=(1,1)).to(args.device)
             episode_length += 1
@@ -87,21 +85,20 @@ def test(rank, args, shared_model, counter):
                 )
                 if args.device != "cpu:":
                     env, nav_env = check_gpu_usage_and_restart_env(env, nav_env)
-                if not args.model:
-                    logger.log(["{: .2f}".format(reward_sum), counter.value])
-                    torch.save(model.state_dict(), os.path.join(save, "ckpt{}.pth".format(ckpt_counter)))
-                    if ckpt_counter == 24 * 6:
-                        env.controller.end_scene(None, None)
-                        logger.close()
-                        break
 
+                logger.log(["{: .2f}".format(reward_sum), counter.value])
                 reward_sum = 0
                 episode_length = 0
                 nav_env.reset()
                 set_random_object_goal(navigator, env.scene_config)
                 state = navigator.get_observation(nav_env.step_output)
 
+        torch.save(model.state_dict(), os.path.join(save, "ckpt{}.pth".format(ckpt_counter)))
         time.sleep(args.test_sleep_time)
         ckpt_counter += 1
+        if ckpt_counter == 24 * 6:
+            env.controller.end_scene(None, None)
+            logger.close()
+            break
 
 

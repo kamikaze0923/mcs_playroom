@@ -60,10 +60,8 @@ parser.add_argument('-sync', '--synchronous', dest='synchronous', action='store_
 parser.add_argument('-async', '--asynchronous', dest='synchronous', action='store_false')
 parser.set_defaults(synchronous=False)
 
-parser.add_argument('--model', action='store_false',
-                    help='load the model for test')
+parser.add_argument('--model', type=str, default='logs/steps20-process5-lr0.0001-entropy_coef0.01/ckpt0.pth')
 
-parser.set_defaults(model=False)
 
 if __name__ == '__main__':
     mp.set_start_method("spawn")
@@ -85,6 +83,12 @@ if __name__ == '__main__':
     _, _, model = get_model_from_task(env, args.task)
     shared_model = model
 
+    if args.model:
+        print("{} loaded".format(args.model))
+        shared_model.load_state_dict(torch.load(os.path.join(os.getcwd(), args.model)))
+
+
+
     if args.cuda:
         shared_model = shared_model.cuda()
     shared_model.share_memory()
@@ -99,11 +103,11 @@ if __name__ == '__main__':
     lock = mp.Lock()
 
     if not args.synchronous:
-        if not args.model:
-            for rank in range(0, args.num_processes):
-                p = mp.Process(target=train, args=(rank, args, shared_model, counter, lock, optimizer))
-                p.start()
-                worker_processes.append(p)
+
+        for rank in range(0, args.num_processes):
+            p = mp.Process(target=train, args=(rank, args, shared_model, counter, lock, optimizer))
+            p.start()
+            worker_processes.append(p)
 
         # test runs continuously and if episode ends, sleeps for args.test_sleep_time seconds
         manager = mp.Process(target=test, args=(args.num_processes, args, shared_model, counter))
