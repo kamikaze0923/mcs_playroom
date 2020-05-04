@@ -15,7 +15,7 @@ class McsEnv:
     POSSIBLE_INIT_ROTATION = [i*10 for i in range(36)]
     POSSIBLE_INIT = [-4 + i for i in range(9)]
 
-    def __init__(self, interaction_sceces=True, seed=0):
+    def __init__(self, interaction_sceces=True, seed=None):
 
         if platform.system() == "Linux":
             app = "unity_app/MCS-AI2-THOR-Unity-App-v0.0.4.x86_64"
@@ -36,7 +36,8 @@ class McsEnv:
             self.all_scenes = [os.path.join("scenes", "playroom.json")]
 
         self.current_scence = 0
-        random.seed(seed)
+        if seed:
+            random.seed(seed)
 
     def step(self, **kwargs):
         self.step_output = self.controller.step(**kwargs)
