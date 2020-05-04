@@ -1,6 +1,8 @@
 from gym_ai2thor.envs.mcs_env import McsEnv
 from gym_ai2thor.envs.mcs_nav import McsNavWrapper
 from point_goal_navigation.navigator import NavigatorResNet
+import subprocess
+import shlex
 
 def get_model_from_task(env, task_name):
     if task_name == "point_goal_navigation":
@@ -10,7 +12,11 @@ def get_model_from_task(env, task_name):
 
 
 def check_gpu_usage_and_restart_env(env, nav_env):
-    if False:
+    command = "nvidia-smi --query-gpu=memory.free --format=csv"
+    out = subprocess.check_output(shlex.split(command)).decode("utf-8").split("\n")
+    mb_remain = int(out[1].split()[0])
+    if mb_remain < 256:
+        env.controller.end_scene(None, None)
         new_env = McsEnv()
         new_nav_env = McsNavWrapper(new_env)
     else:
