@@ -48,7 +48,7 @@ class McsEnv:
             self.scene_config, status = machine_common_sense.MCS.load_config_json_file(self.all_scenes[self.current_scence])
             self.current_scence += 1
         else:
-            self.current_scence = random.randint(0, len(self.all_scenes))
+            self.current_scence = random.randint(0, len(self.all_scenes) - 1)
             self.scene_config, status = machine_common_sense.MCS.load_config_json_file(self.all_scenes[self.current_scence])
 
         self.step_output = self.controller.start_scene(self.scene_config)
