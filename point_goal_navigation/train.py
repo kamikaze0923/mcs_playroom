@@ -52,7 +52,6 @@ def train(rank, args, shared_model, counter, lock, optimizer):
     total_length = 0
     episode_length = 0
     n_episode = 0
-    total_reward_for_episode = 0
     all_rewards_in_episode = []
     while True:
         # Sync with the shared model
@@ -94,6 +93,10 @@ def train(rank, args, shared_model, counter, lock, optimizer):
             state = navigator.get_observation(nav_env.step_output)
             done = done or episode_length >= args.max_episode_length
 
+            values.append(value)
+            rewards.append(reward)
+            all_rewards_in_episode.append(reward)
+
             with lock:
                 counter.value += 1
 
@@ -103,7 +106,7 @@ def train(rank, args, shared_model, counter, lock, optimizer):
                 episode_total_rewards_list.append(total_reward_for_episode)
                 all_rewards_in_episode = []
                 print('Process {} Episode {} Over with Length: {} and Reward: {: .2f}, Success: {}. Total Trained Length: {}'.format(
-                    rank, n_episode, episode_length, total_reward_for_episode, reward > 1, total_length))
+                    rank, n_episode, episode_length, total_reward_for_episode, reward == 9.99, total_length))
 
                 if args.device != "cpu:":
                     env, nav_env = check_gpu_usage_and_restart_env(env, nav_env)
@@ -114,13 +117,8 @@ def train(rank, args, shared_model, counter, lock, optimizer):
                 sys.stdout.flush()
                 episode_length = 0
                 n_episode += 1
-
-            values.append(value)
-            rewards.append(reward)
-            all_rewards_in_episode.append(reward)
-
-            if done:
                 break
+
 
         total_reward_for_num_steps = sum(rewards)
         total_reward_for_num_steps_list.append(total_reward_for_num_steps)
