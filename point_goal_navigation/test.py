@@ -50,55 +50,58 @@ def test(rank, args, shared_model, counter):
 
     episode_length = 0
     while True:
-        ckpt_counter = 0
-        done_mask = torch.zeros(size=(1,1)).to(args.device)
-        undone_mask = torch.ones(size=(1,1)).to(args.device)
-        episode_length += 1
-        # Sync with the shared model
-        if done:
-            model.load_state_dict(deepcopy(shared_model.state_dict()))
-            rnn_hidden_states = torch.zeros(size=(model.net.num_recurrent_layers, 1, 512)).to(args.device)
-            prev_action = torch.zeros(1, 1).to(args.device)
-            mask = done_mask
-        else:
-            rnn_hidden_states = rnn_hidden_states.detach()
+        for _ in range(10):
+            ckpt_counter = 0
+            done_mask = torch.zeros(size=(1,1)).to(args.device)
+            undone_mask = torch.ones(size=(1,1)).to(args.device)
+            episode_length += 1
+            # Sync with the shared model
+            if done:
+                model.load_state_dict(deepcopy(shared_model.state_dict()))
+                rnn_hidden_states = torch.zeros(size=(model.net.num_recurrent_layers, 1, 512)).to(args.device)
+                prev_action = torch.zeros(1, 1).to(args.device)
+                mask = done_mask
+            else:
+                rnn_hidden_states = rnn_hidden_states.detach()
 
-        with torch.no_grad():
-            batch = batch_obs(state, args.device)
-            value, action, action_log_probs, rnn_hidden_states = model.act(batch, rnn_hidden_states, prev_action, mask)
-            # torch.cuda.empty_cache()
+            with torch.no_grad():
+                batch = batch_obs(state, args.device)
+                value, action, action_log_probs, rnn_hidden_states = model.act(batch, rnn_hidden_states, prev_action, mask)
+                # torch.cuda.empty_cache()
 
-        prev_action.copy_(action)
-        mask = undone_mask
+            prev_action.copy_(action)
+            mask = undone_mask
 
-        action_int = action.cpu().numpy()[0][0].item()
-        reward, done = navigator.navigation_step_with_reward(nav_env, action_int)
-        state = navigator.get_observation(nav_env.step_output)
-        done = done or episode_length >= args.max_episode_length
-        reward_sum += reward
-
-        if done:
-            print(
-                "Time {}, num steps over all threads {}, FPS {:.0f}, episode reward {: .2f}, episode length {}".format(
-                time.strftime("%Hh %Mm %Ss", time.gmtime(time.time() - start_time)),
-                counter.value, counter.value / (time.time() - start_time),
-                reward_sum, episode_length)
-            )
-            if args.device != "cpu:":
-                env, nav_env = check_gpu_usage_and_restart_env(env, nav_env)
-            if not args.model:
-                logger.log(["{: .2f}".format(reward_sum), counter.value])
-                torch.save(model.state_dict(), os.path.join(save, "ckpt{}.pth".format(ckpt_counter)))
-                if ckpt_counter == 24 * 6:
-                    env.controller.end_scene(None, None)
-                    logger.close()
-                    break
-
-            reward_sum = 0
-            episode_length = 0
-            nav_env.reset()
-            set_random_object_goal(navigator, env.scene_config)
+            action_int = action.cpu().numpy()[0][0].item()
+            reward, done = navigator.navigation_step_with_reward(nav_env, action_int)
             state = navigator.get_observation(nav_env.step_output)
-            time.sleep(args.test_sleep_time)
-            ckpt_counter += 1
+            done = done or episode_length >= args.max_episode_length
+            reward_sum += reward
+
+            if done:
+                print(
+                    "Time {}, num steps over all threads {}, FPS {:.0f}, episode reward {: .2f}, success {}, episode length {}".format(
+                    time.strftime("%Hh %Mm %Ss", time.gmtime(time.time() - start_time)),
+                    counter.value, counter.value / (time.time() - start_time),
+                    reward_sum, reward > 1, episode_length)
+                )
+                if args.device != "cpu:":
+                    env, nav_env = check_gpu_usage_and_restart_env(env, nav_env)
+                if not args.model:
+                    logger.log(["{: .2f}".format(reward_sum), counter.value])
+                    torch.save(model.state_dict(), os.path.join(save, "ckpt{}.pth".format(ckpt_counter)))
+                    if ckpt_counter == 24 * 6:
+                        env.controller.end_scene(None, None)
+                        logger.close()
+                        break
+
+                reward_sum = 0
+                episode_length = 0
+                nav_env.reset()
+                set_random_object_goal(navigator, env.scene_config)
+                state = navigator.get_observation(nav_env.step_output)
+
+        time.sleep(args.test_sleep_time)
+        ckpt_counter += 1
+
 
