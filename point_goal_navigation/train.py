@@ -14,12 +14,12 @@ gradients and then optimise with Adam and we go back to the start of the main tr
 """
 
 import torch
-import torch.nn.functional as F
 import sys
 
-from gym_ai2thor.envs.mcs_nav import McsNavEnv
-from point_goal_navigation.model.policy import PointNavResNetPolicy
-from point_goal_navigation.common.utils import batch_obs
+from a3c.task_util import get_model_from_task
+from gym_ai2thor.envs.mcs_env import McsEnv
+from point_goal_navigation.common.utils import batch_obs, set_random_object_goal
+
 
 def ensure_shared_grads(model, shared_model):
     for param, shared_param in zip(model.parameters(),
@@ -31,14 +31,16 @@ def ensure_shared_grads(model, shared_model):
 
 def train(rank, args, shared_model, counter, lock, optimizer):
     torch.manual_seed(args.seed + rank)
-    env = McsNavEnv(config_dict=args.config_dict)
-    env.seed(args.seed + rank)
 
-    model = PointNavResNetPolicy(env.observation_spaces, env.action_space)
+    env = McsEnv(seed=args.seed + rank)
+    nav_env, navigator, model = get_model_from_task(env, args.task)
+    nav_env.reset(random_init=True)
+    set_random_object_goal(navigator, env.scene_config)
+
     model = model.to(args.device)
     model.train()
 
-    state = env.reset()
+    state = navigator.get_observation(nav_env.step_output)
     done = True
 
     # monitoring
@@ -87,7 +89,8 @@ def train(rank, args, shared_model, counter, lock, optimizer):
 
             action_int = action.cpu().numpy()[0][0].item()
 
-            state, reward, done, _ = env.step(action_int)
+            reward, done = navigator.navigation_step_with_reward(nav_env, action_int)
+            state = navigator.get_observation(nav_env.step_output)
             done = done or episode_length >= args.max_episode_length
 
             with lock:
@@ -98,9 +101,11 @@ def train(rank, args, shared_model, counter, lock, optimizer):
                 total_reward_for_episode = sum(all_rewards_in_episode)
                 episode_total_rewards_list.append(total_reward_for_episode)
                 all_rewards_in_episode = []
-                state = env.reset()
                 print('Process {} Episode {} Over with Length: {} and Reward: {: .2f}. Total Trained Length: {}'.format(
                     rank, n_episode, episode_length, total_reward_for_episode, total_length))
+                nav_env.reset(random_init=True)
+                set_random_object_goal(navigator, env.scene_config)
+                state = navigator.get_observation(nav_env.step_output)
                 sys.stdout.flush()
                 episode_length = 0
                 n_episode += 1

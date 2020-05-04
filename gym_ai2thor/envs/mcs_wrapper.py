@@ -8,8 +8,8 @@ class McsWrapper:
     def __init__(self, env):
         self.env = env
 
-    def reset(self):
-        self.env.reset()
+    def reset(self, **kwargs):
+        self.env.reset(**kwargs)
 
     def step(self, **kwargs):
         self.env.step(**kwargs)

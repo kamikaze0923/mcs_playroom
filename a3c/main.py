@@ -17,12 +17,11 @@ import os
 import torch
 import torch.multiprocessing as mp
 
-from gym_ai2thor.envs.mcs_nav import McsNavEnv
-from point_goal_navigation.a3c import my_optim
-from point_goal_navigation.model.policy import PointNavResNetPolicy
-from point_goal_navigation.a3c.test import test
-from point_goal_navigation.a3c.train import train
-
+from gym_ai2thor.envs.mcs_env import McsEnv
+from a3c import my_optim
+from point_goal_navigation.test import test
+from point_goal_navigation.train import train
+from a3c.task_util import get_model_from_task
 
 # Based on: https://github.com/pytorch/examples/tree/master/mnist_hogwild
 # Training settings
@@ -41,14 +40,15 @@ parser.add_argument('--max-grad-norm', type=float, default=50,
                     help='value loss coefficient (default: 50)')
 parser.add_argument('--seed', type=int, default=1,
                     help='random seed (default: 1)')
-parser.add_argument('--test-sleep-time', type=int, default=600,
+parser.add_argument('--test-sleep-time', type=int, default=60,
                     help='number of seconds to wait before testing again (default: 10)')
-parser.add_argument('--num-processes', type=int, default=4,
+parser.add_argument('--num-processes', type=int, default=8,
                     help='how many training processes to use (default: 1)')
 parser.add_argument('--num-steps', type=int, default=20,
                     help='number of forward steps in A3C (default: 20)')
-parser.add_argument('--max-episode-length', type=int, default=1000,
+parser.add_argument('--max-episode-length', type=int, default=200,
                     help='maximum length of an episode (default: 1000000)')
+parser.add_argument('--task', type=str, default='point_goal_navigation')
 
 parser.add_argument('--no_cuda', action='store_true', help='Disable GPU')
 parser.set_defaults(no_cuda=False)
@@ -62,6 +62,7 @@ parser.set_defaults(synchronous=False)
 
 parser.add_argument('--model', action='store_false',
                     help='load the model for test')
+
 parser.set_defaults(model=False)
 
 if __name__ == '__main__':
@@ -79,20 +80,16 @@ if __name__ == '__main__':
         args.device = "cpu"
 
     torch.manual_seed(args.seed)
-    args.config_dict = {'max_episode_length': args.max_episode_length}
-    env = McsNavEnv(config_dict=args.config_dict)
-    for i in range(10000):
-        print(i)
-        env.reset()
-    exit(0)
+    env = McsEnv()
 
-    shared_model = PointNavResNetPolicy(env.observation_spaces, env.action_space)
+    _, _, model = get_model_from_task(env, args.task)
+    shared_model = model
 
     if args.cuda:
         shared_model = shared_model.cuda()
     shared_model.share_memory()
 
-    env.close()  # above env initialisation was only to find certain params needed
+    env.controller.end_scene(None, None)  # above env initialisation was only to find certain params needed
 
     optimizer = my_optim.SharedAdam(shared_model.parameters(), lr=args.lr)
     optimizer.share_memory()

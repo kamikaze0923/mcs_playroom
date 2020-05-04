@@ -1,5 +1,4 @@
 from gym_ai2thor.envs.mcs_env import McsEnv
-import cv2
 
 
 class McsHumanControlEnv(McsEnv):

@@ -1,10 +1,10 @@
-
 import torch.nn as nn
 import torch.distributions
 from typing import List, Dict, Optional
 from collections import defaultdict
 import numpy as np
 import quaternion
+import random
 
 
 class Flatten(nn.Module):
@@ -97,6 +97,14 @@ def quat_from_angle_axis(theta, axis=np.array([0,1,0])):
     axis = axis.astype(np.float)
     axis /= np.linalg.norm(axis)
     return quaternion.from_rotation_vector(theta * axis)
+
+def set_random_object_goal(navigator, scene_config):
+    assert "objects" in scene_config
+    obj_position = random.choice(scene_config['objects'])['shows'][0]['position']
+    navigator.goal = (obj_position['x'], obj_position['y'], obj_position['z'])
+
+
+
 
 
 

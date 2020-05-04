@@ -9,11 +9,11 @@ save resources we can choose to only test every args.test_sleep_time seconds.
 import time
 
 import torch
-import torch.nn.functional as F
 
-from gym_ai2thor.envs.mcs_nav import McsNavEnv
+from a3c.task_util import get_model_from_task
+from gym_ai2thor.envs.mcs_env import McsEnv
+from point_goal_navigation.common.utils import batch_obs, set_random_object_goal
 from gym_ai2thor.utils import CSVLogger
-from point_goal_navigation.model.policy import PointNavResNetPolicy
 
 import os
 from copy import deepcopy
@@ -21,14 +21,15 @@ from point_goal_navigation.common.utils import batch_obs
 
 def test(rank, args, shared_model, counter):
     torch.manual_seed(args.seed + rank)
-    env = McsNavEnv(config_dict=args.config_dict)
-    env.seed(args.seed + rank)
+    env = McsEnv(seed=args.seed + rank)
+    nav_env, navigator, model = get_model_from_task(env, args.task)
+    nav_env.reset(random_init=True)
+    set_random_object_goal(navigator, env.scene_config)
 
-    model = PointNavResNetPolicy(env.observation_spaces, env.action_space)
     model = model.to(args.device)
     model.eval()
 
-    state = env.reset()
+    state = navigator.get_observation(nav_env.step_output)
     reward_sum = 0
     done = True
 
@@ -70,15 +71,18 @@ def test(rank, args, shared_model, counter):
         mask = undone_mask
 
         action_int = action.cpu().numpy()[0][0].item()
-        state, reward, done, _ = env.step(action_int)
+        reward, done = navigator.navigation_step_with_reward(nav_env, action_int)
+        state = navigator.get_observation(nav_env.step_output)
         done = done or episode_length >= args.max_episode_length
         reward_sum += reward
 
         if done:
-            print("Time {}, num steps over all threads {}, FPS {:.0f}, episode reward {: .2f}, episode length {}".format(
+            print(
+                "Time {}, num steps over all threads {}, FPS {:.0f}, episode reward {: .2f}, episode length {}".format(
                 time.strftime("%Hh %Mm %Ss", time.gmtime(time.time() - start_time)),
                 counter.value, counter.value / (time.time() - start_time),
-                reward_sum, episode_length))
+                reward_sum, episode_length)
+            )
             if not args.model:
                 logger.log(["{: .2f}".format(reward_sum), counter.value])
                 torch.save(model.state_dict(), os.path.join(save, "ckpt{}.pth".format(ckpt_counter)))
@@ -88,7 +92,9 @@ def test(rank, args, shared_model, counter):
 
             reward_sum = 0
             episode_length = 0
-            state = env.reset()
+            nav_env.reset()
+            set_random_object_goal(navigator, env.scene_config)
+            state = navigator.get_observation(nav_env.step_output)
             time.sleep(args.test_sleep_time)
             ckpt_counter += 1
 

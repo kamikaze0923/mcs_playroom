@@ -15,7 +15,7 @@ class McsEnv:
     POSSIBLE_INIT_ROTATION = [i*10 for i in range(36)]
     POSSIBLE_INIT = [-4 + i for i in range(9)]
 
-    def __init__(self, interaction_sceces=True):
+    def __init__(self, interaction_sceces=True, seed=0):
 
         if platform.system() == "Linux":
             app = "unity_app/MCS-AI2-THOR-Unity-App-v0.0.4.x86_64"
@@ -35,27 +35,20 @@ class McsEnv:
         else:
             self.all_scenes = [os.path.join("scenes", "playroom.json")]
 
-        self.current_scence = 3
-        self.reset()
+        self.current_scence = 0
+        random.seed(seed)
 
     def step(self, **kwargs):
         self.step_output = self.controller.step(**kwargs)
         # print(self.step_output.return_status)
 
     def reset(self, random_init=False):
-        self.scene_config, status = machine_common_sense.MCS.load_config_json_file(self.all_scenes[self.current_scence])
-        self.current_scence += 1
-        if random_init:
-            self.rotation_state = random.choice(self.POSSIBLE_INIT_ROTATION)
-            self.scene_config["performerStart"]["rotation"] = self.rotation_state
-            n_objects = len(self.scene_config["objects"]) + 1
-            all_possible_loc = [(i,j) for i in self.POSSIBLE_INIT for j in self.POSSIBLE_INIT]
-            randon_sample_init_loc = random.sample(all_possible_loc, n_objects)
-            self.scene_config["performerStart"]["position"]["x"] = randon_sample_init_loc[-1][0]
-            self.scene_config["performerStart"]["position"]["z"] = randon_sample_init_loc[-1][1]
-            for i in range(n_objects - 1):
-                self.scene_config["objects"][i]["shows"][0]["position"]["x"] = randon_sample_init_loc[i][0]
-                self.scene_config["objects"][i]["shows"][0]["position"]["z"] = randon_sample_init_loc[i][1]
+        if not random_init:
+            self.scene_config, status = machine_common_sense.MCS.load_config_json_file(self.all_scenes[self.current_scence])
+            self.current_scence += 1
+        else:
+            self.current_scence = int(random.random() * len(self.all_scenes))
+            self.scene_config, status = machine_common_sense.MCS.load_config_json_file(self.all_scenes[self.current_scence])
 
         self.step_output = self.controller.start_scene(self.scene_config)
         self.step_output = self.controller.step(action="Pass")

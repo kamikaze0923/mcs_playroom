@@ -5,6 +5,7 @@ from point_goal_navigation.common.utils import quaternion_rotate_vector, quat_fr
 import numpy as np
 from skimage import transform
 from gym.spaces import Box
+import machine_common_sense
 
 import torch
 
@@ -15,7 +16,7 @@ class ObeserationSpace:
 class NavigatorResNet:
 
     RGB_SENSOR = False
-    DEPTH_SENSOR = False
+    DEPTH_SENSOR = True
     RESOLUTION = (256, 256)
 
     def __init__(self, action_space, goal_sensor_uuid):
@@ -72,7 +73,7 @@ class NavigatorResNet:
             frame_img = self.preprocess(step_output.image_list[0], 'rgb')
             obs['rgb'] = frame_img
         if self.DEPTH_SENSOR:
-            depth_img = self.preprocess(step_output.depth_mask_list[0], 'depth') / 2
+            depth_img = self.preprocess(step_output.depth_mask_list[0], 'depth')
             obs['depth'] = depth_img
         return [obs]
 
@@ -142,6 +143,19 @@ class NavigatorResNet:
             if step_cnt > 200:
                 return False
         return True
+
+    def navigation_step_with_reward(self, env, action_int):
+        reward = -0.01
+        done = False
+        previous_distance = NavigatorResNet.distance_to_goal(self.goal, env.step_output)
+        env.step(action_int)
+        new_distance = NavigatorResNet.distance_to_goal(self.goal, env.step_output)
+        reward += (previous_distance - new_distance)
+        if env.action_names[action_int] == "Stop":
+            done = True
+            if new_distance < machine_common_sense.mcs_controller_ai2thor.MAX_REACH_DISTANCE:
+                reward += 10
+        return reward, done
 
 
 
