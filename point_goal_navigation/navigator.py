@@ -156,11 +156,11 @@ class NavigatorResNet:
         if env.action_names[action_int] == "Stop":
             done = True
             if new_distance < machine_common_sense.mcs_controller_ai2thor.MAX_REACH_DISTANCE:
-                reward += 1
+                reward += 10
         elif env.action_names[action_int] == "MoveAhead":
             move_amount = ((previous_xz[0] - new_xz[0]) ** 2 + (previous_xz[1] - new_xz[1]) ** 2) ** 0.5
             if abs(move_amount - 0.25) > 1e-3:
-                reward -= 1
+                reward -= 10
                 done = True
         return reward, done
 
