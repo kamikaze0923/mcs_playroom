@@ -89,9 +89,8 @@ def train(rank, args, shared_model, counter, lock, optimizer):
 
             action_int = action.cpu().numpy()[0][0].item()
 
-            reward, done = navigator.navigation_step_with_reward(nav_env, action_int)
+            reward, done = navigator.navigation_step_with_reward(nav_env, action_int, episode_length >= args.max_episode_length)
             state = navigator.get_observation(nav_env.step_output)
-            done = done or episode_length >= args.max_episode_length
 
             values.append(value)
             rewards.append(reward)
