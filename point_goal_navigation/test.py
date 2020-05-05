@@ -79,7 +79,7 @@ def test(rank, args, shared_model, counter):
                 reward_sum += reward
 
                 if done:
-                    episode_success = (reward == 9.999)
+                    episode_success = (reward == 9.99)
                     if episode_success:
                         success_cnt += 1
                     print(
