@@ -32,7 +32,7 @@ parser.add_argument('--gamma', type=float, default=0.99,
                     help='discount factor for rewards (default: 0.99)')
 parser.add_argument('--tau', type=float, default=1.00,
                     help='parameter for GAE (default: 1.00)')
-parser.add_argument('--entropy-coef', type=float, default=0.1,
+parser.add_argument('--entropy-coef', type=float, default=1,
                     help='entropy term coefficient (default: 0.01)')
 parser.add_argument('--value-loss-coef', type=float, default=0.5,
                     help='value loss coefficient (default: 0.5)')
@@ -44,7 +44,7 @@ parser.add_argument('--test-sleep-time', type=int, default=1800,
                     help='number of seconds to wait before testing again (default: 10)')
 parser.add_argument('--num-processes', type=int, default=4,
                     help='how many training processes to use (default: 1)')
-parser.add_argument('--num-steps', type=int, default=50,
+parser.add_argument('--num-steps', type=int, default=20,
                     help='number of forward steps in A3C (default: 20)')
 parser.add_argument('--max-episode-length', type=int, default=200,
                     help='maximum length of an episode (default: 1000000)')
