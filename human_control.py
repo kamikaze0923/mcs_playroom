@@ -82,6 +82,7 @@ class McsHumanControlEnv(McsEnv):
 
 if __name__ == '__main__':
     env = McsHumanControlEnv()
+    env.reset(random_init=True)
 
     while True:
         env.print_step_output()

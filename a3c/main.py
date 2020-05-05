@@ -87,8 +87,6 @@ if __name__ == '__main__':
         print("{} loaded".format(args.model))
         shared_model.load_state_dict(torch.load(os.path.join(os.getcwd(), args.model)))
 
-
-
     if args.cuda:
         shared_model = shared_model.cuda()
     shared_model.share_memory()

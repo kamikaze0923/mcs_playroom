@@ -100,8 +100,14 @@ def quat_from_angle_axis(theta, axis=np.array([0,1,0])):
 
 def set_random_object_goal(navigator, scene_config):
     assert "objects" in scene_config
-    obj_position = random.choice(scene_config['objects'])['shows'][0]['position']
-    navigator.goal = (obj_position['x'], obj_position['y'], obj_position['z'])
+    assert "goal" in scene_config
+    if scene_config['goal']['category'] == 'retrieval':
+        target_object_id = scene_config['goal']['metadata']['target']['id']
+    obj_info = list(filter(lambda l: l['id'] == target_object_id, scene_config['objects']))
+    assert len(obj_info) == 1
+    obj_info = obj_info[0]
+    obj_position_info = obj_info['shows'][0]['position']
+    navigator.goal = (obj_position_info['x'], obj_position_info['y'], obj_position_info['z'])
 
 
 
