@@ -20,7 +20,7 @@ from a3c.task_util import get_model_from_task
 from gym_ai2thor.envs.mcs_env import McsEnv
 from point_goal_navigation.common.utils import batch_obs, set_random_object_goal
 from a3c.task_util import check_gpu_usage_and_restart_env
-
+import random
 
 def ensure_shared_grads(model, shared_model):
     for param, shared_param in zip(model.parameters(),
@@ -114,7 +114,7 @@ def train(rank, args, shared_model, counter, lock, optimizer):
                 if episode_success:
                     nav_env.reset(random_init=True)
                 else:
-                    nav_env.reset(repeat_current=True)
+                    nav_env.reset(repeat_current=random.random() > 0.2)
                 set_random_object_goal(navigator, env.scene_config)
                 state = navigator.get_observation(nav_env.step_output)
                 sys.stdout.flush()
