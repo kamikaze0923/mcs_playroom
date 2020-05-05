@@ -32,11 +32,11 @@ parser.add_argument('--gamma', type=float, default=0.99,
                     help='discount factor for rewards (default: 0.99)')
 parser.add_argument('--tau', type=float, default=1.00,
                     help='parameter for GAE (default: 1.00)')
-parser.add_argument('--entropy-coef', type=float, default=0.01,
+parser.add_argument('--entropy-coef', type=float, default=0.1,
                     help='entropy term coefficient (default: 0.01)')
 parser.add_argument('--value-loss-coef', type=float, default=0.5,
                     help='value loss coefficient (default: 0.5)')
-parser.add_argument('--max-grad-norm', type=float, default=20,
+parser.add_argument('--max-grad-norm', type=float, default=50,
                     help='value loss coefficient (default: 50)')
 parser.add_argument('--seed', type=int, default=1,
                     help='random seed (default: 1)')
@@ -44,7 +44,7 @@ parser.add_argument('--test-sleep-time', type=int, default=1800,
                     help='number of seconds to wait before testing again (default: 10)')
 parser.add_argument('--num-processes', type=int, default=4,
                     help='how many training processes to use (default: 1)')
-parser.add_argument('--num-steps', type=int, default=20,
+parser.add_argument('--num-steps', type=int, default=50,
                     help='number of forward steps in A3C (default: 20)')
 parser.add_argument('--max-episode-length', type=int, default=200,
                     help='maximum length of an episode (default: 1000000)')
@@ -60,7 +60,7 @@ parser.add_argument('-sync', '--synchronous', dest='synchronous', action='store_
 parser.add_argument('-async', '--asynchronous', dest='synchronous', action='store_false')
 parser.set_defaults(synchronous=False)
 
-parser.add_argument('--model', type=str, default='logs/steps20-process4-lr0.0001-entropy_coef0.01-max_grad_norm20/ckpt2.pth')
+parser.add_argument('--model', type=str, default='logs/steps20-process4-lr0.0001-entropy_coef0.01-max_grad_norm20/ckpt7.pth')
 
 
 if __name__ == '__main__':
@@ -83,9 +83,9 @@ if __name__ == '__main__':
     _, _, model = get_model_from_task(env, args.task)
     shared_model = model
 
-    # if args.model:
-    #     print("{} loaded".format(args.model))
-    #     shared_model.load_state_dict(torch.load(os.path.join(os.getcwd(), args.model)))
+    if args.model:
+        print("{} loaded".format(args.model))
+        shared_model.load_state_dict(torch.load(os.path.join(os.getcwd(), args.model)))
 
     if args.cuda:
         shared_model = shared_model.cuda()
