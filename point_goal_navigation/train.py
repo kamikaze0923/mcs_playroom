@@ -114,7 +114,7 @@ def train(rank, args, shared_model, counter, lock, optimizer):
                 if episode_success:
                     nav_env.reset(random_init=True)
                 else:
-                    nav_env.reset(random_init=True, repeat_current=random.random() > 0.5)
+                    nav_env.reset(random_init=True, repeat_current=False)
                 set_random_object_goal(navigator, env.scene_config)
                 state = navigator.get_observation(nav_env.step_output)
                 sys.stdout.flush()
