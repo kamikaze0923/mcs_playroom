@@ -84,7 +84,7 @@ def test(rank, args, shared_model, counter):
                     if episode_success:
                         success_cnt += 1
                     print(
-                        "Time {}, num steps over all threads {}, FPS {:.0f}, episode reward {: .2f}, success {}, episode length {}".format(
+                        "Time {}, num steps over all threads {}, FPS {:.0f}, episode reward {: .3f}, success {}, episode length {}".format(
                         time.strftime("%Hh %Mm %Ss", time.gmtime(time.time() - start_time)),
                         counter.value, counter.value / (time.time() - start_time),
                         reward_sum, episode_success, episode_length)

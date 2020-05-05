@@ -106,7 +106,7 @@ def train(rank, args, shared_model, counter, lock, optimizer):
                 episode_total_rewards_list.append(total_reward_for_episode)
                 all_rewards_in_episode = []
                 episode_success = (reward == 99.99)
-                print('Process {} Episode {} Over with Length: {} and Reward: {: .2f}, Success: {}. Total Trained Length: {}'.format(
+                print('Process {} Episode {} Over with Length: {} and Reward: {: .3f}, Success: {}. Total Trained Length: {}'.format(
                     rank, n_episode, episode_length, total_reward_for_episode, episode_success, total_length))
 
                 # if args.device != "cpu:":
