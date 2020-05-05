@@ -105,13 +105,16 @@ def train(rank, args, shared_model, counter, lock, optimizer):
                 total_reward_for_episode = sum(all_rewards_in_episode)
                 episode_total_rewards_list.append(total_reward_for_episode)
                 all_rewards_in_episode = []
+                episode_success = (reward == 9.99)
                 print('Process {} Episode {} Over with Length: {} and Reward: {: .2f}, Success: {}. Total Trained Length: {}'.format(
-                    rank, n_episode, episode_length, total_reward_for_episode, reward == 9.99, total_length))
+                    rank, n_episode, episode_length, total_reward_for_episode, episode_success, total_length))
 
                 # if args.device != "cpu:":
                 #     env, nav_env = check_gpu_usage_and_restart_env(env, nav_env)
-
-                nav_env.reset(random_init=True)
+                if episode_success:
+                    nav_env.reset(random_init=True)
+                else:
+                    nav_env.reset(repeat_current=True)
                 set_random_object_goal(navigator, env.scene_config)
                 state = navigator.get_observation(nav_env.step_output)
                 sys.stdout.flush()

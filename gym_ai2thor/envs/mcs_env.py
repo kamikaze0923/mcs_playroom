@@ -43,13 +43,14 @@ class McsEnv:
         self.step_output = self.controller.step(**kwargs)
         # print(self.step_output.return_status)
 
-    def reset(self, random_init=False):
-        if not random_init:
-            self.scene_config, status = machine_common_sense.MCS.load_config_json_file(self.all_scenes[self.current_scence])
-            self.current_scence += 1
-        else:
-            self.current_scence = random.randint(0, len(self.all_scenes) - 1)
-            self.scene_config, status = machine_common_sense.MCS.load_config_json_file(self.all_scenes[self.current_scence])
+    def reset(self, random_init=False, repeat_current=False):
+        if not repeat_current:
+            if not random_init:
+                self.scene_config, status = machine_common_sense.MCS.load_config_json_file(self.all_scenes[self.current_scence])
+                self.current_scence += 1
+            else:
+                self.current_scence = random.randint(0, len(self.all_scenes) - 1)
+                self.scene_config, status = machine_common_sense.MCS.load_config_json_file(self.all_scenes[self.current_scence])
 
         self.step_output = self.controller.start_scene(self.scene_config)
         self.step_output = self.controller.step(action="Pass")

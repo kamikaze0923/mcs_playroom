@@ -80,13 +80,14 @@ def test(rank, args, shared_model, counter):
                 reward_sum += reward
 
                 if done:
-                    if reward == 9.99:
+                    episode_success = (reward == 9.99)
+                    if episode_success:
                         success_cnt += 1
                     print(
                         "Time {}, num steps over all threads {}, FPS {:.0f}, episode reward {: .2f}, success {}, episode length {}".format(
                         time.strftime("%Hh %Mm %Ss", time.gmtime(time.time() - start_time)),
                         counter.value, counter.value / (time.time() - start_time),
-                        reward_sum, reward == 9.99, episode_length)
+                        reward_sum, episode_success, episode_length)
                     )
                     # if args.device != "cpu:":
                     #     env, nav_env = check_gpu_usage_and_restart_env(env, nav_env)
