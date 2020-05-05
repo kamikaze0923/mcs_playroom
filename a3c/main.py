@@ -60,7 +60,7 @@ parser.add_argument('-sync', '--synchronous', dest='synchronous', action='store_
 parser.add_argument('-async', '--asynchronous', dest='synchronous', action='store_false')
 parser.set_defaults(synchronous=False)
 
-parser.add_argument('--model', type=str, default='logs/steps20-process5-lr0.0001-entropy_coef0.01/ckpt0.pth')
+parser.add_argument('--model', type=str, default='logs/steps20-process4-lr0.0001-entropy_coef0.01/ckpt16.pth')
 
 
 if __name__ == '__main__':
