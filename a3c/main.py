@@ -83,9 +83,9 @@ if __name__ == '__main__':
     _, _, model = get_model_from_task(env, args.task)
     shared_model = model
 
-    if args.model:
-        print("{} loaded".format(args.model))
-        shared_model.load_state_dict(torch.load(os.path.join(os.getcwd(), args.model)))
+    # if args.model:
+    #     print("{} loaded".format(args.model))
+    #     shared_model.load_state_dict(torch.load(os.path.join(os.getcwd(), args.model)))
 
     if args.cuda:
         shared_model = shared_model.cuda()
