@@ -34,8 +34,8 @@ def test(rank, args, shared_model, counter):
     reward_sum = 0
     done = True
 
-    save = 'steps{}-process{}-lr{}-entropy_coef{}'.format(args.num_steps, args.num_processes,
-                                                             args.lr, args.entropy_coef)
+    save = 'steps{}-process{}-lr{}-entropy_coef{}-max_grad_norm{}'.format(args.num_steps, args.num_processes,
+                                                             args.lr, args.entropy_coef, args.max_grad_norm)
     save = os.path.join('logs', save)
     os.makedirs(save, exist_ok=True)
 
