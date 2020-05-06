@@ -32,7 +32,7 @@ parser.add_argument('--gamma', type=float, default=0.99,
                     help='discount factor for rewards (default: 0.99)')
 parser.add_argument('--tau', type=float, default=1.00,
                     help='parameter for GAE (default: 1.00)')
-parser.add_argument('--entropy-coef', type=float, default=0.01,
+parser.add_argument('--entropy-coef', type=float, default=1,
                     help='entropy term coefficient (default: 0.01)')
 parser.add_argument('--value-loss-coef', type=float, default=0.5,
                     help='value loss coefficient (default: 0.5)')
@@ -60,7 +60,7 @@ parser.add_argument('-sync', '--synchronous', dest='synchronous', action='store_
 parser.add_argument('-async', '--asynchronous', dest='synchronous', action='store_false')
 parser.set_defaults(synchronous=False)
 
-parser.add_argument('--model', type=str, default='logs/steps20-process4-lr0.0001-entropy_coef0.01/ckpt16.pth')
+parser.add_argument('--model', type=str, default='logs/steps20-process4-lr0.0001-entropy_coef0.01-max_grad_norm20/ckpt7.pth')
 
 
 if __name__ == '__main__':

@@ -34,8 +34,8 @@ def test(rank, args, shared_model, counter):
     reward_sum = 0
     done = True
 
-    save = 'steps{}-process{}-lr{}-entropy_coef{}'.format(args.num_steps, args.num_processes,
-                                                             args.lr, args.entropy_coef)
+    save = 'steps{}-process{}-lr{}-entropy_coef{}-max_grad_norm{}'.format(args.num_steps, args.num_processes,
+                                                             args.lr, args.entropy_coef, args.max_grad_norm)
     save = os.path.join('logs', save)
     os.makedirs(save, exist_ok=True)
 
@@ -74,9 +74,8 @@ def test(rank, args, shared_model, counter):
                 mask = undone_mask
 
                 action_int = action.cpu().numpy()[0][0].item()
-                reward, done = navigator.navigation_step_with_reward(nav_env, action_int)
+                reward, done = navigator.navigation_step_with_reward(nav_env, action_int, episode_length >= args.max_episode_length)
                 state = navigator.get_observation(nav_env.step_output)
-                done = done or episode_length >= args.max_episode_length
                 reward_sum += reward
 
                 if done:
@@ -84,7 +83,7 @@ def test(rank, args, shared_model, counter):
                     if episode_success:
                         success_cnt += 1
                     print(
-                        "Time {}, num steps over all threads {}, FPS {:.0f}, episode reward {: .2f}, success {}, episode length {}".format(
+                        "Time {}, num steps over all threads {}, FPS {:.0f}, episode reward {: .3f}, success {}, episode length {}".format(
                         time.strftime("%Hh %Mm %Ss", time.gmtime(time.time() - start_time)),
                         counter.value, counter.value / (time.time() - start_time),
                         reward_sum, episode_success, episode_length)
@@ -103,7 +102,7 @@ def test(rank, args, shared_model, counter):
         logger.log(["{: .2f}".format(success_cnt / n_test_episode), counter.value])
         time.sleep(args.test_sleep_time)
         ckpt_counter += 1
-        if ckpt_counter == 12 * 2:
+        if ckpt_counter == 48 * 2:
             env.controller.end_scene(None, None)
             logger.close()
             break

@@ -20,7 +20,7 @@ from a3c.task_util import get_model_from_task
 from gym_ai2thor.envs.mcs_env import McsEnv
 from point_goal_navigation.common.utils import batch_obs, set_random_object_goal
 from a3c.task_util import check_gpu_usage_and_restart_env
-
+import random
 
 def ensure_shared_grads(model, shared_model):
     for param, shared_param in zip(model.parameters(),
@@ -89,9 +89,8 @@ def train(rank, args, shared_model, counter, lock, optimizer):
 
             action_int = action.cpu().numpy()[0][0].item()
 
-            reward, done = navigator.navigation_step_with_reward(nav_env, action_int)
+            reward, done = navigator.navigation_step_with_reward(nav_env, action_int, episode_length >= args.max_episode_length)
             state = navigator.get_observation(nav_env.step_output)
-            done = done or episode_length >= args.max_episode_length
 
             values.append(value)
             rewards.append(reward)
@@ -106,7 +105,7 @@ def train(rank, args, shared_model, counter, lock, optimizer):
                 episode_total_rewards_list.append(total_reward_for_episode)
                 all_rewards_in_episode = []
                 episode_success = (reward == 9.99)
-                print('Process {} Episode {} Over with Length: {} and Reward: {: .2f}, Success: {}. Total Trained Length: {}'.format(
+                print('Process {} Episode {} Over with Length: {} and Reward: {: .3f}, Success: {}. Total Trained Length: {}'.format(
                     rank, n_episode, episode_length, total_reward_for_episode, episode_success, total_length))
 
                 # if args.device != "cpu:":
@@ -114,7 +113,7 @@ def train(rank, args, shared_model, counter, lock, optimizer):
                 if episode_success:
                     nav_env.reset(random_init=True)
                 else:
-                    nav_env.reset(repeat_current=True)
+                    nav_env.reset(random_init=True, repeat_current=False)
                 set_random_object_goal(navigator, env.scene_config)
                 state = navigator.get_observation(nav_env.step_output)
                 sys.stdout.flush()
