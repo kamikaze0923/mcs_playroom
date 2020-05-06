@@ -16,7 +16,7 @@ class ObeserationSpace:
 class NavigatorResNet:
 
     RGB_SENSOR = False
-    DEPTH_SENSOR = True
+    DEPTH_SENSOR = False
     RESOLUTION = (256, 256)
 
     def __init__(self, action_space, goal_sensor_uuid):

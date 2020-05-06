@@ -12,9 +12,6 @@ class McsEnv:
     """
     Wrapper base class
     """
-    POSSIBLE_INIT_ROTATION = [i*10 for i in range(36)]
-    POSSIBLE_INIT = [-4 + i for i in range(9)]
-
     def __init__(self, interaction_sceces=True, seed=None):
 
         if platform.system() == "Linux":
@@ -35,7 +32,7 @@ class McsEnv:
         else:
             self.all_scenes = [os.path.join("scenes", "playroom.json")]
 
-        self.current_scence = 0
+        self.current_scence = 77
         if seed:
             random.seed(seed)
 

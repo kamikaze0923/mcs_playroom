@@ -4,6 +4,7 @@ from metaController.metaController import MetaController
 
 if __name__ == "__main__":
     env = McsEnv()
+    env.reset()
     # metaController = MetaController(env)
     # result = metaController.excecute()
     # exit(0)
