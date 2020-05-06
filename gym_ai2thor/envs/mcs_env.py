@@ -32,7 +32,7 @@ class McsEnv:
         else:
             self.all_scenes = [os.path.join("scenes", "playroom.json")]
 
-        self.current_scence = 77
+        self.current_scence = 0
         if seed:
             random.seed(seed)
 

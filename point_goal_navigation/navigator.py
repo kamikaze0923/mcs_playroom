@@ -42,8 +42,10 @@ class NavigatorResNet:
         self.goal = None
 
 
-    def act(self, obs, hidden_states, prev_action, mask):
-        _, action, _, rnn_hidden_states = self.actor_critic.act(obs, hidden_states, prev_action, mask, deterministic=False)
+    def act(self, obs, hidden_states, prev_action, mask, deterministic=False):
+        _, action, _, rnn_hidden_states = self.actor_critic.act(
+            obs, hidden_states, prev_action, mask, deterministic=deterministic
+        )
         return action[0].item(), rnn_hidden_states
 
     def load_checkpoint(self, checkpoint_path):
@@ -133,7 +135,7 @@ class NavigatorResNet:
         step_cnt = 0
         while not done:
             batch = batch_obs(obs)
-            action, hidden_states = self.act(batch, hidden_states, prev_action, mask)
+            action, hidden_states = self.act(batch, hidden_states, prev_action, mask, deterministic=True)
             prev_action.copy_(_to_tensor(action))
             mask = torch.ones(size=(1,1))
             step_output = env.step(action, epsd_collector)
