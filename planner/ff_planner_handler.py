@@ -163,8 +163,9 @@ class PlanParser(object):
 
         object_list = ["{} - agent".format(gameState.AGENT_NAME)]
 
-        if gameState.object_in_hand not in gameState.object_loc_info and gameState.object_in_hand is not None:
-            object_list.append("{} - object".format(gameState.object_in_hand))
+        if gameState.goal_category == "retrieval":
+            if gameState.goal_object_id not in gameState.object_loc_info:
+                object_list.append("{} - object".format(gameState.goal_object_id))
 
         for obj, rcp_list in gameState.object_containment_info.items():
             for rcp in rcp_list:
