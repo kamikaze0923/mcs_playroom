@@ -3,20 +3,20 @@
 	(:metric minimize (totalCost))
 	(:objects
 		agent1 - agent
-		legal_1d2492ec_46c1_4dfd_8a8f_23ccb3089598 - object
-		loc_bar_3_dot_95_bar_0_dot_01_bar_2_dot_81 - location
-		loc_bar_3_dot_95_bar_0_dot_01_bar_2_dot_81 - location
+		legal_ce3a503a_55a8_4977_955e_11f187585556 - object
+		loc_bar_0_dot_60_bar_0_dot_46_bar_3_dot_81 - location
+		loc_bar__minus_2_dot_14_bar_0_dot_01_bar_3_dot_77 - location
 	)
 	(:init
 		(= (totalCost) 0)
-		(held agent1 legal_1d2492ec_46c1_4dfd_8a8f_23ccb3089598)
-		(lookingAtObject agent1 legal_1d2492ec_46c1_4dfd_8a8f_23ccb3089598)
-		(agentAtLocation agent1 loc_bar_3_dot_95_bar_0_dot_01_bar_2_dot_81)
-		(objectAtLocation legal_1d2492ec_46c1_4dfd_8a8f_23ccb3089598 loc_bar_3_dot_95_bar_0_dot_01_bar_2_dot_81)
+		(handEmpty agent1)
+		(headTiltZero agent1)
+		(agentAtLocation agent1 loc_bar_0_dot_60_bar_0_dot_46_bar_3_dot_81)
+		(objectAtLocation legal_ce3a503a_55a8_4977_955e_11f187585556 loc_bar__minus_2_dot_14_bar_0_dot_01_bar_3_dot_77)
 	)
 	(:goal
 		(and
-			(held agent1 legal_1d2492ec_46c1_4dfd_8a8f_23ccb3089598)
+			(held agent1 legal_ce3a503a_55a8_4977_955e_11f187585556)
 		)
 	)
 )

@@ -1,5 +1,6 @@
 from gym_ai2thor.envs.mcs_env import McsEnv
 from metaController.metaController import MetaController
+import sys
 
 
 if __name__ == "__main__":
@@ -13,4 +14,5 @@ if __name__ == "__main__":
         print(env.current_scence)
         metaController = MetaController(env)
         result = metaController.excecute()
+        sys.stdout.flush()
         env.reset()

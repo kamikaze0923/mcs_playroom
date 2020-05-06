@@ -6,7 +6,7 @@ import os
 from planner.ff_planner_handler import PlanParser
 from metaController.plannerState import GameState
 import machine_common_sense
-import time
+
 
 def get_goal(goal_string):
     goal = goal_string.split("|")
@@ -42,6 +42,10 @@ class MetaController:
 
         self.plannerState = GameState(env.scene_config)
         self.planner = PlanParser(self.plannerState)
+        if self.plannerState.goal_category == "traversal":
+            self.success_distance = machine_common_sense.mcs_controller_ai2thor.MAX_REACH_DISTANCE
+        else:
+            self.success_distance = machine_common_sense.mcs_controller_ai2thor.MAX_REACH_DISTANCE - 0.5
 
     def plan_on_current_state(self):
         self.planner.planner_state_to_pddl(self.plannerState)
@@ -51,9 +55,8 @@ class MetaController:
         assert 'action' in action_dict
         if action_dict['action'] == "GotoLocation":
             goal = get_goal(action_dict['location'])
-
             success = self.nav.go_to_goal(
-                self.nav_env, goal, machine_common_sense.mcs_controller_ai2thor.MAX_REACH_DISTANCE, epsd_collector
+                self.nav_env, goal, self.success_distance, epsd_collector
             )
             if not success:
                 print("Navigation Fail")
