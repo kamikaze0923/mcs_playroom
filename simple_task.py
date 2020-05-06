@@ -14,4 +14,3 @@ if __name__ == "__main__":
         metaController = MetaController(env)
         result = metaController.excecute()
         env.reset()
-        exit(0)

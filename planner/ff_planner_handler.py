@@ -1,4 +1,3 @@
-import multiprocessing
 import re
 import shlex
 import subprocess
@@ -114,9 +113,10 @@ class PlanParser(object):
     ]
 
     def __init__(self, plannerState=None):
-        self.process_pool = multiprocessing.Pool(1)
+        # self.process_pool = multiprocessing.Pool(1)
         if plannerState.goal_predicate_list is None:
-            self.goal_predicates = PlanParser.create_goal_str(open(self.GOALS_FILE))
+            with open(self.GOALS_FILE) as f:
+                self.goal_predicates = PlanParser.create_goal_str(f)
             self.domain_file = "planner/domains/Playroom_domain.pddl"
         else:
             self.goal_predicates = PlanParser.create_goal_str(plannerState.goal_predicate_list)
