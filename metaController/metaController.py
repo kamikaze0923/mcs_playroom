@@ -51,6 +51,7 @@ class MetaController:
         assert 'action' in action_dict
         if action_dict['action'] == "GotoLocation":
             goal = get_goal(action_dict['location'])
+
             success = self.nav.go_to_goal(
                 self.nav_env, goal, machine_common_sense.mcs_controller_ai2thor.MAX_REACH_DISTANCE, epsd_collector
             )
