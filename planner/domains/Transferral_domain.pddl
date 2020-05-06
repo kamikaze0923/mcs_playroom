@@ -19,6 +19,9 @@
     (headTiltZero ?a - agent)                                 ; agent ?a is looking straightly to front
     (lookingAtObject ?a - agent ?o - object)                  ; agent ?a is looking at object ?o
     (inReceptacle ?o1 - object ?o2 - object)                  ; object ?o1 is in receptacle ?o2
+    (openable ?o)                                             ; true if ?o can be opened
+    (isOpened ?o)                                             ; true if ?o is opened
+
     (objectNextTo ?o ?g)                                      ; object ?o is next to object ?g
     (objectOnTopOf ?o ?g)                                     ; object ?o is on top of object ?g
  )
@@ -116,6 +119,20 @@
                 (not (held ?a ?o))
                 (objectOnTopOf ?o ?g)
                 (handEmpty ?a)
+                (increase (totalCost) 1)
+            )
+ )
+
+ (:action OpenObject
+    :parameters (?a - agent ?o - object ?l - location)
+    :precondition (and
+                    (objectAtLocation ?o ?l)
+                    (lookingAtObject ?a ?o)
+                    (openable ?o)
+                    (not (isOpened ?o))
+                  )
+    :effect (and
+                (isOpened ?o)
                 (increase (totalCost) 1)
             )
  )

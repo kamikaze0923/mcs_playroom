@@ -2,8 +2,8 @@ from gym_ai2thor.envs.mcs_env import McsEnv
 
 
 class McsHumanControlEnv(McsEnv):
-    def __init__(self):
-        super().__init__()
+    def __init__(self,  **args):
+        super().__init__(**args)
         self.hand_object = None
 
     def step(self, action_str, **args):
@@ -81,8 +81,8 @@ class McsHumanControlEnv(McsEnv):
 
 
 if __name__ == '__main__':
-    env = McsHumanControlEnv()
-    env.reset(random_init=True)
+    env = McsHumanControlEnv(interaction_sceces="retrieval")
+    env.reset()
 
     while True:
         env.print_step_output()

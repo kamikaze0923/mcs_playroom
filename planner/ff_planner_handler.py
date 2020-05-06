@@ -92,6 +92,9 @@ def get_plan_from_file(args):
     unparsed_plan = planner_output.decode("utf-8").split("\n")
     parsed_plan = parse_plan(unparsed_plan)
 
+    if len(parsed_plan) == 0:
+        parsed_plan = [{"action": "End", "value": 1}]
+
     return parsed_plan
 
 
@@ -166,6 +169,9 @@ class PlanParser(object):
         if gameState.goal_category == "retrieval":
             if gameState.goal_object_id not in gameState.object_loc_info:
                 object_list.append("{} - object".format(gameState.goal_object_id))
+        elif gameState.goal_category == "transferral":
+            if gameState.transfer_object_id not in gameState.object_loc_info:
+                object_list.append("{} - object".format(gameState.transfer_object_id))
 
         for obj, rcp_list in gameState.object_containment_info.items():
             for rcp in rcp_list:

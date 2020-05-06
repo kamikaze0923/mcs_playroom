@@ -12,7 +12,7 @@ class McsEnv:
     """
     Wrapper base class
     """
-    def __init__(self, interaction_sceces=True, seed=None):
+    def __init__(self, interaction_sceces=None, seed=None):
 
         if platform.system() == "Linux":
             app = "unity_app/MCS-AI2-THOR-Unity-App-v0.0.4.x86_64"
@@ -26,9 +26,10 @@ class McsEnv:
         )
 
         if interaction_sceces:
-            goal_dir = os.path.join("interaction_scenes", "retrieval")
+            goal_dir = os.path.join("interaction_scenes", interaction_sceces)
             all_scenes = sorted(os.listdir(goal_dir))
             self.all_scenes = [os.path.join(goal_dir, one_scene) for one_scene in all_scenes]
+            # self.all_scenes = [self.all_scenes[i] for i in [222, 346, 377, 466, 596]]
         else:
             self.all_scenes = [os.path.join("scenes", "playroom.json")]
 
@@ -48,9 +49,11 @@ class McsEnv:
             else:
                 self.current_scence = random.randint(0, len(self.all_scenes) - 1)
                 self.scene_config, status = machine_common_sense.MCS.load_config_json_file(self.all_scenes[self.current_scence])
-
+        if "goal" in self.scene_config:
+            print(self.scene_config['goal']["description"])
         self.step_output = self.controller.start_scene(self.scene_config)
         self.step_output = self.controller.step(action="Pass")
+
 
 
 if __name__ == '__main__':

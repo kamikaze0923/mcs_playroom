@@ -44,9 +44,10 @@ class MetaController:
         self.planner = PlanParser(self.plannerState)
         if self.plannerState.goal_category == "traversal":
             self.success_distance = machine_common_sense.mcs_controller_ai2thor.MAX_REACH_DISTANCE
-        else:
+        elif self.plannerState.goal_category == "retrieval":
             self.success_distance = machine_common_sense.mcs_controller_ai2thor.MAX_REACH_DISTANCE - 0.5
-
+        elif self.plannerState.goal_category == "transferral":
+            self.success_distance = machine_common_sense.mcs_controller_ai2thor.MAX_REACH_DISTANCE - 0.3
     def plan_on_current_state(self):
         self.planner.planner_state_to_pddl(self.plannerState)
         return self.planner.get_plan()
