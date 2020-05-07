@@ -51,4 +51,5 @@
                 )
                 (increase (totalCost) 10)
             )
- ))
+ )
+)

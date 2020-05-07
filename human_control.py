@@ -81,7 +81,7 @@ class McsHumanControlEnv(McsEnv):
 
 
 if __name__ == '__main__':
-    env = McsHumanControlEnv(interaction_sceces="retrieval")
+    env = McsHumanControlEnv(interaction_sceces="transferral")
     env.reset()
 
     while True:

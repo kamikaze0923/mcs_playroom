@@ -172,6 +172,8 @@ class PlanParser(object):
         elif gameState.goal_category == "transferral":
             if gameState.transfer_object_id not in gameState.object_loc_info:
                 object_list.append("{} - object".format(gameState.transfer_object_id))
+            if gameState.target_object_id not in gameState.object_loc_info:
+                object_list.append("{} - object".format(gameState.target_object_id))
 
         for obj, rcp_list in gameState.object_containment_info.items():
             for rcp in rcp_list:

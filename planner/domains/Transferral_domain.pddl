@@ -89,6 +89,30 @@
             )
  )
 
+ (:action PickUpObjectFromReceptacle
+    :parameters (?a - agent ?r - object ?o - object ?l - location)
+    :precondition (and
+                    (objectAtLocation ?r ?l)
+                    (lookingAtObject ?a ?r)
+                    (inReceptacle ?o ?r)
+                    (or
+                      (not (openable ?r))
+                      (and
+                        (isOpened ?r)
+                        (openable ?r)
+                      )
+                    )
+                    (handEmpty ?a)
+                  )
+    :effect (and
+                (held ?a ?o)
+                (not (lookingAtObject ?a ?o))
+                (not (objectAtLocation ?o ?l))
+                (not (handEmpty ?a))
+                (increase (totalCost) 1)
+            )
+ )
+
  (:action DropObjectNextTo
     :parameters (?a - agent ?g - object ?o - object ?l - location)
     :precondition (and

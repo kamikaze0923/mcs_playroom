@@ -71,7 +71,11 @@ class GameState:
                 self.transfer_object_id = PlanParser.create_legal_object_name(
                     config['goal']['metadata']['target_1']['id']
                 )
-                target_object_id = PlanParser.create_legal_object_name(config['goal']['metadata']['target_2']['id'])
+                self.target_object_id = PlanParser.create_legal_object_name(config['goal']['metadata']['target_2']['id'])
+                target_object_info = config['goal']['metadata']['target_2']['info']
+                if "sofa chair" in target_object_info:
+                    print("Not support put object on sofa chair")
+                    del self.object_loc_info[self.target_object_id]
 
                 for obj in config['objects']:
                     if obj['id'] == self.transfer_object_id:
@@ -88,11 +92,11 @@ class GameState:
 
                 if config['goal']['metadata']['relationship'][1] == "next to":
                     self.goal_predicate_list.append(
-                        "(objectNextTo {} {})".format(self.transfer_object_id, target_object_id)
+                        "(objectNextTo {} {})".format(self.transfer_object_id, self.target_object_id)
                     )
                 elif config['goal']['metadata']['relationship'][1] == "on top of":
                     self.goal_predicate_list.append(
-                        "(objectOnTopOf {} {})".format(self.transfer_object_id, target_object_id)
+                        "(objectOnTopOf {} {})".format(self.transfer_object_id, self.target_object_id)
                     )
 
 

@@ -32,6 +32,7 @@ class MetaController:
         else:
             if self.nav.DEPTH_SENSOR:
                 model_file = "gibson-4plus-resnet50.pth"
+                # model_file = "ckpt/ckpt29.pth"
             else:
                 model_file = "gibson-0plus-mp3d-train-val-test-blind.pth"
         self.nav.load_checkpoint(
@@ -45,9 +46,9 @@ class MetaController:
         if self.plannerState.goal_category == "traversal":
             self.success_distance = machine_common_sense.mcs_controller_ai2thor.MAX_REACH_DISTANCE
         elif self.plannerState.goal_category == "retrieval":
-            self.success_distance = machine_common_sense.mcs_controller_ai2thor.MAX_REACH_DISTANCE - 0.5
+            self.success_distance = machine_common_sense.mcs_controller_ai2thor.MAX_REACH_DISTANCE
         elif self.plannerState.goal_category == "transferral":
-            self.success_distance = machine_common_sense.mcs_controller_ai2thor.MAX_REACH_DISTANCE - 0.3
+            self.success_distance = machine_common_sense.mcs_controller_ai2thor.MAX_REACH_DISTANCE - 0.2
     def plan_on_current_state(self):
         self.planner.planner_state_to_pddl(self.plannerState)
         return self.planner.get_plan()
@@ -136,6 +137,8 @@ class MetaController:
                 self.plannerState.knowledge.objectOnTopOf[action_dict['objectId']] = action_dict['goal_objectId']
                 self.plannerState.object_in_hand = None
                 assert self.env.step_output.reward == 1
+            else:
+                return False
         return True
 
     def excecute(self):
@@ -149,7 +152,7 @@ class MetaController:
             success = self.step(result_plan[0])
             if not success:
                 break
-            if result_plan[0]['action'] == "End" or self.env.step_output.return_status == "OUT_OF_REACH":
+            if result_plan[0]['action'] == "End":
                 break
             meta_stage += 1
         # time.sleep(2)

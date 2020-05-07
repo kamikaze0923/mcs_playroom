@@ -50,14 +50,15 @@ class NavigatorResNet:
 
     def load_checkpoint(self, checkpoint_path):
         ckpt = torch.load(checkpoint_path, map_location='cpu')
-        self.actor_critic.load_state_dict(
-            {
-                k[len("actor_critic."):]: v
-                for k, v in ckpt["state_dict"].items()
-                if "actor_critic" in k
-            },
-            strict=False
-        )
+        self.actor_critic.load_state_dict(ckpt)
+        # self.actor_critic.load_state_dict(
+        #     {
+        #         k[len("actor_critic."):]: v
+        #         for k, v in ckpt["state_dict"].items()
+        #         if "actor_critic" in k
+        #     },
+        #     strict=False
+        # )
 
     def preprocess(self, img, img_name):
         img = np.array(img)

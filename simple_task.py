@@ -4,7 +4,7 @@ import sys
 
 
 if __name__ == "__main__":
-    env = McsEnv(interaction_sceces="transferral")
+    env = McsEnv(interaction_sceces="traversal")
     env.reset()
     # metaController = MetaController(env)
     # result = metaController.excecute()
