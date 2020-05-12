@@ -37,18 +37,12 @@ class MetaController:
                 model_file = "gibson-0plus-mp3d-train-val-test-blind.pth"
         self.nav.load_checkpoint(
             os.path.join(
-                os.getcwd(), "point_goal_navigation/model/model_pretrained/{}".format(model_file)
+                os.getcwd(), "point_goal_navigation/model_pretrained/{}".format(model_file)
             )
         )
-
         self.plannerState = GameState(env.scene_config)
         self.planner = PlanParser(self.plannerState)
-        if self.plannerState.goal_category == "traversal":
-            self.success_distance = machine_common_sense.mcs_controller_ai2thor.MAX_REACH_DISTANCE
-        elif self.plannerState.goal_category == "retrieval":
-            self.success_distance = machine_common_sense.mcs_controller_ai2thor.MAX_REACH_DISTANCE
-        elif self.plannerState.goal_category == "transferral":
-            self.success_distance = machine_common_sense.mcs_controller_ai2thor.MAX_REACH_DISTANCE - 0.2
+
     def plan_on_current_state(self):
         self.planner.planner_state_to_pddl(self.plannerState)
         return self.planner.get_plan()
@@ -57,8 +51,13 @@ class MetaController:
         assert 'action' in action_dict
         if action_dict['action'] == "GotoLocation":
             goal = get_goal(action_dict['location'])
+            success_distance = machine_common_sense.mcs_controller_ai2thor.MAX_REACH_DISTANCE
+            # if self.plannerState.goal_category == "retrieval":
+            #     success_distance -= 0.5
+            # if self.plannerState.goal_category == "transferal" and self.plannerState.object_in_hand == None:
+            #     success_distance -= 0.5
             success = self.nav.go_to_goal(
-                self.nav_env, goal, self.success_distance, epsd_collector
+                self.nav_env, goal, success_distance, epsd_collector
             )
             if not success:
                 print("Navigation Fail")
@@ -85,10 +84,12 @@ class MetaController:
                 self.plannerState.object_in_hand = action_dict['objectId']
             else:
                 print("Pickup {} fail!".format(action_dict['objectId']))
-        elif action_dict['action'] == "PickupObjectFromReceptacle":
-            self.obj_env.step("PickupObject", object_id=action_dict['objectId'], epsd_collector=epsd_collector)
-            if self.env.step_output.return_status == "SUCCESSFUL":
-                self.plannerState.object_in_hand = action_dict['objectId']
+        elif action_dict['action'] == "LookForObjectInReceptacle":
+            # self.obj_env.step("PickupObject", object_id=action_dict['objectId'], epsd_collector=epsd_collector)
+            if action_dict['objectId'] in [
+                PlanParser.create_legal_object_name(obj.uuid) for obj in self.env.step_output.object_list
+            ] and False:
+                self.plannerState.object_facing = action_dict['objectId']
             else:
                 print("{} not in {}".format(action_dict['objectId'], action_dict['receptacleId']))
                 self.plannerState.object_containment_info[action_dict['objectId']].remove(action_dict['receptacleId'])

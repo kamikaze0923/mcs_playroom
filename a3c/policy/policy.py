@@ -8,9 +8,9 @@ import abc
 import torch
 import torch.nn as nn
 
-from point_goal_navigation.common.utils import CategoricalNet
-from point_goal_navigation.model.policy.rnn_state_encoder import RNNStateEncoder
-from point_goal_navigation.model.policy.simple_cnn import SimpleCNN
+from a3c.common import CategoricalNet
+from a3c.policy.rnn_state_encoder import RNNStateEncoder
+from a3c.policy.simple_cnn import SimpleCNN
 
 
 class Policy(nn.Module):

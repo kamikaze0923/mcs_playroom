@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from point_goal_navigation.common.utils import Flatten
+from a3c.common import Flatten
 
 
 class SimpleCNN(nn.Module):

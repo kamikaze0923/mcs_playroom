@@ -58,7 +58,7 @@ parser.add_argument('-sync', '--synchronous', dest='synchronous', action='store_
                          'Overwrites args.num_processes as everything is in main thread. '
                          '1 train() function is run and no test()')
 parser.add_argument('-async', '--asynchronous', dest='synchronous', action='store_false')
-parser.set_defaults(synchronous=False)
+parser.set_defaults(synchronous=True)
 
 parser.add_argument('--model', type=str, default='logs/steps20-process4-lr0.0001-entropy_coef0.01-max_grad_norm20/ckpt7.pth')
 
@@ -83,9 +83,9 @@ if __name__ == '__main__':
     _, _, model = get_model_from_task(env, args.task)
     shared_model = model
 
-    if args.model:
-        print("{} loaded".format(args.model))
-        shared_model.load_state_dict(torch.load(os.path.join(os.getcwd(), args.model)))
+    # if args.model:
+    #     print("{} loaded".format(args.model))
+    #     shared_model.load_state_dict(torch.load(os.path.join(os.getcwd(), args.model)))
 
     if args.cuda:
         shared_model = shared_model.cuda()

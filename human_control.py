@@ -81,7 +81,7 @@ class McsHumanControlEnv(McsEnv):
 
 
 if __name__ == '__main__':
-    env = McsHumanControlEnv(interaction_sceces="transferral")
+    env = McsHumanControlEnv(interaction_sceces="searchObjectInReceptacleTraining")
     env.reset()
 
     while True:

@@ -5,15 +5,12 @@ import sys
 
 if __name__ == "__main__":
     env = McsEnv(interaction_sceces="traversal")
-    env.reset()
-    # metaController = MetaController(env)
-    # result = metaController.excecute()
-    # exit(0)
 
-    while env.current_scence <= len(env.all_scenes):
-        print(env.current_scence)
+    while env.current_scene < len(env.all_scenes) - 1:
+        env.reset()
+        print(env.current_scene)
         metaController = MetaController(env)
         result = metaController.excecute()
-        sys.stdout.flush()
-        env.reset()
+        # sys.stdout.flush()
+
 

@@ -11,7 +11,8 @@ CAPS_ACTION_TO_PLAN_ACTION = {
     "GOTOLOCATION": "GotoLocation",
     "FACETOOBJECT": "FaceToObject",
     "PICKUPOBJECT": "PickupObject",
-    "PICKUPOBJECTFROMRECEPTACLE": "PickupObjectFromReceptacle",
+    # "PICKUPOBJECTFROMRECEPTACLE": "PickupObjectFromReceptacle",
+    "LOOKFOROBJECTINRECEPTACLE": "LookForObjectInReceptacle",
     "PUTOBJECTINTORECEPTACLE": "PutObjectIntoReceptacle",
     "FACETOFRONT": "FaceToFront",
     "OPENOBJECT": "OpenObject",
@@ -40,7 +41,7 @@ def parse_line(line):
         if action in ["DropObjectNextTo", "DropObjectOnTopOf"]:
             action_dict["goal_objectId"] = line_args[-3].lower()
 
-    elif action in ["PutObjectIntoReceptacle", "PickupObjectFromReceptacle"]:
+    elif action in ["PutObjectIntoReceptacle", "LookForObjectInReceptacle"]:
         object_id = line_args[-2].lower()
         receptacle_id = line_args[-3].lower()
         action_dict["objectId"] = object_id
@@ -123,12 +124,7 @@ class PlanParser(object):
             self.domain_file = "planner/domains/Playroom_domain.pddl"
         else:
             self.goal_predicates = PlanParser.create_goal_str(plannerState.goal_predicate_list)
-            if plannerState.goal_category == "traversal":
-                self.domain_file = "planner/domains/Traversal_domain.pddl"
-            elif plannerState.goal_category == "retrieval":
-                self.domain_file = "planner/domains/Retrieval_domain.pddl"
-            elif plannerState.goal_category == "transferral":
-                self.domain_file = "planner/domains/Transferral_domain.pddl"
+            self.domain_file = "planner/domains/InteractionScenes_domain.pddl"
 
 
     def get_plan(self):

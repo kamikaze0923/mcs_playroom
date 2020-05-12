@@ -1,6 +1,6 @@
-from point_goal_navigation.model.policy import PointNavResNetPolicy
-from point_goal_navigation.common.utils import batch_obs, _to_tensor
-from point_goal_navigation.common.utils import quaternion_rotate_vector, quat_from_angle_axis, normalize_3d_rotation
+from a3c.policy import PointNavResNetPolicy
+from a3c.common import batch_obs, _to_tensor
+from point_goal_navigation.utils import quaternion_rotate_vector, quat_from_angle_axis, normalize_3d_rotation
 
 import numpy as np
 from skimage import transform
@@ -50,15 +50,15 @@ class NavigatorResNet:
 
     def load_checkpoint(self, checkpoint_path):
         ckpt = torch.load(checkpoint_path, map_location='cpu')
-        self.actor_critic.load_state_dict(ckpt)
-        # self.actor_critic.load_state_dict(
-        #     {
-        #         k[len("actor_critic."):]: v
-        #         for k, v in ckpt["state_dict"].items()
-        #         if "actor_critic" in k
-        #     },
-        #     strict=False
-        # )
+        # self.actor_critic.load_state_dict(ckpt)
+        self.actor_critic.load_state_dict(
+            {
+                k[len("actor_critic."):]: v
+                for k, v in ckpt["state_dict"].items()
+                if "actor_critic" in k
+            },
+            strict=False
+        )
 
     def preprocess(self, img, img_name):
         img = np.array(img)

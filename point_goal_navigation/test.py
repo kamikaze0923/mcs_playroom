@@ -12,17 +12,17 @@ import torch
 
 from a3c.task_util import get_model_from_task
 from gym_ai2thor.envs.mcs_env import McsEnv
-from point_goal_navigation.common.utils import set_random_object_goal
+from point_goal_navigation.utils import set_random_object_goal
 from gym_ai2thor.utils import CSVLogger
 from a3c.task_util import check_gpu_usage_and_restart_env
 
 import os
 from copy import deepcopy
-from point_goal_navigation.common.utils import batch_obs
+from a3c.common import batch_obs
 
 def test(rank, args, shared_model, counter):
     torch.manual_seed(args.seed + rank)
-    env = McsEnv(seed=args.seed + rank)
+    env = McsEnv(seed=args.seed + rank, interaction_sceces="traversal")
     nav_env, navigator, model = get_model_from_task(env, args.task)
     nav_env.reset(random_init=True)
     set_random_object_goal(navigator, env.scene_config)

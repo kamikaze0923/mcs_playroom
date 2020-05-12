@@ -9,12 +9,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from point_goal_navigation.common.utils import Flatten
-from point_goal_navigation.model.policy import resnet
-from point_goal_navigation.model.policy.running_mean_and_var import RunningMeanAndVar
-from point_goal_navigation.model.policy.rnn_state_encoder import RNNStateEncoder
-from point_goal_navigation.model.policy.simple_cnn import SimpleCNN
-from point_goal_navigation.model.policy.policy import Net, Policy
+from a3c.common import Flatten
+from a3c.policy import resnet
+from a3c.policy.running_mean_and_var import RunningMeanAndVar
+from a3c.policy.rnn_state_encoder import RNNStateEncoder
+from a3c.policy.policy import Net, Policy
 
 
 class PointNavResNetPolicy(Policy):

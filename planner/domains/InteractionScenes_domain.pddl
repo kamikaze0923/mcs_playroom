@@ -18,12 +18,12 @@
     (held ?a - agent ?o - object)                             ; agent ?a is holding object ?o
     (headTiltZero ?a - agent)                                 ; agent ?a is looking straightly to front
     (lookingAtObject ?a - agent ?o - object)                  ; agent ?a is looking at object ?o
-    (inReceptacle ?o1 - object ?o2 - object)                  ; object ?o1 is in receptacle ?o2
-    (openable ?o)                                             ; true if ?o can be opened
-    (isOpened ?o)                                             ; true if ?o is opened
+    (inReceptacle ?o - object ?r - object)                    ; object ?o is in receptacle ?r
+    (openable ?o - object)                                    ; true if ?o can be opened
+    (isOpened ?o - object)                                    ; true if ?o is opened
 
-    (objectNextTo ?o ?g)                                      ; object ?o is next to object ?g
-    (objectOnTopOf ?o ?g)                                     ; object ?o is on top of object ?g
+    (objectNextTo ?o - object ?g - object)                    ; object ?o is next to object ?g
+    (objectOnTopOf ?o - object ?g - object)                   ; object ?o is on top of object ?g
  )
 
  (:functions
@@ -53,14 +53,11 @@
     :effect (and
                 (agentAtLocation ?a ?lEnd)
                 (not (agentAtLocation ?a ?lStart))
-                (forall (?o - object)
-                    (not (lookingAtObject ?a ?o))
-                )
                 (increase (totalCost) 10)
             )
  )
 
-  (:action FaceToObject
+ (:action FaceToObject
     :parameters (?a - agent ?o - object ?l - location)
     :precondition (and
                       (agentAtLocation ?a ?l)
@@ -76,7 +73,7 @@
  (:action PickUpObject
     :parameters (?a - agent ?o - object ?l - location)
     :precondition (and
-                      (objectAtLocation ?o ?l)
+                      (agentAtLocation ?a ?l)
                       (lookingAtObject ?a ?o)
                       (handEmpty ?a)
                   )
@@ -89,26 +86,40 @@
             )
  )
 
- (:action PickUpObjectFromReceptacle
+ (:action LookForObjectInReceptacle
     :parameters (?a - agent ?r - object ?o - object ?l - location)
     :precondition (and
-                    (objectAtLocation ?r ?l)
-                    (lookingAtObject ?a ?r)
-                    (inReceptacle ?o ?r)
-                    (or
-                      (not (openable ?r))
-                      (and
-                        (isOpened ?r)
-                        (openable ?r)
+                      (agentAtLocation ?a ?l)
+                      (objectAtLocation ?r ?l)
+                      (lookingAtObject ?a ?r)
+                      (inReceptacle ?o ?r)
+                      (or
+                        (not (openable ?r))
+                        (and
+                          (isOpened ?r)
+                          (openable ?r)
+                        )
                       )
-                    )
-                    (handEmpty ?a)
                   )
     :effect (and
-                (held ?a ?o)
-                (not (lookingAtObject ?a ?o))
-                (not (objectAtLocation ?o ?l))
-                (not (handEmpty ?a))
+                (lookingAtObject ?a ?o)
+                (not (lookingAtObject ?a ?r))
+                (not (headTiltZero ?a))
+                (increase (totalCost) 1)
+            )
+ )
+
+ (:action OpenObject
+    :parameters (?a - agent ?r - object ?l - location)
+    :precondition (and
+                    (agentAtLocation ?a ?l)
+                    (objectAtLocation ?r ?l)
+                    (lookingAtObject ?a ?r)
+                    (openable ?r)
+                    (not (isOpened ?r))
+                  )
+    :effect (and
+                (isOpened ?r)
                 (increase (totalCost) 1)
             )
  )
@@ -123,9 +134,9 @@
                     (not (handEmpty ?a))
                   )
     :effect (and
+                (handEmpty ?a)
                 (not (held ?a ?o))
                 (objectNextTo ?o ?g)
-                (handEmpty ?a)
                 (increase (totalCost) 1)
             )
  )
@@ -143,20 +154,6 @@
                 (not (held ?a ?o))
                 (objectOnTopOf ?o ?g)
                 (handEmpty ?a)
-                (increase (totalCost) 1)
-            )
- )
-
- (:action OpenObject
-    :parameters (?a - agent ?o - object ?l - location)
-    :precondition (and
-                    (objectAtLocation ?o ?l)
-                    (lookingAtObject ?a ?o)
-                    (openable ?o)
-                    (not (isOpened ?o))
-                  )
-    :effect (and
-                (isOpened ?o)
                 (increase (totalCost) 1)
             )
  )

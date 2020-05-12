@@ -18,7 +18,8 @@ import sys
 
 from a3c.task_util import get_model_from_task
 from gym_ai2thor.envs.mcs_env import McsEnv
-from point_goal_navigation.common.utils import batch_obs, set_random_object_goal
+from a3c.common import batch_obs
+from point_goal_navigation.utils import set_random_object_goal
 from a3c.task_util import check_gpu_usage_and_restart_env
 import random
 
@@ -33,7 +34,7 @@ def ensure_shared_grads(model, shared_model):
 def train(rank, args, shared_model, counter, lock, optimizer):
     torch.manual_seed(args.seed + rank)
 
-    env = McsEnv(seed=args.seed + rank)
+    env = McsEnv(seed=args.seed + rank, interaction_sceces="traversal")
     nav_env, navigator, model = get_model_from_task(env, args.task)
     nav_env.reset(random_init=True)
     set_random_object_goal(navigator, env.scene_config)
