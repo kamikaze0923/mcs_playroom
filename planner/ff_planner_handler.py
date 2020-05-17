@@ -101,7 +101,6 @@ def get_plan_from_file(args):
 
 class PlanParser(object):
 
-    FACTS_FILE = "planner/sample_problems/running_facts.pddl"
     GOALS_FILE = "planner/sample_problems/running_goals.pddl"
     CONSIDER_OBJECT_TYPES = [
         "ballType", "appleType", "cupType", "boxType", "bowlType",
@@ -126,12 +125,15 @@ class PlanParser(object):
             self.goal_predicates = PlanParser.create_goal_str(plannerState.goal_predicate_list)
             self.domain_file = "planner/domains/InteractionScenes_domain.pddl"
 
+        all_fact_files = [file for file in os.listdir(os.path.join("planner", "sample_problems")) if "fact" in file]
+        self.facts_file = "planner/sample_problems/running_facts_{}.pddl".format(len(all_fact_files))
+
 
     def get_plan(self):
         # parsed_plans = self.process_pool.map(
         #     get_plan_from_file, zip([self.domain_file] * 1, [self.FACTS_FILE] * 1, range(3, 4))
         # )
-        parsed_plans = get_plan_from_file((self.domain_file, self.FACTS_FILE, 3))
+        parsed_plans = get_plan_from_file((self.domain_file, self.facts_file, 3))
         return parsed_plans
         # return self.find_best_plan(parsed_plans)
 
@@ -206,7 +208,7 @@ class PlanParser(object):
         init_predicates = "\t(:init\n" + init_predicates_str + "\t)\n"
 
         all = "({}{}{}{}{}{})".format(tittle, domain, metric, objects, init_predicates, self.goal_predicates)
-        with open(self.FACTS_FILE, "w") as f:
+        with open(self.facts_file, "w") as f:
             f.write(all)
 
     def generate_playroom_object_str(self, object_list, location_list, init_predicates_list, object_types, gameState):

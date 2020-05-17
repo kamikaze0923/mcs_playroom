@@ -1,5 +1,5 @@
 from gym_ai2thor.envs.mcs_env import McsEnv
-
+import numpy as np
 
 class McsHumanControlEnv(McsEnv):
     def __init__(self,  **args):
@@ -8,7 +8,7 @@ class McsHumanControlEnv(McsEnv):
 
     def step(self, action_str, **args):
         if "Move" in action_str:
-            self.step_output = self.controller.step(action=action_str, amount=0.25)
+            self.step_output = self.controller.step(action=action_str, amount=0.5)
         elif "Look" in action_str:
             if action_str == "LookUp":
                 self.step_output = self.controller.step(action="RotateLook", horizon=-10)
@@ -75,13 +75,20 @@ class McsHumanControlEnv(McsEnv):
                 obj.distance_in_world, obj.uuid, obj.position['x'], obj.position['y'], obj.position['z'])
             )
 
+        depth_np = np.array(self.step_output.depth_mask_list[0])
+        print(depth_np.min(), depth_np.max())
+        depth_np = np.array(self.step_output.depth_mask_list[0]) * 30
+        print(depth_np.min(), depth_np.max())
+
+
+
 
 
 
 
 
 if __name__ == '__main__':
-    env = McsHumanControlEnv(interaction_sceces="searchObjectInReceptacleTraining")
+    env = McsHumanControlEnv()
     env.reset()
 
     while True:

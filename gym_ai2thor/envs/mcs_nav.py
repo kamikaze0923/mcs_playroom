@@ -1,7 +1,4 @@
-
-from gym.spaces import Discrete
-from point_goal_navigation.navigator import NavigatorResNet
-
+from tasks.point_goal_navigation.navigator import NavigatorResNet
 from gym_ai2thor.envs.mcs_wrapper import McsWrapper
 import machine_common_sense
 import numpy as np
@@ -9,23 +6,27 @@ import numpy as np
 
 class McsNavWrapper(McsWrapper):
 
+    ABS_ROTATION = 10 # same as settings in habitat, right is positive
+    ABS_MOVE = 0.5
+
     def __init__(self, env):
         super().__init__(env)
         self.action_names = ["Stop", "MoveAhead", "RotateLeft", "RotateRight"]# order matters
-        self.action_space = Discrete(len(self.action_names))
 
-    def step(self, action, epsd_collector=None):
-        action_str = self.action_names[action]
-        if action_str.startswith('Rotate'):
-            rotation = -self.ABS_ROTATION if action_str == 'RotateLeft' else self.ABS_ROTATION
+    def step(self, action, epsd_collector=None, frame_colletor=None):
+        assert action in self.action_names
+        if action.startswith('Rotate'):
+            rotation = -self.ABS_ROTATION if action == 'RotateLeft' else self.ABS_ROTATION
             super().step(action='RotateLook', rotation=rotation)
-        elif action_str == 'MoveAhead':
-            super().step(action=action_str, amount=0.5)
+        elif action == 'MoveAhead':
+            super().step(action=action, amount=self.ABS_MOVE)
         else:
-            assert action_str == 'Stop'
+            assert action == 'Stop'
             # raise AttributeError('Navigator Should End Before Stop')
         if epsd_collector is not None:
-            epsd_collector.add_experience(self.step_output, action_str)
+            epsd_collector.add_experience(self.step_output, action)
+        if frame_colletor is not None:
+            frame_colletor.add_frame(self.step_output.depth_mask_list[0])
 
         return self.step_output
 

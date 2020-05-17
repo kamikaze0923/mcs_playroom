@@ -2,9 +2,6 @@ import machine_common_sense
 
 class McsWrapper:
 
-    ABS_ROTATION = 10 # same as settings in habitat, right is positive
-    ABS_HEADTILT = 10
-
     def __init__(self, env):
         self.env = env
 

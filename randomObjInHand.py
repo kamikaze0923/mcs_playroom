@@ -1,6 +1,6 @@
 from planner.ff_planner_handler import PlanParser
 from gym_ai2thor.envs.mcs_env import McsEnv
-from metaController.metaController import MetaController
+from metaController.meta_controller import MetaController
 import random
 import numpy as np
 import PIL.Image as Image
@@ -94,6 +94,4 @@ if __name__ == "__main__":
     # print(len(replay_buffer))
     print(len(replay_buffer))
     save_list_dict_h5py(replay_buffer, "c_swm/data/playroom_train.h5")
-
-
     time.sleep(2)

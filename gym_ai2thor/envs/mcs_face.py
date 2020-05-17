@@ -1,22 +1,24 @@
 from gym_ai2thor.envs.mcs_wrapper import McsWrapper
-from point_goal_navigation.navigator import NavigatorResNet
+from tasks.point_goal_navigation.navigator import NavigatorResNet
 import numpy as np
 
 CAMERA_HIGHT = 2
 
 class McsFaceWrapper(McsWrapper):
 
+    ABS_HEADTILT = 10
+    ABS_ROTATION = 10 # same as settings in habitat, right is positive
+    ABS_MOVE = 0.1
+
     def __init__(self, env):
         super().__init__(env)
 
-        self.action_names = {
-            "w": "MoveAhead", "s": "MoveBack", "a": "MoveLeft", "d": "MoveRight",
-            "q": "RotateLeft", "e": "RotateRight", "r": "LookUp", "f": "LookDown"
-        }
+        self.action_names = [
+            "MoveAhead", "MoveBack", "MoveLeft", "MoveRight", "RotateLeft", "RotateRight", "LookUp", "LookDown", "Stop"
+        ]
 
-    def step(self, dir, epsd_collector=None):
-        action = self.action_names[dir]
-        assert dir in self.action_names
+    def step(self, action, epsd_collector=None):
+        assert action in self.action_names
         if action == "LookUp":
             super().step(action="RotateLook", horizon=-self.ABS_HEADTILT)
         elif action == "LookDown":
@@ -25,43 +27,21 @@ class McsFaceWrapper(McsWrapper):
             super().step(action="RotateLook", rotation=-self.ABS_ROTATION)
         elif action == "RotateRight":
             super().step(action="RotateLook", rotation=self.ABS_ROTATION)
+        elif action == "MoveAhead":
+            super().step(action="MoveAhead", amount=self.ABS_MOVE)
+        elif action == "MoveBack":
+            super().step(action="MoveBack", amount=self.ABS_MOVE)
+        elif action == "MoveLeft":
+            super().step(action="MoveLeft", amount=self.ABS_MOVE)
+        elif action == "MoveRight":
+            super().step(action="MoveRight", amount=self.ABS_MOVE)
         if epsd_collector is not None:
             epsd_collector.add_experience(self.step_output, action)
 
-
-    def look_to_front(self, epsd_collector=None):
-        while abs(self.step_output.head_tilt) > self.ABS_HEADTILT:
-            if self.step_output.head_tilt  > 0:
-                self.step("r", epsd_collector)
-            else:
-                self.step("f", epsd_collector)
+    def set_look_dir(self, rotation_in_all, horizon_in_all):
+        super().step(action="RotateLook", horizon=horizon_in_all, rotaion=rotation_in_all)
 
 
-    def look_to_direction(self, goal, epsd_collector=None):
-        while True:
-            theta = NavigatorResNet.get_polar_direction(goal, self.step_output)
-            if abs(theta * 360 / (2 * np.pi)) < self.ABS_ROTATION:
-                break
-            if theta > 0:
-                self.step("q", epsd_collector)
-            else:
-                self.step("e", epsd_collector)
-
-        while True:
-            omega = self.get_head_tilt(goal, self.step_output)
-            diff = omega - self.step_output.head_tilt
-            if diff < self.ABS_HEADTILT:
-                break
-            if diff > 0:
-                self.step("f", epsd_collector)
-            else:
-                self.step("r", epsd_collector)
-
-    @staticmethod
-    def get_head_tilt(goal, step_output):
-        distance_to_goal = NavigatorResNet.distance_to_goal(goal, step_output) + 1e-6
-        delta_y = step_output.position['y'] - goal[1]
-        return np.arctan(delta_y/distance_to_goal) * 360 / (2 * np.pi)
 
 
 

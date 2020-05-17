@@ -19,8 +19,6 @@ import torch.multiprocessing as mp
 
 from gym_ai2thor.envs.mcs_env import McsEnv
 from a3c import my_optim
-from point_goal_navigation.test import test
-from point_goal_navigation.train import train
 from a3c.task_util import get_model_from_task
 
 # Based on: https://github.com/pytorch/examples/tree/master/mnist_hogwild
@@ -42,13 +40,12 @@ parser.add_argument('--seed', type=int, default=1,
                     help='random seed (default: 1)')
 parser.add_argument('--test-sleep-time', type=int, default=1800,
                     help='number of seconds to wait before testing again (default: 10)')
-parser.add_argument('--num-processes', type=int, default=4,
+parser.add_argument('--num-processes', type=int, default=2,
                     help='how many training processes to use (default: 1)')
 parser.add_argument('--num-steps', type=int, default=20,
                     help='number of forward steps in A3C (default: 20)')
 parser.add_argument('--max-episode-length', type=int, default=200,
                     help='maximum length of an episode (default: 1000000)')
-parser.add_argument('--task', type=str, default='point_goal_navigation')
 
 parser.add_argument('--no_cuda', action='store_true', help='Disable GPU')
 parser.set_defaults(no_cuda=False)
@@ -60,6 +57,7 @@ parser.add_argument('-sync', '--synchronous', dest='synchronous', action='store_
 parser.add_argument('-async', '--asynchronous', dest='synchronous', action='store_false')
 parser.set_defaults(synchronous=True)
 
+parser.add_argument('--task', type=str, default='search_object_in_receptacle')
 parser.add_argument('--model', type=str, default='logs/steps20-process4-lr0.0001-entropy_coef0.01-max_grad_norm20/ckpt7.pth')
 
 
@@ -80,7 +78,7 @@ if __name__ == '__main__':
     torch.manual_seed(args.seed)
     env = McsEnv()
 
-    _, _, model = get_model_from_task(env, args.task)
+    _, _, model, train_fun, test_fun = get_model_from_task(env, args.task)
     shared_model = model
 
     # if args.model:
@@ -103,12 +101,12 @@ if __name__ == '__main__':
     if not args.synchronous:
 
         for rank in range(0, args.num_processes):
-            p = mp.Process(target=train, args=(rank, args, shared_model, counter, lock, optimizer))
+            p = mp.Process(target=train_fun, args=(rank, args, shared_model, counter, lock, optimizer))
             p.start()
             worker_processes.append(p)
 
         # test runs continuously and if episode ends, sleeps for args.test_sleep_time seconds
-        manager = mp.Process(target=test, args=(args.num_processes, args, shared_model, counter))
+        manager = mp.Process(target=test_fun, args=(args.num_processes, args, shared_model, counter))
         manager.start()
         manager.join()
 
@@ -117,4 +115,4 @@ if __name__ == '__main__':
     else:
         rank = 0
         # test(args.num_processes, args, shared_model, counter)  # for checking test functionality
-        train(rank, args, shared_model, counter, lock, optimizer)  # run train on main thread
+        train_fun(rank, args, shared_model, counter, lock, optimizer)  # run train on main thread

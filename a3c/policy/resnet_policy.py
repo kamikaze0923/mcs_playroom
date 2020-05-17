@@ -14,23 +14,25 @@ from a3c.policy import resnet
 from a3c.policy.running_mean_and_var import RunningMeanAndVar
 from a3c.policy.rnn_state_encoder import RNNStateEncoder
 from a3c.policy.policy import Net, Policy
+from tasks.utils import get_goal_embedding, get_goal_embedding_dimension
+from a3c.policy.simple_cnn import SimpleCNN
 
-
-class PointNavResNetPolicy(Policy):
+class ResNetPolicy(Policy):
     def __init__(
         self,
         observation_space,
         action_space,
-        goal_sensor_uuid="pointgoal_with_gps_compass",
+        goal_sensor_uuid,
         hidden_size=512,
         num_recurrent_layers=2,
         rnn_type="LSTM",
         resnet_baseplanes=32,
         backbone="resnet50",
         normalize_visual_inputs=False,
+        goal_object_observation_space = None
     ):
         super().__init__(
-            PointNavResNetNet(
+            ResNetNet(
                 observation_space=observation_space,
                 action_space=action_space,
                 goal_sensor_uuid=goal_sensor_uuid,
@@ -40,6 +42,7 @@ class PointNavResNetPolicy(Policy):
                 backbone=backbone,
                 resnet_baseplanes=resnet_baseplanes,
                 normalize_visual_inputs=normalize_visual_inputs,
+                goal_object_observation_space=goal_object_observation_space
             ),
             action_space.n,
         )
@@ -147,7 +150,7 @@ class ResNetEncoder(nn.Module):
         return x
 
 
-class PointNavResNetNet(Net):
+class ResNetNet(Net):
     """Network which passes the input image through CNN and concatenates
     goal vector with CNN's output and passes that through RNN.
     """
@@ -163,6 +166,7 @@ class PointNavResNetNet(Net):
         backbone,
         resnet_baseplanes,
         normalize_visual_inputs,
+        goal_object_observation_space=None
     ):
         super().__init__()
         self.goal_sensor_uuid = goal_sensor_uuid
@@ -170,9 +174,15 @@ class PointNavResNetNet(Net):
         self.prev_action_embedding = nn.Embedding(action_space.n + 1, 32)
         self._n_prev_action = 32
 
-        self._n_input_goal = (
-            observation_space.spaces[self.goal_sensor_uuid].shape[0] + 1
-        )
+        self._n_input_goal = get_goal_embedding_dimension(self.goal_sensor_uuid)
+
+        self.goal_object_encoder = None
+        if self.goal_sensor_uuid == "goal_object_information":
+            assert goal_object_observation_space
+            self.goal_object_encoder = SimpleCNN(
+                observation_space=goal_object_observation_space, output_size=self._n_input_goal
+            )
+
         self.tgt_embeding = nn.Linear(self._n_input_goal, 32)
         self._n_input_goal = 32
 
@@ -222,16 +232,9 @@ class PointNavResNetNet(Net):
         return self.state_encoder.num_recurrent_layers
 
     def get_tgt_encoding(self, observations):
-        goal_observations = observations[self.goal_sensor_uuid]
-        goal_observations = torch.stack(
-            [
-                goal_observations[:, 0],
-                torch.cos(-goal_observations[:, 1]),
-                torch.sin(-goal_observations[:, 1]),
-            ],
-            -1,
+        goal_observations = get_goal_embedding(
+            observations, self.goal_sensor_uuid, object_encoder=self.goal_object_encoder
         )
-
         return self.tgt_embeding(goal_observations)
 
     def forward(self, observations, rnn_hidden_states, prev_actions, masks):

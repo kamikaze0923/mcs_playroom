@@ -1,5 +1,5 @@
 from gym_ai2thor.envs.mcs_env import McsEnv
-from metaController.metaController import MetaController
+from metaController.meta_controller import MetaController
 import sys
 from copy import deepcopy
 import json
@@ -8,8 +8,8 @@ from planner.ff_planner_handler import PlanParser
 
 
 if __name__ == "__main__":
-    env = McsEnv(interaction_sceces="transferral")
-    # env = McsEnv(interaction_sceces="searchObjeInReceptacletraining")
+    env = McsEnv(task="interaction_scenes", scene_type="transferral")
+    # env = McsEnv(task="searchObjeInReceptacletraining")
     env.reset()
     # metaController = MetaController(env)
     # result = metaController.excecute()

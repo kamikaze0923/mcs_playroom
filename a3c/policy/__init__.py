@@ -5,4 +5,4 @@
 # LICENSE file in the root directory of this source tree.
 
 
-from .resnet_policy import PointNavResNetPolicy
+from .resnet_policy import ResNetPolicy
