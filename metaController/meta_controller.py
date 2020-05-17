@@ -37,8 +37,8 @@ class MetaController:
                 raise NotImplementedError("No rgb model")
         else:
             if self.nav.DEPTH_SENSOR:
-                # model_file = "gibson-4plus-resnet50.pth"
-                model_file = "rs18-gibson-v2-depth-with-noise-v3.pth"
+                model_file = "gibson-4plus-resnet50.pth"
+                # model_file = "rs18-gibson-v2-depth-with-noise-v3.pth"
             else:
                 model_file = "gibson-0plus-mp3d-train-val-test-blind.pth"
 
