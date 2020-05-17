@@ -23,7 +23,6 @@ class NavigatorResNet(TaskResNet):
             )
 
         self.set_up_resnet_actor_critic(action_space, self.goal_sensor_uuid)
-
         self.goal = None
 
     def get_observation(self, step_output):
