@@ -140,6 +140,7 @@ class ResNetEncoder(nn.Module):
             depth_observations = depth_observations.permute(0, 3, 1, 2)
 
             cnn_input.append(depth_observations)
+            print("Tensor Observation Before network min: {: 3f}, max: {: 3f}".format(depth_observations.min(), depth_observations.max()))
 
         x = torch.cat(cnn_input, dim=1)
         x = F.avg_pool2d(x, 2)

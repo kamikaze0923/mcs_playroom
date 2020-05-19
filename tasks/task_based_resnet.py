@@ -2,9 +2,13 @@ from a3c.policy import ResNetPolicy
 
 import numpy as np
 from skimage import transform
+import torch
 from gym.spaces import Box
+from copy import deepcopy
 
 import torch
+torch.set_printoptions(profile="full", precision=5, linewidth=5000)
+torch.set_printoptions()
 
 class ObeserationSpace:
     def __init__(self):
@@ -52,18 +56,18 @@ class TaskResNet:
                 for k, v in ckpt["state_dict"].items()
                 if "actor_critic" in k
             },
-            strict=False
         )
 
     def preprocess(self, img, img_name):
+        img = deepcopy(img)
         if img_name == 'rgb':
             img = np.array(img)
             img = img.astype(np.float32) / 255
         else:
-            img /= 5000
-            img /= 2
-        img = transform.resize(img, self.observation_spaces.spaces[img_name].shape, mode='reflect')
-        img = img.astype(np.float32)
+            img /= 256
+            img = torch.tensor(img).unsqueeze(0).unsqueeze(0)
+            img = torch.nn.functional.interpolate(img, size=(256, 256))
+            img = img.squeeze().unsqueeze(-1)
         return img
 
 

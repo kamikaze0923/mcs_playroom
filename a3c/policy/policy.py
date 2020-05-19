@@ -13,6 +13,7 @@ from a3c.policy.rnn_state_encoder import RNNStateEncoder
 from a3c.policy.simple_cnn import SimpleCNN
 
 
+
 class Policy(nn.Module):
     def __init__(self, net, dim_actions):
         super().__init__()
@@ -39,6 +40,7 @@ class Policy(nn.Module):
             observations, rnn_hidden_states, prev_actions, masks
         )
         distribution = self.action_distribution(features)
+        # print(distribution.probs.data)
         value = self.critic(features)
 
         if deterministic:

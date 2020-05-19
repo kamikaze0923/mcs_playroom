@@ -12,7 +12,7 @@ import torch
 class NavigatorResNet(TaskResNet):
 
     RGB_SENSOR = False
-    DEPTH_SENSOR = True
+    DEPTH_SENSOR = False
 
     def __init__(self, action_space):
         super().__init__(self.RGB_SENSOR, self.DEPTH_SENSOR)
@@ -30,10 +30,10 @@ class NavigatorResNet(TaskResNet):
         theta = self.get_polar_direction(self.goal, step_output)
         obs[self.goal_sensor_uuid] = np.array([self.distance_to_goal(self.goal, step_output), theta])
         if self.RGB_SENSOR:
-            frame_img = self.preprocess(step_output.image_list[0], 'rgb')
+            frame_img = self.preprocess(step_output.image_list[4], 'rgb')
             obs['rgb'] = frame_img
         if self.DEPTH_SENSOR:
-            depth_img = self.preprocess(step_output.depth_mask_list[0], 'depth')
+            depth_img = self.preprocess(step_output.depth_mask_list[4], 'depth')
             obs['depth'] = depth_img
         return [obs]
 
@@ -58,20 +58,20 @@ class NavigatorResNet(TaskResNet):
         # the agent is originally looking at z axis
         # rotate_state = degrees of rotating right
 
-        # theta = 2 * np.pi * self.rotation_state / 360
-        # souce_rotation = quat_from_angle_axis(theta)
-        # direction_vec_unit = [delta_x_unit_3d, delta_y_unit_3d, delta_z_unit_3d]
-        # direction_vec_unit_agent = quaternion_rotate_vector(souce_rotation.inverse(), direction_vec_unit)
-        # dir_3d = np.arctan2(-direction_vec_unit_agent[0], direction_vec_unit_agent[2])
-
         theta = 2 * np.pi * step_output.rotation / 360
-        reverse_rotate_complex = np.array(np.cos(theta) + np.sin(theta) * 1j)
-        delta_x_unit_2d, _, delta_z_unit_2d = normalize_3d_rotation(delta_x_unit_3d, 0, delta_z_unit_3d)
-        relative_complex = np.array(delta_z_unit_2d - delta_x_unit_2d * 1j)
-        rotate_direction = relative_complex * reverse_rotate_complex
-        dir_2d = np.arctan2(rotate_direction.imag, rotate_direction.real)
+        souce_rotation = quat_from_angle_axis(theta)
+        direction_vec_unit = [delta_x_unit_3d, delta_y_unit_3d, delta_z_unit_3d]
+        direction_vec_unit_agent = quaternion_rotate_vector(souce_rotation.inverse(), direction_vec_unit)
+        dir_3d = np.arctan2(-direction_vec_unit_agent[0], direction_vec_unit_agent[2])
+
+        # theta = 2 * np.pi * step_output.rotation / 360
+        # reverse_rotate_complex = np.array(np.cos(theta) + np.sin(theta) * 1j)
+        # delta_x_unit_2d, _, delta_z_unit_2d = normalize_3d_rotation(delta_x_unit_3d, 0, delta_z_unit_3d)
+        # relative_complex = np.array(delta_z_unit_2d - delta_x_unit_2d * 1j)
+        # rotate_direction = relative_complex * reverse_rotate_complex
+        # dir_2d = np.arctan2(rotate_direction.imag, rotate_direction.real)
         # print(dir_3d, dir_2d)
-        return dir_2d
+        return dir_3d
 
     def print_target_info(self, step_output):
         print(
@@ -93,14 +93,14 @@ class NavigatorResNet(TaskResNet):
         step_cnt = 0
         while not done:
             batch = batch_obs(obs)
-            action_int, hidden_states = self.act(batch, hidden_states, prev_action, mask, deterministic=True)
+            action_int, hidden_states = self.act(batch, hidden_states, prev_action, mask, deterministic=False)
             prev_action.copy_(_to_tensor(action_int))
             mask = torch.ones(size=(1,1))
             step_output = env.step(env.action_names[action_int], epsd_collector, frame_colletor)
             obs = self.get_observation(step_output)
             done = self.distance_to_goal(self.goal, step_output) < success_distance
             step_cnt += 1
-            if step_cnt > 200:
+            if step_cnt > 2000:
                 return False
         return True
 
