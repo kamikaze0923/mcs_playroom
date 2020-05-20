@@ -3,7 +3,7 @@ from meta_ontroller.meta_controller import MetaController
 
 
 from frame_colletor import FrameCollector
-from array2gif import write_gif
+# from array2gif import write_gif
 
 if __name__ == "__main__":
     c = FrameCollector()
