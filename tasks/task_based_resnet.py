@@ -59,12 +59,13 @@ class TaskResNet:
         )
 
     def preprocess(self, img, img_name):
-        img = deepcopy(img)
+        # img = deepcopy(img)
+        img = np.array(img)
+        img = img.astype(np.float32) / 256
         if img_name == 'rgb':
-            img = np.array(img)
-            img = img.astype(np.float32) / 255
+            img = img.astype(np.float32) / 256
         else:
-            img /= 256
+            img = img.astype(np.float32) / 256
             img = torch.tensor(img).unsqueeze(0).unsqueeze(0)
             img = torch.nn.functional.interpolate(img, size=(256, 256))
             img = img.squeeze().unsqueeze(-1)

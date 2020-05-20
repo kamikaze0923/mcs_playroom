@@ -1,5 +1,5 @@
 from gym_ai2thor.envs.mcs_env import McsEnv
-from metaController.meta_controller import MetaController
+from meta_ontroller.meta_controller import MetaController
 
 
 from frame_colletor import FrameCollector
@@ -16,7 +16,6 @@ if __name__ == "__main__":
         print(env.current_scene)
         metaController.get_inital_planner_state()
         result = metaController.excecute()
-        break
     # print(len(c.frames))
     # write_gif(c.frames, 'original.gif', fps=5)
 

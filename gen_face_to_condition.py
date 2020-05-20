@@ -1,5 +1,5 @@
 from gym_ai2thor.envs.mcs_env import McsEnv
-from metaController.meta_controller import MetaController
+from meta_ontroller.meta_controller import MetaController
 import sys
 from copy import deepcopy
 import json

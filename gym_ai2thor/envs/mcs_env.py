@@ -17,7 +17,7 @@ class McsEnv:
         if platform.system() == "Linux":
             app = "unity_app/MCS-AI2-THOR-Unity-App-v0.0.4.x86_64"
         elif platform.system() == "Darwin":
-            app = "unity_app/MCSai2thor.app/Contents/MacOS/MCSai2thor"
+            app = "unity_app/MCSai2thor-release.app/Contents/MacOS/MCSai2thor-release"
         else:
             app = None
 
@@ -45,7 +45,7 @@ class McsEnv:
         if not repeat_current:
             if not random_init:
                 self.current_scene += 1
-                print(self.all_scenes[self.current_scene])
+                # print(self.all_scenes[self.current_scene])
                 self.scene_config, status = machine_common_sense.MCS.load_config_json_file(self.all_scenes[self.current_scene])
             else:
                 self.current_scene = random.randint(0, len(self.all_scenes) - 1)

@@ -1,6 +1,6 @@
 from planner.ff_planner_handler import PlanParser
 from gym_ai2thor.envs.mcs_env import McsEnv
-from metaController.meta_controller import MetaController
+from meta_ontroller.meta_controller import MetaController
 import random
 import numpy as np
 import PIL.Image as Image

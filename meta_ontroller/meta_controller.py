@@ -6,7 +6,7 @@ from gym_ai2thor.envs.mcs_face import McsFaceWrapper
 from gym_ai2thor.envs.mcs_obj import McsObjWrapper
 import os
 from planner.ff_planner_handler import PlanParser
-from metaController.planner_state import GameState
+from meta_ontroller.planner_state import GameState
 import machine_common_sense
 from gym.spaces import Discrete
 
@@ -38,7 +38,7 @@ class MetaController:
         else:
             if self.nav.DEPTH_SENSOR:
                 model_file = "gibson-2plus-resnet50-ftune5M.pth"
-                model_file = "gibson-2plus-resnet50.pth"
+                # model_file = "gibson-2plus-resnet50.pth"
             else:
                 model_file = "gibson-0plus-mp3d-train-val-test-blind.pth"
 

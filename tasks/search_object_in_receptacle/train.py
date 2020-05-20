@@ -19,7 +19,7 @@ import sys
 from a3c.task_util import get_model_from_task
 from gym_ai2thor.envs.mcs_env import McsEnv
 from a3c.common import batch_obs
-from metaController.meta_controller import MetaController
+from meta_ontroller.meta_controller import MetaController
 from tasks.search_object_in_receptacle.utils import set_object_goal
 from a3c.task_util import check_gpu_usage_and_restart_env
 import random
