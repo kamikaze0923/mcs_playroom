@@ -30,10 +30,10 @@ class NavigatorResNet(TaskResNet):
         theta = self.get_polar_direction(self.goal, step_output)
         obs[self.goal_sensor_uuid] = np.array([self.distance_to_goal(self.goal, step_output), theta])
         if self.RGB_SENSOR:
-            frame_img = self.preprocess(step_output.image_list[4], 'rgb')
+            frame_img = self.preprocess(step_output.image_list[0], 'rgb')
             obs['rgb'] = frame_img
         if self.DEPTH_SENSOR:
-            depth_img = self.preprocess(step_output.depth_mask_list[4], 'depth')
+            depth_img = self.preprocess(step_output.depth_mask_list[0], 'depth')
             obs['depth'] = depth_img
         return [obs]
 
