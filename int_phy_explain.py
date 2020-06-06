@@ -3,6 +3,7 @@ from int_phy.scene_state import SceneState
 
 
 scene_name = "github_scenes" + "/shape_constancy"
+# scene_name = "spatio_temporal_continuity"
 start_scene_number = 2
 env = McsEnv(task="intphys_scenes", scene_type=scene_name, start_scene_number=start_scene_number)
 
@@ -17,4 +18,3 @@ for scene in range(len(env.all_scenes) - start_scene_number):
             break
         scene_state.update(env.step_output)
 
-    env.controller.end_scene(None, None)

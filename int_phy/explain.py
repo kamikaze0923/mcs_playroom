@@ -1,4 +1,6 @@
 from int_phy.occluder_state import get_running_in_occluder_info, get_running_out_occluder_info
+import torch
+
 
 EDGE_MARGIN = 50
 
@@ -52,5 +54,14 @@ def check_occluder_is_lifted_up(last_occluder, new_occluder_dict):
     if last_occluder_pixels_bottom > occluder_pixels_bottom + EDGE_MARGIN:
         occluder_lift_up = True
     return occluder_lift_up
+
+
+def check_appearance(distributions, object_state, object_classes):
+    likelihoods = []
+    for distribution, class_name in zip(distributions, object_classes):
+        log_prob = distribution.log_prob(object_state.appearance)
+        prob = torch.exp(log_prob)
+        likelihoods.append(prob)
+    return likelihoods
 
 

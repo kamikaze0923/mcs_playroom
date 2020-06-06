@@ -1,5 +1,14 @@
 from copy import deepcopy
 import numpy as np
+import torch
+
+IMAGE_CROP_SIZE = 56
+
+def pre_process(img):
+    img = img.astype(np.float32)
+    img /= 255
+    img = torch.tensor(img).unsqueeze(0)
+    return img
 
 def get_object_frame_info(object_info, depth_frame, object_frame):
     depth_frame = np.array(depth_frame)
@@ -33,8 +42,22 @@ def get_object_dimension(dimensions):
 def get_object_mask_color(color):
     return (color['r'], color['g'], color['b'])
 
+
+def get_appearance(model, object_frame, pixels_on_frame):
+    x_s = pixels_on_frame['x_min']
+    x_e = pixels_on_frame['x_max']
+    y_s = pixels_on_frame['y_min']
+    y_e = pixels_on_frame['y_max']
+    new_size = (IMAGE_CROP_SIZE, IMAGE_CROP_SIZE)
+    obj_frame = np.array(object_frame.convert('L').crop((x_s, y_s, x_e, y_e)).resize(new_size))
+    obj_frame = pre_process(obj_frame).unsqueeze(0)
+    embedding = model(obj_frame)
+    return embedding[0].detach()
+
+
+
 class ObjectState:
-    def __init__(self, object_info, depth_frame, object_frame):
+    def __init__(self, object_info, depth_frame, object_frame, appearance_model):
         self.id = object_info.uuid
         self.position = [object_info.position['x'], object_info.position['y'], object_info.position['z']]
         self.depth, self.pixels_on_frame = get_object_frame_info(object_info, depth_frame, object_frame)
@@ -42,7 +65,7 @@ class ObjectState:
         self.in_view = True
         self.occluded_by = None
         self.out_of_view = False
-        self.shape = get_object_dimension(object_info.dimensions)
+        self.appearance = get_appearance(appearance_model, object_frame, self.pixels_on_frame)
         self.velocity_history = []
 
     def in_view_update(self, new_object_state):
