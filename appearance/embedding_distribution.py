@@ -2,8 +2,9 @@ import torch
 from appearance.datasets import Objects
 from appearance.utils import cuda, plot_embeddings, extract_embeddings, get_multivariate_gaussion_parameters
 from appearance.networks import EmbeddingNet, TripletNet
+from int_phy_collect import SHAPE_TYPES
+
 import os
-import numpy as np
 
 embedding_net = EmbeddingNet()
 model = TripletNet(embedding_net)
@@ -19,9 +20,9 @@ para = get_multivariate_gaussion_parameters(train_embeddings_tl, train_labels_tl
 plot_embeddings(train_embeddings_tl, train_labels_tl)
 
 para_dict = {}
-for i, (mean, cov) in enumerate(para):
-    para_dict['object_{}_mean'.format(i)] = torch.tensor(mean)
-    para_dict['object_{}_cov'.format(i)] = torch.tensor(cov)
+for t, (mean, cov) in zip(SHAPE_TYPES, para):
+    para_dict['{}_mean'.format(t)] = torch.tensor(mean)
+    para_dict['{}_cov'.format(t)] = torch.tensor(cov)
 
 torch.save(para_dict, os.path.join("appearance", "pre_trained", "embedding_distribution.pth"))
 

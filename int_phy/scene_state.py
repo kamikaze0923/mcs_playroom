@@ -1,8 +1,8 @@
-from int_phy.object_state import ObjectState
+from int_phy.object_state import ObjectState, get_appearance
 from int_phy.occluder_state import OccluderState
 import sys
 from int_phy.explain import *
-from appearance.utils import object_classes
+from int_phy_collect import SHAPE_TYPES
 
 import torch
 from appearance.networks import EmbeddingNet
@@ -27,9 +27,9 @@ class SceneState:
         self.appearance_model.load_state_dict(torch.load(os.path.join("appearance", "pre_trained", "model.pth")))
         self.distributions = []
         distribution_parameters = torch.load(os.path.join("appearance", "pre_trained", "embedding_distribution.pth"))
-        for i, _ in enumerate(object_classes):
-            mean = distribution_parameters["object_{}_mean".format(i)]
-            cov = distribution_parameters["object_{}_cov".format(i)]
+        for _, x in enumerate(SHAPE_TYPES):
+            mean = distribution_parameters["{}_mean".format(x)]
+            cov = distribution_parameters["{}_cov".format(x)]
             distribution = torch.distributions.MultivariateNormal(loc=mean, covariance_matrix=cov)
             self.distributions.append(distribution)
 
@@ -40,7 +40,7 @@ class SceneState:
             if obj.uuid in self.static_object_set:
                 continue
             try: # it is possible to have a obj in step_output but not in object_mask_frame
-                obj_state = ObjectState(obj, new_depth_frame, new_object_frame, self.appearance_model)
+                obj_state = ObjectState(obj, new_depth_frame, new_object_frame)
                 new_object_state_dict[obj.uuid] = obj_state
             except:
                 print("Unexpected error:\n {}".format(sys.exc_info()))
@@ -96,10 +96,12 @@ class SceneState:
                     print("object {} still in view".format(id))
                 self.object_state_dict[id].in_view_update(state)
 
-            likelihoods = check_appearance(self.distributions, state, object_classes)
-            print("Likelihood of {}: {: .2f}, {}: {: .2f}".format(
-                object_classes[0], likelihoods[0], object_classes[1], likelihoods[1]
-            ))
+            is_patially_occluded = check_object_patially_occlusion(new_occluder_state_dict, state, self.frame_size)
+            if is_patially_occluded:
+                print("object {} is patially occluded, appearance prediction might not be accurate.".format(state.id))
+            appearance = get_appearance(self.appearance_model, new_object_frame, state.edge_pixels, state.color)
+            likelihoods = check_appearance(self.distributions, appearance, SHAPE_TYPES)
+
 
 
         for id, state in self.object_state_dict.items():

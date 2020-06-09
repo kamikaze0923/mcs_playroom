@@ -34,7 +34,7 @@ class TripletLoss(nn.Module):
     def forward(self, anchor, positive, negative, size_average=True):
         distance_positive = (anchor - positive).pow(2).sum(1)  # .pow(.5)
         distance_negative = (anchor - negative).pow(2).sum(1)  # .pow(.5)
-        losses = distance_positive + F.relu(self.margin - distance_negative)
+        losses = F.relu(self.margin + distance_positive - distance_negative)
         return losses.mean() if size_average else losses.sum()
 
 

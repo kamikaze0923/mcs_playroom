@@ -1,6 +1,5 @@
 import numpy as np
-from PIL import Image
-
+from int_phy_collect import SHAPE_TYPES
 from torch.utils.data import Dataset
 import torch
 import os
@@ -9,12 +8,16 @@ np.random.seed(0)
 
 class Objects(Dataset):
     def __init__(self):
-        sphere_tensor = torch.load(os.path.join("appearance", "object_mask_frame", "sphere", "0.pth"))
-        cube_tensor = torch.load(os.path.join("appearance", "object_mask_frame", "cube", "0.pth"))
-        sphere_target = torch.zeros(size=(sphere_tensor.size()[0],))
-        cube_target = torch.ones(size=(cube_tensor.size()[0],))
-        self.data = torch.cat([sphere_tensor, cube_tensor])
-        self.targets = torch.cat([sphere_target, cube_target])
+        image_tensor = []
+        target_tensor = []
+        for i, t in enumerate(SHAPE_TYPES):
+            image = torch.load(os.path.join("appearance", "object_mask_frame", t, "0.pth"))
+            target = torch.zeros(size=(image.size()[0],))
+            target.fill_(i)
+            image_tensor.append(image)
+            target_tensor.append(target)
+        self.data = torch.cat(image_tensor)
+        self.targets = torch.cat(target_tensor)
 
     def __getitem__(self, index):
         return (self.data[index], self.targets[index])

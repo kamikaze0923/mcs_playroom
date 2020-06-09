@@ -1,6 +1,7 @@
 from copy import deepcopy
 import numpy as np
 import torch
+from PIL import Image
 
 IMAGE_CROP_SIZE = 56
 
@@ -10,12 +11,18 @@ def pre_process(img):
     img = torch.tensor(img).unsqueeze(0)
     return img
 
+
+def get_object_match_pixels(object_color, object_frame):
+    color = np.array([object_color['r'], object_color['g'], object_color['b']])
+    pixel_match = (object_frame == color).sum(axis=-1)
+    matched_pixels = [(x,y) for x,y in zip(*np.where(pixel_match == 3))]
+    return matched_pixels
+
+
 def get_object_frame_info(object_info, depth_frame, object_frame):
     depth_frame = np.array(depth_frame)
     object_frame = np.array(object_frame)
-    color = np.array([object_info.color['r'], object_info.color['g'], object_info.color['b']])
-    pixel_match = (object_frame == color).sum(axis=-1)
-    matched_pixels = [(x,y) for x,y in zip(*np.where(pixel_match == 3))]
+    matched_pixels = get_object_match_pixels(object_info.color, object_frame)
     assert len(matched_pixels) > 0
     matched_pixels_x = [t[1] for t in matched_pixels]
     matched_pixels_y = [t[0] for t in matched_pixels]
@@ -43,29 +50,35 @@ def get_object_mask_color(color):
     return (color['r'], color['g'], color['b'])
 
 
-def get_appearance(model, object_frame, pixels_on_frame):
-    x_s = pixels_on_frame['x_min']
-    x_e = pixels_on_frame['x_max']
-    y_s = pixels_on_frame['y_min']
-    y_e = pixels_on_frame['y_max']
+def get_appearance(model, object_frame, edge_pixels, obeject_color):
+    object_frame = np.array(object_frame)
+    x_s = edge_pixels['x_min']
+    x_e = edge_pixels['x_max']
+    y_s = edge_pixels['y_min']
+    y_e = edge_pixels['y_max']
     new_size = (IMAGE_CROP_SIZE, IMAGE_CROP_SIZE)
-    obj_frame = np.array(object_frame.convert('L').crop((x_s, y_s, x_e, y_e)).resize(new_size))
-    obj_frame = pre_process(obj_frame).unsqueeze(0)
+    pixels_on_frame = get_object_match_pixels(obeject_color, object_frame)
+    object_frame[:, :] = [255, 255, 255]
+    for x, y in pixels_on_frame:
+        object_frame[x, y, :] = [0, 0, 0]
+    obj_frame = object_frame[y_s:y_e, x_s:x_e, :]
+    obj_frame = Image.fromarray(obj_frame).convert('L').resize(new_size)
+    obj_frame = pre_process(np.array(obj_frame)).unsqueeze(0)
     embedding = model(obj_frame)
     return embedding[0].detach()
 
 
 
 class ObjectState:
-    def __init__(self, object_info, depth_frame, object_frame, appearance_model):
+    def __init__(self, object_info, depth_frame, object_frame):
         self.id = object_info.uuid
+        self.color = object_info.color
         self.position = [object_info.position['x'], object_info.position['y'], object_info.position['z']]
-        self.depth, self.pixels_on_frame = get_object_frame_info(object_info, depth_frame, object_frame)
+        self.depth, self.edge_pixels = get_object_frame_info(object_info, depth_frame, object_frame)
         self.velocity = (0, 0)
         self.in_view = True
         self.occluded_by = None
         self.out_of_view = False
-        self.appearance = get_appearance(appearance_model, object_frame, self.pixels_on_frame)
         self.velocity_history = []
 
     def in_view_update(self, new_object_state):
@@ -76,7 +89,7 @@ class ObjectState:
         self.velocity = [v_x, v_y]
         self.position = [new_object_state.position[0], new_object_state.position[1], new_object_state.position[2]]
         self.depth = new_object_state.depth
-        self.pixels_on_frame = new_object_state.pixels_on_frame
+        self.edge_pixels = new_object_state.edge_pixels
         self.in_view = True
 
         if v_z != 0:
@@ -95,6 +108,6 @@ class ObjectState:
             self.position[0] += self.velocity[0]
             self.position[1] += self.velocity[1]
 
-        self.pixels_on_frame = None
+        self.edge_pixels = None
         self.in_view = False
 

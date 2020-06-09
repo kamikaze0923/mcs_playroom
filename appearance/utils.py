@@ -1,32 +1,33 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+from int_phy_collect import SHAPE_TYPES
+import os
 
 cuda = torch.cuda.is_available()
 
 
-# mnist_classes = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-# colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728',
-#               '#9467bd', '#8c564b', '#e377c2', '#7f7f7f',
-#               '#bcbd22', '#17becf']
+
+colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728',
+              '#9467bd', '#8c564b', '#e377c2', '#7f7f7f',
+              '#bcbd22', '#17becf']
 
 
-object_classes = ['Sphere', 'Cube']
-colors = ['#1f77b4', '#ff7f0e']
+
 
 
 
 def plot_embeddings(embeddings, targets, xlim=None, ylim=None):
     plt.figure(figsize=(10,10))
-    for i in range(2):
+    for i, _ in enumerate(SHAPE_TYPES):
         inds = np.where(targets==i)[0]
         plt.scatter(embeddings[inds,0], embeddings[inds,1], alpha=0.5, color=colors[i])
     if xlim:
         plt.xlim(xlim[0], xlim[1])
     if ylim:
         plt.ylim(ylim[0], ylim[1])
-    plt.legend(object_classes)
-    plt.show()
+    plt.legend(SHAPE_TYPES)
+    plt.savefig(os.path.join("appearance", "object_mask_frame", "embedding.png"))
 
 def extract_embeddings(dataloader, model):
     with torch.no_grad():
