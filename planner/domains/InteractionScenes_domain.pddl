@@ -129,7 +129,7 @@
     :precondition (and
                     (agentAtLocation ?a ?l)
                     (objectAtLocation ?g ?l)
-                    (headTiltZero ?a)
+                    (lookingAtObject ?a ?g)
                     (held ?a ?o)
                     (not (handEmpty ?a))
                   )
@@ -141,12 +141,12 @@
             )
  )
 
-  (:action DropObjectOnTopOf
+ (:action DropObjectOnTopOf
     :parameters (?a - agent ?g - object ?o - object ?l - location)
     :precondition (and
                     (agentAtLocation ?a ?l)
                     (objectAtLocation ?g ?l)
-                    (headTiltZero ?a)
+                    (lookingAtObject ?a ?g)
                     (held ?a ?o)
                     (not (handEmpty ?a))
                   )
@@ -157,7 +157,5 @@
                 (increase (totalCost) 1)
             )
  )
-
-
 
 )

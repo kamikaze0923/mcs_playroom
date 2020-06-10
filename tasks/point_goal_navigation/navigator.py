@@ -93,7 +93,7 @@ class NavigatorResNet(TaskResNet):
         step_cnt = 0
         while not done:
             batch = batch_obs(obs)
-            action_int, hidden_states = self.act(batch, hidden_states, prev_action, mask, deterministic=False)
+            action_int, hidden_states = self.act(batch, hidden_states, prev_action, mask, deterministic=True)
             prev_action.copy_(_to_tensor(action_int))
             mask = torch.ones(size=(1,1))
             step_output = env.step(env.action_names[action_int], epsd_collector, frame_colletor)
