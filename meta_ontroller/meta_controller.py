@@ -99,15 +99,14 @@ class MetaController:
                 return False
         elif action_dict['action'] == "LookForObjectInReceptacle":
             found_object = False
-            for _ in range(10):
+            for _ in range(3):
                 if action_dict['objectId'] in [
                     PlanParser.create_legal_object_name(obj.uuid) for obj in self.env.step_output.object_list
                 ]:
                     self.plannerState.object_facing = action_dict['objectId']
                     found_object = True
-                    break
                 else:
-                    self.face_env.step(action="MoveAhead")
+                    self.env.step(action="MoveAhead", amount=0.25)
                     goal = self.plannerState.object_loc_info[action_dict['receptacleId']]
                     FaceTurnerResNet.look_to_direction(self.face_env, goal, epsd_collector)
                     self.env.step(action="RotateLook", rotation=-45)
@@ -121,6 +120,8 @@ class MetaController:
                             found_object = True
                             break
                     self.env.step(action="RotateLook", rotation=-45)
+                if found_object:
+                    break
 
             if not found_object:
                 print("{} not in {}".format(action_dict['objectId'], action_dict['receptacleId']))

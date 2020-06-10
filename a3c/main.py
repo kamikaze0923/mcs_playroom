@@ -89,7 +89,7 @@ if __name__ == '__main__':
         shared_model = shared_model.cuda()
     shared_model.share_memory()
 
-    env.controller.end_scene(None, None)  # above env initialisation was only to find certain params needed
+    # env.controller.end_scene(None, None)  # above env initialisation was only to find certain params needed
 
     optimizer = my_optim.SharedAdam(shared_model.parameters(), lr=args.lr)
     optimizer.share_memory()
