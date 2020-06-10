@@ -9,7 +9,7 @@ from frame_colletor import FrameCollector
 if __name__ == "__main__":
     # c = FrameCollector()
 
-    env = McsEnv(task="interaction_scenes", scene_type="retrieval", start_scene_number=0)
+    env = McsEnv(task="interaction_scenes", scene_type="transferral_next_to", start_scene_number=0)
     metaController = MetaController(env)
 
     while env.current_scene < len(env.all_scenes) - 1:
