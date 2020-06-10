@@ -99,28 +99,22 @@ class MetaController:
                 return False
         elif action_dict['action'] == "LookForObjectInReceptacle":
             found_object = False
-            for _ in range(3):
-                if action_dict['objectId'] in [
+            self.env.step(action="MoveAhead", amount=0.8)
+            goal = self.plannerState.object_loc_info[action_dict['receptacleId']]
+            FaceTurnerResNet.look_to_direction(self.face_env, goal, epsd_collector)
+            self.env.step(action="RotateLook", rotation=-45)
+            for _ in range(9):
+                if action_dict['objectId'] not in [
                     PlanParser.create_legal_object_name(obj.uuid) for obj in self.env.step_output.object_list
                 ]:
-                    self.plannerState.object_facing = action_dict['objectId']
-                    found_object = True
+                    self.face_env.step(action="RotateRight")
                 else:
-                    self.env.step(action="MoveAhead", amount=0.25)
-                    goal = self.plannerState.object_loc_info[action_dict['receptacleId']]
-                    FaceTurnerResNet.look_to_direction(self.face_env, goal, epsd_collector)
-                    self.env.step(action="RotateLook", rotation=-45)
-                    for _ in range(9):
-                        if action_dict['objectId'] not in [
-                            PlanParser.create_legal_object_name(obj.uuid) for obj in self.env.step_output.object_list
-                        ]:
-                            self.face_env.step(action="RotateRight")
-                        else:
-                            self.plannerState.object_facing = action_dict['objectId']
-                            found_object = True
-                            break
-                    self.env.step(action="RotateLook", rotation=-45)
-                if found_object:
+                    self.plannerState.object_facing = action_dict['objectId']
+                    for obj in self.env.step_output.object_list:
+                        if PlanParser.create_legal_object_name(obj.uuid) == action_dict['objectId']:
+                            goal = (obj.position['x'], obj.position['y'], obj.position['z'])
+                            FaceTurnerResNet.look_to_direction(self.face_env, goal, epsd_collector)
+                    found_object = True
                     break
 
             if not found_object:
