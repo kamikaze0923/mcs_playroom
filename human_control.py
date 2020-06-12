@@ -70,6 +70,7 @@ class McsHumanControlEnv(McsEnv):
                 self.hand_object
             )
         )
+        print("Camera Field of view {}".format(self.step_output.camera_field_of_view))
         print("Visible Objects:")
         for obj in self.step_output.object_list:
             print("Distance {:.3f} to {} ({:.3f},{:.3f},{:.3f})".format(
@@ -82,8 +83,8 @@ class McsHumanControlEnv(McsEnv):
             print("Distance {:.3f} to {} ({:.3f},{:.3f},{:.3f})".format(
                 obj.distance_in_world, obj.uuid, obj.position['x'], obj.position['y'], obj.position['z'])
             )
-            for one_dim in obj.dimensions:
-                print(one_dim)
+            # for one_dim in obj.dimensions:
+            #     print(one_dim)
 
 
 
