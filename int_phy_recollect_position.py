@@ -34,7 +34,7 @@ if __name__ == "__main__":
         object_locomotions[shape_type] = []
 
     for scene_name in all_scene:
-        env = McsEnv(task="intphys_scenes", scene_type=scene_name, start_scene_number=0)
+        env = McsEnv(task="intphys_scenes", scene_type=scene_name, start_scene_number=2)
         while env.current_scene < len(env.all_scenes) - 1:
             env.reset(random_init=False)
             env_new_objects = []
@@ -74,7 +74,7 @@ if __name__ == "__main__":
         )
         print(padded_locomotion.size())
         for i,x in enumerate(object_locomotions[shape_type]):
-            padded_locomotion[i,:x.size()[0],:] = x
+            padded_locomotion[i,-x.size()[0]:,:] = x
         torch.save(padded_locomotion, os.path.join("appearance", "locomotion", shape_type, "0.pth"))
 
 
