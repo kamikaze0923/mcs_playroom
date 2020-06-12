@@ -23,7 +23,6 @@ def get_locomotion_feature(obj):
 
 
 if __name__ == "__main__":
-    scene_name = "github_scenes" + "/collect_object_shape_data"
 
     object_frames = {}
     object_locomotions = {}
@@ -35,7 +34,8 @@ if __name__ == "__main__":
 
     for scene_name in all_scene:
         env = McsEnv(task="intphys_scenes", scene_type=scene_name)
-        while env.current_scene < len(env.all_scenes) - 1078:
+        env.all_scenes = env.all_scenes[:3]
+        while env.current_scene < len(env.all_scenes) - 1:
             env.reset(random_init=False)
             env_new_objects = []
             for obj in env.scene_config['objects']:
