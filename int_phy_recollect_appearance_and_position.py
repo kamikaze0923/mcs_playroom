@@ -34,7 +34,6 @@ if __name__ == "__main__":
 
     for scene_name in all_scene:
         env = McsEnv(task="intphys_scenes", scene_type=scene_name)
-        env.all_scenes = env.all_scenes[:3]
         while env.current_scene < len(env.all_scenes) - 1:
             env.reset(random_init=False)
             env_new_objects = []
