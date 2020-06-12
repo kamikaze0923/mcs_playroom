@@ -9,7 +9,7 @@ from frame_colletor import FrameCollector
 if __name__ == "__main__":
     # c = FrameCollector()
 
-    env = McsEnv(task="interaction_scenes", scene_type="transferral_next_to", start_scene_number=0)
+    env = McsEnv(task="interaction_scenes", scene_type="transferral_next_to", start_scene_number=53)
     metaController = MetaController(env)
 
     while env.current_scene < len(env.all_scenes) - 1:
@@ -18,6 +18,7 @@ if __name__ == "__main__":
         metaController.get_inital_planner_state()
         result = metaController.excecute()
         sys.stdout.flush()
+        exit(0)
     # print(len(c.frames))
     # write_gif(c.frames, 'original.gif', fps=5)
 

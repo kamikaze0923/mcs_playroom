@@ -139,7 +139,9 @@ class MetaController:
                 return False
         elif action_dict['action'] == "DropObjectNextTo":
             FaceTurnerResNet.look_to_front(self.face_env)
+            self.env.step(action="RotateLook", horizon=9.536743e-06)
             for _ in range(10):
+                print("Head_tilt before drop object {}".format(self.env.step_output.head_tilt))
                 self.obj_env.step("DropObject", object_id=action_dict['objectId'], epsd_collector=epsd_collector)
                 if self.env.step_output.return_status == "SUCCESSFUL":
                     self.plannerState.knowledge.objectNextTo[action_dict['objectId']] = action_dict['goal_objectId']
@@ -168,10 +170,11 @@ class MetaController:
     def excecute(self, frame_collector=None):
         meta_stage = 0
         while True:
-            # print("Meta-Stage: {}".format(meta_stage))
+            print("Meta-Stage: {}".format(meta_stage))
             result_plan = self.plan_on_current_state()
-            # for plan in result_plan:
-            #     print(plan)
+            for plan in result_plan:
+                print(plan)
+                break
             success = self.step(result_plan[0], frame_collector=frame_collector)
             if not success:
                 break

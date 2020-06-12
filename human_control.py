@@ -7,20 +7,21 @@ class McsHumanControlEnv(McsEnv):
         self.hand_object = None
 
     def step(self, action_str, **args):
+        print("Action you entered: {} {}".format(action_str, args))
         if "Move" in action_str:
-            self.step_output = self.controller.step(action=action_str, amount=0.5)
+            self.step_output = self.controller.step(action=action_str)
         elif "Look" in action_str:
             if action_str == "LookUp":
-                self.step_output = self.controller.step(action="RotateLook", horizon=-10)
+                self.step_output = self.controller.step(action="RotateLook", **args)
             elif action_str == "LookDown":
-                self.step_output = self.controller.step(action="RotateLook", horizon=10)
+                self.step_output = self.controller.step(action="RotateLook", **args)
             else:
                 raise NotImplementedError
         elif "Rotate" in action_str:
             if action_str == "RotateLeft":
-                self.step_output = self.controller.step(action="RotateLook", rotation=-10)
+                self.step_output = self.controller.step(action="RotateLook", **args)
             elif action_str == "RotateRight":
-                self.step_output = self.controller.step(action="RotateLook", rotation=10)
+                self.step_output = self.controller.step(action="RotateLook", **args)
             else:
                 self.step_output = self.controller.step(action="RotateObject", objectId=args['objectId'], rotationY=10)
         elif action_str == "PickupObject":
@@ -75,10 +76,15 @@ class McsHumanControlEnv(McsEnv):
                 obj.distance_in_world, obj.uuid, obj.position['x'], obj.position['y'], obj.position['z'])
             )
 
-        depth_np = np.array(self.step_output.depth_mask_list[0])
-        print(depth_np.min(), depth_np.max())
-        depth_np = np.array(self.step_output.depth_mask_list[0]) * 30
-        print(depth_np.min(), depth_np.max())
+        for obj in self.step_output.structural_object_list:
+            if "wall" not in obj.uuid:
+                continue
+            print("Distance {:.3f} to {} ({:.3f},{:.3f},{:.3f})".format(
+                obj.distance_in_world, obj.uuid, obj.position['x'], obj.position['y'], obj.position['z'])
+            )
+            for one_dim in obj.dimensions:
+                print(one_dim)
+
 
 
 
@@ -88,7 +94,7 @@ class McsHumanControlEnv(McsEnv):
 
 
 if __name__ == '__main__':
-    env = McsHumanControlEnv()
+    env = McsHumanControlEnv(task="interaction_scenes", scene_type="transferral", start_scene_number=0)
     env.reset()
 
     while True:
@@ -96,21 +102,25 @@ if __name__ == '__main__':
         print("- "*10)
         action = input("Enter Action: ")
         if action == "w":
-            env.step("MoveAhead")
+            env.step("MoveAhead", amount=0.5)
         elif action == "s":
-            env.step("MoveBack")
+            env.step("MoveBack", amount=0.5)
         elif action == "a":
-            env.step("MoveLeft")
+            env.step("MoveLeft", amount=0.5)
         elif action == "d":
-            env.step("MoveRight")
+            env.step("MoveRight", amount=0.5)
         elif action == "q":
-            env.step("RotateLeft")
+            rt = input("RotateLeft! Enter the rotation: ")
+            env.step("RotateLeft", rotation=-float(rt))
         elif action == "e":
-            env.step("RotateRight")
+            rt = input("RotateRight! Enter the rotation: ")
+            env.step("RotateRight", rotation=float(rt))
         elif action == "r":
-            env.step("LookUp")
+            hrz = input("Look Up! Enter the horizon: ")
+            env.step("LookUp", horizon=-float(hrz))
         elif action == "f":
-            env.step("LookDown")
+            hrz = input("Look Down! Enter the horizon: ")
+            env.step("LookDown", horizon=float(hrz))
         elif action == "U":
             obj = input("Pickup Object! Enter the object ID: ")
             env.step("PickupObject", objectId=obj)
