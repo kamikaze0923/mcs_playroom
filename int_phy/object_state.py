@@ -3,9 +3,9 @@ import numpy as np
 import torch
 from PIL import Image
 
-IMAGE_CROP_SIZE = 56
+IMAGE_CROP_SIZE = 28
 
-def pre_process(img):
+def pre_process_cropped_img(img):
     img = img.astype(np.float32)
     img /= 255
     img = torch.tensor(img).unsqueeze(0)
@@ -63,7 +63,7 @@ def get_appearance(model, object_frame, edge_pixels, obeject_color):
         object_frame[x, y, :] = [0, 0, 0]
     obj_frame = object_frame[y_s:y_e, x_s:x_e, :]
     obj_frame = Image.fromarray(obj_frame).convert('L').resize(new_size)
-    obj_frame = pre_process(np.array(obj_frame)).unsqueeze(0)
+    obj_frame = pre_process_cropped_img(np.array(obj_frame)).unsqueeze(0)
     embedding = model(obj_frame)
     return embedding[0].detach()
 

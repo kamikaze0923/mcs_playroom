@@ -1,5 +1,5 @@
 from gym_ai2thor.envs.mcs_env import McsEnv
-from int_phy.object_state import ObjectState, pre_process, IMAGE_CROP_SIZE, get_object_match_pixels
+from int_phy.object_state import ObjectState, pre_process_cropped_img, IMAGE_CROP_SIZE, get_object_match_pixels
 from PIL import Image
 import numpy as np
 import torch
@@ -41,7 +41,7 @@ if __name__ == "__main__":
                     y_e = obj_state.edge_pixels['y_max']
                     new_size = (IMAGE_CROP_SIZE, IMAGE_CROP_SIZE)
                     obj_frame = np.array(env.step_output.object_mask_list[-1])
-                    pixels_on_frame = get_object_match_pixels(env.step_output.object_list[0], obj_frame)
+                    pixels_on_frame = get_object_match_pixels(env.step_output.object_list[0].color, obj_frame)
                     obj_frame[:,:] = [255, 255, 255]
                     for x,y in pixels_on_frame:
                         obj_frame[x,y,:] = [0, 0, 0]
@@ -50,7 +50,7 @@ if __name__ == "__main__":
                     if i >= 3 and i < 3 + 12:
                         # obj_frame.show()
                         obj_frame = np.array(obj_frame)
-                        object_frames.append(pre_process(obj_frame))
+                        object_frames.append(pre_process_cropped_img(obj_frame))
 
         env.controller.end_scene(None, None)
         object_frames = torch.stack(object_frames)
