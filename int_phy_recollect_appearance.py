@@ -6,7 +6,6 @@ import torch
 import os, sys
 
 SHAPE_TYPES = ["cylinder", "sphere", "cube"]
-SHAPE_TYPES = ["cube"]
 all_scene = ["object_permanence", "shape_constancy", "spatio_temporal_continuity"]
 
 if __name__ == "__main__":
@@ -19,7 +18,7 @@ if __name__ == "__main__":
 
     for scene_name in all_scene:
         env = McsEnv(task="intphys_scenes", scene_type=scene_name, start_scene_number=0)
-        while env.current_scene < len(env.all_scenes):
+        while env.current_scene < len(env.all_scenes) - 1:
             env.reset(random_init=False)
             env_new_objects = []
             for obj in env.scene_config['objects']:
