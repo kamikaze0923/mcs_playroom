@@ -1,5 +1,5 @@
-from tasks.grid_navigation_mcs.visibility_road_map import ObstaclePolygon
-from tasks.grid_navigation_mcs.geometry import Geometry
+from tasks.bonding_box_navigation_mcs.visibility_road_map import ObstaclePolygon
+from tasks.bonding_box_navigation_mcs.geometry import Geometry
 import math
 import numpy as np
 import random

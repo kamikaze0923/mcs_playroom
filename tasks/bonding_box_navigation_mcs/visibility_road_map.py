@@ -13,8 +13,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random
 
-from tasks.grid_navigation_mcs.geometry import Geometry
-from tasks.grid_navigation_mcs.dijkstra_search import DijkstraSearch
+from tasks.bonding_box_navigation_mcs.geometry import Geometry
+from tasks.bonding_box_navigation_mcs.dijkstra_search import DijkstraSearch
 from shapely.geometry import Point, Polygon
 
 show_animation = True

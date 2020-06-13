@@ -1,8 +1,8 @@
-from tasks.grid_navigation_mcs.visibility_road_map import VisibilityRoadMap,ObstaclePolygon,IncrementalVisibilityRoadMap
+from tasks.bonding_box_navigation_mcs.visibility_road_map import VisibilityRoadMap,ObstaclePolygon,IncrementalVisibilityRoadMap
 import random
 import math
 import matplotlib.pyplot as plt
-from tasks.grid_navigation_mcs.fov import FieldOfView
+from tasks.bonding_box_navigation_mcs.fov import FieldOfView
 
 SHOW_ANIMATION = True
 random.seed(1)
