@@ -37,8 +37,12 @@ class McsEnv:
         if seed:
             random.seed(seed)
 
+        self.add_obstacle_func = None
+
     def step(self, **kwargs):
         self.step_output = self.controller.step(**kwargs)
+        if self.add_obstacle_func:
+            self.add_obstacle_func(self.step_output)
         # print(self.step_output.return_status)
 
     def reset(self, random_init=False, repeat_current=False):

@@ -7,7 +7,7 @@ from gym.spaces import Box
 import machine_common_sense
 
 import torch
-
+import os
 
 class NavigatorResNet(TaskResNet):
 
@@ -23,6 +23,23 @@ class NavigatorResNet(TaskResNet):
             )
 
         self.set_up_resnet_actor_critic(action_space, self.goal_sensor_uuid)
+        if self.RGB_SENSOR:
+            if self.DEPTH_SENSOR:
+                raise NotImplementedError("No rgbd model")
+            else:
+                raise NotImplementedError("No rgb model")
+        else:
+            if self.DEPTH_SENSOR:
+                model_file = "gibson-2plus-resnet50-ftune5M.pth"
+                # model_file = "gibson-2plus-resnet50.pth"
+            else:
+                model_file = "gibson-0plus-mp3d-train-val-test-blind.pth"
+
+        self.load_checkpoint(
+            os.path.join(
+                os.getcwd(), "tasks/point_goal_navigation/model_pretrained/{}".format(model_file)
+            )
+        )
         self.goal = None
 
     def get_observation(self, step_output):

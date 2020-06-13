@@ -8,7 +8,9 @@ import os
 from planner.ff_planner_handler import PlanParser
 from meta_ontroller.planner_state import GameState
 import machine_common_sense
-from gym.spaces import Discrete
+from tasks.grid_navigation_mcs.bonding_box_navigator import BoundingBoxNavigator, SHOW_ANIMATION
+from tasks.grid_navigation_mcs.visibility_road_map import ObstaclePolygon
+import matplotlib.pyplot as plt
 
 
 def get_goal(goal_string):
@@ -27,26 +29,14 @@ class MetaController:
         self.face_env = McsFaceWrapper(env)
         self.obj_env = McsObjWrapper(env)
 
-        self.nav = NavigatorResNet(get_action_space_from_names(self.nav_env.action_names))
+        # self.nav = NavigatorResNet(get_action_space_from_names(self.nav_env.action_names))
+        self.nav = BoundingBoxNavigator()
+        if isinstance(self.nav, BoundingBoxNavigator):
+            self.env.add_obstacle_func = self.nav.add_obstacle_from_step_output
         self.face = FaceTurnerResNet(get_action_space_from_names(self.face_env.action_names))
 
-        if self.nav.RGB_SENSOR:
-            if self.nav.DEPTH_SENSOR:
-                raise NotImplementedError("No rgbd model")
-            else:
-                raise NotImplementedError("No rgb model")
-        else:
-            if self.nav.DEPTH_SENSOR:
-                model_file = "gibson-2plus-resnet50-ftune5M.pth"
-                # model_file = "gibson-2plus-resnet50.pth"
-            else:
-                model_file = "gibson-0plus-mp3d-train-val-test-blind.pth"
+        self.obstacles = {}
 
-        self.nav.load_checkpoint(
-            os.path.join(
-                os.getcwd(), "tasks/point_goal_navigation/model_pretrained/{}".format(model_file)
-            )
-        )
         self.plannerState = None
 
 
@@ -161,13 +151,17 @@ class MetaController:
             if self.env.step_output.return_status == "SUCCESSFUL":
                 self.plannerState.knowledge.objectOnTopOf[action_dict['objectId']] = action_dict['goal_objectId']
                 self.plannerState.object_in_hand = None
-                assert self.env.step_output.reward == 1
+                print("PutObject succeeded! If reward 0 then it is a bug!")
+                # assert self.env.step_output.reward == 1
             else:
                 print("PutObjectIntoReceptacle {}".format(self.env.step_output.return_status))
                 return False
         return True
 
     def excecute(self, frame_collector=None):
+        self.get_inital_planner_state()
+        if isinstance(self.nav, BoundingBoxNavigator):
+            self.nav.clear_obstacle_dict()
         meta_stage = 0
         while True:
             print("Meta-Stage: {}".format(meta_stage))

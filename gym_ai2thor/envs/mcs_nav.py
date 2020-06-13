@@ -42,11 +42,8 @@ class McsNavWrapper(McsWrapper):
             amount -= machine_common_sense.mcs_controller_ai2thor.MAX_MOVE_DISTANCE
         super().step(action='MoveAhead', amount=amount / machine_common_sense.mcs_controller_ai2thor.MAX_MOVE_DISTANCE)
 
-        # current_x, current_z = env.step_output.position['x'], env.step_output.position['z']
-        # delta_x, delta_z = goal_x - current_x, goal_z - current_z
-        # amount = (delta_x ** 2 + delta_z ** 2) ** 0.5
-        # print(amount)
-        # print(rotate)
+
+
 
 
 
