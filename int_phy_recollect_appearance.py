@@ -25,8 +25,6 @@ if __name__ == "__main__":
                 if "occluder" not in obj['id']:
                     env_new_objects.append(obj)
             for one_obj in env_new_objects:
-                if one_obj['type'] != SHAPE_TYPES[0]:
-                    continue
                 env.scene_config['objects']  = [one_obj]
                 env.step_output = env.controller.start_scene(env.scene_config)
                 obj_in = False

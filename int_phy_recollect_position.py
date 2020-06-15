@@ -5,8 +5,18 @@ import numpy as np
 import torch
 import os, sys
 
+
+# all_scene = ["object_permanence", "shape_constancy", "spatio_temporal_continuity"]
+all_scene = ["object_permanence"]
+
 SHAPE_TYPES = ["cylinder", "sphere", "cube"]
-all_scene = ["object_permanence", "shape_constancy", "spatio_temporal_continuity"]
+WITH_OCCLUDER = False
+SAVE_SCENE_LENGTH = 40
+
+TOTAL_SCENE = 1080 # max 1080
+assert TOTAL_SCENE % SAVE_SCENE_LENGTH == 0
+N_RESTART = TOTAL_SCENE // SAVE_SCENE_LENGTH
+
 
 
 def get_locomotion_feature(obj):
@@ -28,54 +38,76 @@ def get_locomotion_feature(obj):
 
 if __name__ == "__main__":
 
-    object_locomotions = {}
-    for _, shape_type in enumerate(SHAPE_TYPES):
-        os.makedirs(os.path.join("appearance", "locomotion", shape_type), exist_ok=True)
-        object_locomotions[shape_type] = []
+    for scene_type in all_scene:
+        for _, shape_type in enumerate(SHAPE_TYPES):
+            if WITH_OCCLUDER:
+                os.makedirs(os.path.join("appearance", "locomotion", "with_occluder", shape_type, scene_type), exist_ok=True)
+            else:
+                os.makedirs(os.path.join("appearance", "locomotion", "without_occluder", shape_type, scene_type), exist_ok=True)
+            object_locomotions = {}
 
-    for scene_name in all_scene:
-        env = McsEnv(task="intphys_scenes", scene_type=scene_name, start_scene_number=2)
-        while env.current_scene < len(env.all_scenes) - 1:
-            env.reset(random_init=False)
-            env_new_objects = []
-            env_occluders = []
-            for obj in env.scene_config['objects']:
-                if "occluder" not in obj['id']:
-                    env_new_objects.append(obj)
-                else:
-                    env_occluders.append(obj)
-            for one_obj in env_new_objects:
-                if one_obj['type'] != SHAPE_TYPES[0]:
-                    continue
-                env.scene_config['objects']  = [one_obj] + env_occluders
-                env.step_output = env.controller.start_scene(env.scene_config)
-                one_episode_locomotion = []
-                for i, action in enumerate(env.scene_config['goal']['action_list']):
-                    env.step(action=action[0])
-                    if len(env.step_output.object_list) == 1:
-                        one_episode_locomotion.append(get_locomotion_feature(env.step_output.object_list[0]))
-                    elif len(env.step_output.object_list) == 0:
-                        one_episode_locomotion.append(get_locomotion_feature(None))
+        start_scene_number = 0
+        for n_restart in range(N_RESTART):
+
+            object_locomotions = {}
+            for _, shape_type in enumerate(SHAPE_TYPES):
+                object_locomotions[shape_type] = []
+
+            env = McsEnv(task="intphys_scenes", scene_type=scene_type, start_scene_number=start_scene_number)
+            start_scene_number += SAVE_SCENE_LENGTH
+            for _ in range(SAVE_SCENE_LENGTH):
+                env.reset(random_init=False)
+                env_new_objects = []
+                env_occluders = []
+                for obj in env.scene_config['objects']:
+                    if "occluder" not in obj['id']:
+                        env_new_objects.append(obj)
                     else:
-                        print("Error!")
-                        exit(0)
-                print("Locomotion length: {}".format(len(one_episode_locomotion)))
-                one_episode_locomotion = torch.stack(one_episode_locomotion)
-                object_locomotions[one_obj['type']].append(one_episode_locomotion)
-        env.controller.end_scene(None, None)
+                        env_occluders.append(obj)
+                for one_obj in env_new_objects:
+                    if WITH_OCCLUDER:
+                        env.scene_config['objects']  = [one_obj] + env_occluders
+                    else:
+                        env.scene_config['objects'] = [one_obj]
+                    env.step_output = env.controller.start_scene(env.scene_config)
+                    one_episode_locomotion = []
+                    for i, action in enumerate(env.scene_config['goal']['action_list']):
+                        env.step(action=action[0])
+                        if len(env.step_output.object_list) == 1:
+                            one_episode_locomotion.append(get_locomotion_feature(env.step_output.object_list[0]))
+                        elif len(env.step_output.object_list) == 0:
+                            one_episode_locomotion.append(get_locomotion_feature(None))
+                        else:
+                            print("Error!")
+                            exit(0)
+                    print("Locomotion length: {}".format(len(one_episode_locomotion)))
+                    one_episode_locomotion = torch.stack(one_episode_locomotion)
+                    object_locomotions[one_obj['type']].append(one_episode_locomotion)
 
-    for _, shape_type in enumerate(SHAPE_TYPES):
-        max_locomotion_length = max([t.size()[0] for t in object_locomotions[shape_type]])
-        padded_locomotion = torch.zeros(
-            size=
-            (
-                len(object_locomotions[shape_type]), max_locomotion_length, object_locomotions[shape_type][0].size()[1]
-            )
-        )
-        print(padded_locomotion.size())
-        for i,x in enumerate(object_locomotions[shape_type]):
-            padded_locomotion[i,-x.size()[0]:,:] = x
-        torch.save(padded_locomotion, os.path.join("appearance", "locomotion", shape_type, "0.pth"))
+            for _, shape_type in enumerate(SHAPE_TYPES):
+                all_seq_len = [t.size()[0] for t in object_locomotions[shape_type]]
+                if len(all_seq_len) == 0:
+                    continue
+                print(shape_type)
+                max_locomotion_length = max(all_seq_len)
+                padded_locomotion = torch.zeros(
+                    size=
+                    (
+                        len(object_locomotions[shape_type]), max_locomotion_length,
+                        object_locomotions[shape_type][0].size()[1]
+                    )
+                )
+                print(padded_locomotion.size())
+                for i, x in enumerate(object_locomotions[shape_type]):
+                    padded_locomotion[i, -x.size()[0]:, :] = x
+                if WITH_OCCLUDER:
+                    torch.save(padded_locomotion, os.path.join("appearance", "locomotion", "with_occluder", shape_type, scene_type, "{}.pth".format(n_restart)))
+                else:
+                    torch.save(padded_locomotion, os.path.join("appearance", "locomotion", "without_occluder", shape_type, scene_type, "{}.pth".format(n_restart)))
+
+            env.controller.end_scene(None, None)
+
+
 
 
 
