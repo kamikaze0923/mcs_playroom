@@ -21,7 +21,7 @@ class McsEnv:
         else:
             app = None
 
-        # os.environ['MCS_CONFIG_FILE_PATH'] = "mcs_config.json"
+        os.environ['MCS_CONFIG_FILE_PATH'] = "mcs_config.json"
 
         self.controller = machine_common_sense.MCS.create_controller(
             os.path.join(app)
