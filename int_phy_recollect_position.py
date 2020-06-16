@@ -19,20 +19,25 @@ N_RESTART = TOTAL_SCENE // SAVE_SCENE_LENGTH
 
 
 
-def get_locomotion_feature(obj):
+def get_locomotion_feature(obj, object_occluded, object_in_scene):
     features = []
-    if obj is None:
-        features.extend([.0]*28)
+    if not object_in_scene:
+        features.extend([0.0]*29)
     else:
-        features.append(obj.position['x'])
-        features.append(obj.position['y'])
-        features.append(obj.position['z'])
-        for bonding_vertex in obj.dimensions:
-            features.append(bonding_vertex['x'])
-            features.append(bonding_vertex['y'])
-            features.append(bonding_vertex['z'])
-        features.append(1)
-    assert len(features) == 28
+        if object_occluded:
+            features.extend([.0] * 28)
+            features.extend([1.0])
+        else:
+            features.append(obj.position['x'])
+            features.append(obj.position['y'])
+            features.append(obj.position['z'])
+            for bonding_vertex in obj.dimensions:
+                features.append(bonding_vertex['x'])
+                features.append(bonding_vertex['y'])
+                features.append(bonding_vertex['z'])
+            features.extend([0.0,1.0])
+
+    assert len(features) == 29
     return torch.tensor(features)
 
 
@@ -71,12 +76,21 @@ if __name__ == "__main__":
                         env.scene_config['objects'] = [one_obj]
                     env.step_output = env.controller.start_scene(env.scene_config)
                     one_episode_locomotion = []
+                    object_in_scene = False
                     for i, action in enumerate(env.scene_config['goal']['action_list']):
                         env.step(action=action[0])
                         if len(env.step_output.object_list) == 1:
-                            one_episode_locomotion.append(get_locomotion_feature(env.step_output.object_list[0]))
+                            object_in_scene = True
+                            object_occluded = False
+                            one_episode_locomotion.append(get_locomotion_feature(env.step_output.object_list[0], object_occluded, object_in_scene))
                         elif len(env.step_output.object_list) == 0:
-                            one_episode_locomotion.append(get_locomotion_feature(None))
+                            if not WITH_OCCLUDER:
+                                object_in_scene = False
+                                object_occluded = False
+                            else:
+                                object_in_scene = True
+                                object_occluded = True
+                            one_episode_locomotion.append(get_locomotion_feature(None, object_occluded, object_in_scene))
                         else:
                             print("Error!")
                             exit(0)
