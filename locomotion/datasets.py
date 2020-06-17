@@ -48,4 +48,4 @@ class TuplePositions(Dataset):
 
 
 if __name__ == "__main__":
-    dataset = TuplePositions()
+    dataset = get_train_test_dataset()

@@ -4,12 +4,14 @@ import torch
 HIDDEN_STATE_SIZE = 32
 OUTPUT_STATE_SIZE = 2
 
+POSITION_FEATURE_DIM = 29
+
 
 
 class Position_Embbedding_Network(Module):
     def __init__(self):
         super().__init__()
-        self.gru_1 = torch.nn.GRU(input_size=28, hidden_size=HIDDEN_STATE_SIZE, num_layers=1, batch_first=True)
+        self.gru_1 = torch.nn.GRU(input_size=POSITION_FEATURE_DIM, hidden_size=HIDDEN_STATE_SIZE, num_layers=1, batch_first=True)
         self.fc = torch.nn.Linear(in_features=HIDDEN_STATE_SIZE, out_features=OUTPUT_STATE_SIZE)
 
 

@@ -35,7 +35,6 @@ for _ in range(10):
 
     for one_obj in env_new_objects:
         plt.figure(figsize=(6,4))
-
         plt.xlim((-5, 5))
         plt.ylim((-1, 4))
         plt.title("Position(x,y) of {}".format(one_obj['id']))
@@ -54,23 +53,22 @@ for _ in range(10):
 
         if len(env_1.scene_config['goal']['action_list']) == 40:
             for _ in range(20):
-                f_none = get_locomotion_feature(None)
+                f_none = get_locomotion_feature(obj=None, object_occluded=False, object_in_scene=False)
                 f_none = torch.tensor(f_none)
                 f_none = f_none.unsqueeze(0).unsqueeze(0)
                 _, h_t_1 = net((f_none, h_t_1))
 
-        obj_in_scene = 0
+        obj_in_scene = False
         for i, action in enumerate(env_1.scene_config['goal']['action_list']):
             env_1.step(action=action[0])
 
             obj_in_view = None
             if len(env_1.step_output.object_list) == 1:
-                f_1 = get_locomotion_feature(env_1.step_output.object_list[0])
-                f_1_seen = f_1
+                f_1 = get_locomotion_feature(env_1.step_output.object_list[0], object_occluded=False, object_in_scene=True)
                 obj_in_view = True
-                obj_in_scene += 1
+                obj_in_scene = True
             elif len(env_1.step_output.object_list) == 0:
-                f_1 = get_locomotion_feature(None)
+                f_1 = get_locomotion_feature(None, object_occluded=True, object_in_scene=(obj_in_scene > 0))
                 obj_in_view = False
 
             gx, gy = f_1[0], f_1[1]
@@ -91,12 +89,9 @@ for _ in range(10):
                 plt.pause(0.3)
 
             # after some steps, make a prediction if next step cannot see the object
-            if obj_in_scene > 3:
-                if dis_to_origin(output_1_unseen_numpy[0], output_1_unseen_numpy[1]) < 1e-1:
-                    print("Predict next state out of seen")
-                else:
-                    plt.plot(output_1_unseen_numpy[0], output_1_unseen_numpy[1], "ob")
-                    plt.pause(0.3)
+            if obj_in_scene > 0:
+                plt.plot(output_1_unseen_numpy[0], output_1_unseen_numpy[1], "ob")
+                plt.pause(0.3)
 
 
 

@@ -2,7 +2,6 @@ from locomotion.datasets import get_train_test_dataset
 from locomotion.network import Position_Embbedding_Network, HIDDEN_STATE_SIZE
 from locomotion.train import MODEL_SAVE_DIR, TRAIN_BATCH_SIZE, TEST_BATCH_SIZE
 from torch.utils.data.dataloader import DataLoader
-import numpy as np
 import torch
 import os
 import matplotlib.pyplot as plt
@@ -21,8 +20,7 @@ def get_hidden_state_embedding(dataloader, net, batch_size):
         input_1 = (with_occluder, h_0)
         output_1, _ = net(input_1)
         with_occluder_prediction.append(output_1)
-
-        without_occluder_target.append(without_occluder[:,:,[0,1]])
+        without_occluder_target.append(without_occluder[:,:,[0,1,-1]])
 
     with_occluder_emb = torch.cat(with_occluder_prediction)
     without_occluder_emb = torch.cat(without_occluder_target)
@@ -55,17 +53,19 @@ def plot():
     os.makedirs(LOCOMOTION_FIGURE_DIR, exist_ok=True)
 
     for i in range(test_emb_with_occluder.shape[0]):
+        valid_idx = test_emb_without_occluder[i, :, -1] == 1
         plt.title("Latent State(2D) Trajectory of Object {} Locomotion".format(i))
-        x = test_emb_with_occluder[i, :, 0]
-        y = test_emb_with_occluder[i, :, 1]
-        plt.scatter(x, y, s=0.5, label="With Occulder")
-        x = test_emb_without_occluder[i, :, 0]
-        y = test_emb_without_occluder[i, :, 1]
-        plt.scatter(x, y, s=0.5, label="Without Occulder")
+        plt.xlim((-5, 5))
+        plt.ylim((-1, 4))
+        x = test_emb_with_occluder[i, valid_idx, 0]
+        y = test_emb_with_occluder[i, valid_idx, 1]
+        plt.scatter(x, y, s=5, label="Model Prediction")
+        x = test_emb_without_occluder[i, valid_idx, 0]
+        y = test_emb_without_occluder[i, valid_idx, 1]
+        plt.scatter(x, y, s=5, label="Ground Truth")
         plt.legend()
         plt.savefig(os.path.join(LOCOMOTION_FIGURE_DIR, "{}.png".format(i)))
         plt.close()
-    exit(0)
 
 
 

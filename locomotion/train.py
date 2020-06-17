@@ -9,39 +9,49 @@ import matplotlib.pyplot as plt
 
 TRAIN_BATCH_SIZE = 40
 TEST_BATCH_SIZE = 230
-N_EPOCH = 3000
+N_EPOCH = 2000
 
 torch.set_printoptions(profile="full", precision=2, linewidth=10000)
 torch.manual_seed(5)
 
 MODEL_SAVE_DIR = os.path.join("locomotion", "pre_trained")
+OBJECT_IN_SCENE_BIT = -1
 
 
 
-def set_loss(dataloader, net, batch_size):
+def set_loss(dataloader, net):
     total_loss = 0
     for with_occluder, without_occluder in dataloader:
         # print(with_occluder.size(), without_occluder.size())
-        h_0 = torch.zeros(size=(1, batch_size, HIDDEN_STATE_SIZE))  # (num_layer, batch_size, hidden_size)
+        h_0 = torch.zeros(size=(1, dataloader.batch_size, HIDDEN_STATE_SIZE))  # (num_layer, batch_size, hidden_size)
 
         input_1 = (with_occluder,h_0)
         output_1, _ = net(input_1)
-
         target = without_occluder[:, :, [0, 1]]
 
-        loss = mse(output_1, target)
+        valid_ground_truth = without_occluder[:, :, OBJECT_IN_SCENE_BIT] == 1
+        output_1 = output_1[valid_ground_truth]
+        target = target[valid_ground_truth]
+
+        loss_weight = get_loss_weight(valid_ground_truth)
+        loss = weighted_mse(output_1, target, loss_weight, dataloader.batch_size)
         total_loss += loss.item()
     total_loss /= len(dataloader)
     return total_loss
 
 
 
-def mse(h1, h2):
+def weighted_mse(h1, h2, weight, batch_size):
     loss = (h1 - h2) ** 2
-    loss = torch.sum(loss, dim=1)
-    loss = torch.mean(loss)
-    return loss
+    loss = 0.5 * torch.sum(loss, dim=1)
+    loss = loss * weight
+    return torch.sum(loss) / batch_size
 
+def get_loss_weight(valid_ground_truth):
+    n_loss = torch.sum(valid_ground_truth, dim=1)
+    loss_weight = 1 / n_loss.detach().clone().float()
+    loss_weight = torch.repeat_interleave(loss_weight, n_loss)
+    return loss_weight
 
 def train():
     train_set, test_set = get_train_test_dataset()
@@ -51,7 +61,7 @@ def train():
 
     net = Position_Embbedding_Network()
     optimizer = Adam(params=net.parameters(), lr=1e-3)
-    scheduler = lr_scheduler.StepLR(optimizer, step_size=500, gamma=0.1, last_epoch=-1)
+    scheduler = lr_scheduler.StepLR(optimizer, step_size=400, gamma=0.5, last_epoch=-1)
 
     all_train_loss = []
     all_test_loss = []
@@ -64,26 +74,26 @@ def train():
             input_1 = (with_occluder, h_0)
             output_1, _ = net(input_1)
 
-            output_1 = output_1.reshape(-1, 2)
-            without_occluder = without_occluder.reshape(-1, 28)
-            valid_ground_truth = (without_occluder[:, [-1]] == 1).squeeze()
+            target = without_occluder[:, :, [0,1]]
 
+            # Only measure position loss for in scene objects, otherwise (0,0) makes no sense
+            valid_ground_truth = without_occluder[:, :, OBJECT_IN_SCENE_BIT] == 1
             output_1 = output_1[valid_ground_truth]
-            without_occluder = without_occluder[valid_ground_truth]
+            target = target[valid_ground_truth]
 
-            target = without_occluder[:,[0,1]]
+            loss_weight = get_loss_weight(valid_ground_truth)
+            loss = weighted_mse(output_1, target, loss_weight, batch_size=train_loader.batch_size)
 
-            loss = mse(output_1, target)
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
         net.eval()
-        train_loss = set_loss(train_loader, net, TRAIN_BATCH_SIZE)
+        train_loss = set_loss(train_loader, net)
         print("Training Set Loss {: .15f}".format(train_loss))
         all_train_loss.append(train_loss)
 
-        test_loss = set_loss(test_loader, net, TEST_BATCH_SIZE)
+        test_loss = set_loss(test_loader, net)
         print("Testing  Set Loss {: .15f}".format(test_loss))
         all_test_loss.append(test_loss)
         scheduler.step()
