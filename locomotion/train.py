@@ -27,7 +27,6 @@ def set_loss(dataloader, net):
     total_loss = 0
     h_0 = torch.zeros(size=(1, dataloader.batch_size, HIDDEN_STATE_SIZE)).to(DEVICE)  # (num_layer, batch_size, hidden_size)
     for with_occluder, without_occluder in dataloader:
-        # print(with_occluder.size(), without_occluder.size())
 
         input_1 = (with_occluder,h_0)
         output_1, _ = net(input_1)
