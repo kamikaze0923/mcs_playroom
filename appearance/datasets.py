@@ -6,6 +6,7 @@ import os
 
 np.random.seed(0)
 
+
 class Objects(Dataset):
     def __init__(self):
         image_tensor = []
@@ -14,7 +15,9 @@ class Objects(Dataset):
             for j, t1 in enumerate(SHAPE_TYPES):
                 image_dir = os.path.join("appearance", "object_mask_frame", t1, t0)
                 for file in os.listdir(image_dir):
-                    image = torch.load(os.path.join(image_dir, file))
+                    file = os.path.join(image_dir, file)
+                    image = torch.load(file)
+                    print(file)
                     target = torch.zeros(size=(image.size()[0],))
                     target.fill_(j)
                     image_tensor.append(image)
