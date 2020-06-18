@@ -13,7 +13,7 @@ os.makedirs(MODEL_SAVE_DIR, exist_ok=True)
 train_dataset = Objects()
 print(len(train_dataset))
 triplet_train_dataset = TripletObjects(train_dataset) # Returns triplets of images
-batch_size = 48
+batch_size = 400
 kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
 triplet_train_loader = torch.utils.data.DataLoader(triplet_train_dataset, batch_size=batch_size, shuffle=True, **kwargs)
 
