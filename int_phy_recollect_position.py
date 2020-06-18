@@ -112,9 +112,9 @@ if __name__ == "__main__":
                 for i, x in enumerate(object_locomotions[shape_type]):
                     padded_locomotion[i, -x.size()[0]:, :] = x
                 if WITH_OCCLUDER:
-                    torch.save(padded_locomotion, os.path.join("appearance", "locomotion", "with_occluder", shape_type, scene_type, "{}.pth".format(n_restart)))
+                    torch.save(padded_locomotion, os.path.join("locomotion", "positions", "with_occluder", shape_type, scene_type, "{}.pth".format(n_restart)))
                 else:
-                    torch.save(padded_locomotion, os.path.join("appearance", "locomotion", "without_occluder", shape_type, scene_type, "{}.pth".format(n_restart)))
+                    torch.save(padded_locomotion, os.path.join("locomotion", "positions", "without_occluder", shape_type, scene_type, "{}.pth".format(n_restart)))
 
             env.controller.end_scene(None, None)
 
