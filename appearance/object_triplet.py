@@ -29,7 +29,7 @@ lr = 1e-3
 optimizer = optim.Adam(model.parameters(), lr=lr)
 scheduler = lr_scheduler.StepLR(optimizer, 10, gamma=0.1, last_epoch=-1)
 n_epochs = 100
-log_interval = 2000
+log_interval = 400
 
 # %%
 fit(triplet_train_loader, None, model, loss_fn, optimizer, scheduler, n_epochs, cuda, log_interval)
