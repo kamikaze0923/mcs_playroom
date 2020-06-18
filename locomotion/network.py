@@ -21,6 +21,9 @@ class ObjectStatePrediction(Module):
 
     def forward(self, input):
         x, h_t = input
+        print(x)
+        print(h_t)
+        exit(0)
         hidden_state, h_t = self.gru_1(x, h_t)
         position_pred = self.position_fc(hidden_state)
         leave_scene_pred = torch.sigmoid(self.leave_scene_fc(hidden_state).squeeze())
