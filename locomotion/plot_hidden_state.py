@@ -37,7 +37,9 @@ def get_position():
 
     net = ObjectStatePrediction()
     net.eval()
-    net.load_state_dict(torch.load(os.path.join(MODEL_SAVE_DIR, "model_{}_hidden_state.pth".format(HIDDEN_STATE_SIZE))))
+    net.load_state_dict(
+        torch.load(os.path.join(MODEL_SAVE_DIR, "model_{}_hidden_state.pth".format(HIDDEN_STATE_SIZE)), map_location="cpu")
+    )
 
     train_emb = get_output_position(train_loader, net, TRAIN_BATCH_SIZE)
     test_emb = get_output_position(test_loader, net, TEST_BATCH_SIZE)

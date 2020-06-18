@@ -6,6 +6,7 @@ from int_phy_collect import SHAPE_TYPES
 
 import torch
 from appearance.networks import EmbeddingNet
+from appearance.train import MODEL_SAVE_DIR
 import os
 
 
@@ -24,9 +25,9 @@ class SceneState:
         self.frame_size = self.object_frame.size
         self.agent_position = step_output.position
         self.appearance_model = EmbeddingNet()
-        self.appearance_model.load_state_dict(torch.load(os.path.join("appearance", "pre_trained", "model.pth")))
+        self.appearance_model.load_state_dict(torch.load(os.path.join(MODEL_SAVE_DIR, "model.pth"), map_location="cpu"))
         self.distributions = []
-        distribution_parameters = torch.load(os.path.join("appearance", "pre_trained", "embedding_distribution.pth"))
+        distribution_parameters = torch.load(os.path.join(MODEL_SAVE_DIR, "embedding_distribution.pth"), map_location="cpu")
         for _, x in enumerate(SHAPE_TYPES):
             mean = distribution_parameters["{}_mean".format(x)]
             cov = distribution_parameters["{}_cov".format(x)]

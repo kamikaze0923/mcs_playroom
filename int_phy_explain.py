@@ -3,7 +3,7 @@ from int_phy.scene_state import SceneState
 
 
 # scene_name = "github_scenes" + "/shape_constancy"
-scene_name = "gravity"
+scene_name = "validation_intphys_scenes/object_permanence"
 start_scene_number = 0
 env = McsEnv(task="intphys_scenes", scene_type=scene_name, start_scene_number=9)
 

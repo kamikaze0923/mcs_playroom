@@ -10,19 +10,14 @@ colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728',
               '#9467bd', '#8c564b', '#e377c2', '#7f7f7f',
               '#bcbd22', '#17becf']
 
-
-
-def plot_embeddings(embeddings, targets, xlim=None, ylim=None):
+def plot_embeddings(embeddings, targets, save_file):
     plt.figure(figsize=(10,10))
     for i, _ in enumerate(SHAPE_TYPES):
         inds = np.where(targets==i)[0]
         plt.scatter(embeddings[inds,0], embeddings[inds,1], alpha=0.5, color=colors[i])
-    if xlim:
-        plt.xlim(xlim[0], xlim[1])
-    if ylim:
-        plt.ylim(ylim[0], ylim[1])
     plt.legend(SHAPE_TYPES)
-    plt.savefig(os.path.join("appearance", "object_mask_frame", "embedding.png"))
+    plt.savefig(save_file)
+    plt.close()
 
 def extract_embeddings(dataloader, model):
     with torch.no_grad():
