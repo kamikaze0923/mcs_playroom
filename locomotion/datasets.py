@@ -6,6 +6,13 @@ import os
 N_TRAIN = 3000
 N_TEST = 665
 
+if torch.cuda.is_available():
+    DEVICE = "cuda:0"
+else:
+    DEVICE = "cpu"
+
+print("Uing {}".format(DEVICE))
+
 def load_all_tensors(occluder_dir):
     occluder_tensor = []
     for t in SHAPE_TYPES:
@@ -21,8 +28,8 @@ def load_all_tensors(occluder_dir):
 
 
 def get_train_test_dataset():
-    with_occluder_tensor = torch.cat(load_all_tensors("with_occluder"))
-    without_occluder_tensor = torch.cat(load_all_tensors("without_occluder"))
+    with_occluder_tensor = torch.cat(load_all_tensors("with_occluder")).to(DEVICE)
+    without_occluder_tensor = torch.cat(load_all_tensors("without_occluder")).to(DEVICE)
     assert with_occluder_tensor.size() == without_occluder_tensor.size()
     rand_permutation = torch.randperm(with_occluder_tensor.size()[0])
     without_occluder_tensor = without_occluder_tensor[rand_permutation]

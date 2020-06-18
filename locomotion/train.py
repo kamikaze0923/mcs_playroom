@@ -1,5 +1,5 @@
-from locomotion.datasets import get_train_test_dataset
-from locomotion.network import ObjectStatePrediction, HIDDEN_STATE_SIZE, CUDA
+from locomotion.datasets import get_train_test_dataset, DEVICE
+from locomotion.network import ObjectStatePrediction, HIDDEN_STATE_SIZE
 from torch.optim import Adam
 from torch.optim import lr_scheduler
 from torch.utils.data.dataloader import DataLoader
@@ -20,17 +20,14 @@ bce = BCELoss(reduction='none')
 torch.set_printoptions(profile="full", precision=2, linewidth=10000)
 torch.manual_seed(5)
 
-
 MODEL_SAVE_DIR = os.path.join("locomotion", "pre_trained")
 OBJECT_IN_SCENE_BIT = -1
 
 def set_loss(dataloader, net):
     total_loss = 0
+    h_0 = torch.zeros(size=(1, dataloader.batch_size, HIDDEN_STATE_SIZE)).to(DEVICE)  # (num_layer, batch_size, hidden_size)
     for with_occluder, without_occluder in dataloader:
         # print(with_occluder.size(), without_occluder.size())
-        h_0 = torch.zeros(size=(1, dataloader.batch_size, HIDDEN_STATE_SIZE))  # (num_layer, batch_size, hidden_size)
-        if CUDA:
-            h_0.cuda()
 
         input_1 = (with_occluder,h_0)
         output_1, _ = net(input_1)
@@ -125,12 +122,12 @@ def train():
 
     all_train_loss = []
     all_test_loss = []
+
+    h_0 = torch.zeros(size=(1, TRAIN_BATCH_SIZE, HIDDEN_STATE_SIZE)).to(DEVICE) # (num_layer, batch_size, hidden_size)
+
     for epoch in range(N_EPOCH):
         net.train()
         for _, (with_occluder, without_occluder) in enumerate(train_loader):
-            h_0 = torch.zeros(size=(1, TRAIN_BATCH_SIZE, HIDDEN_STATE_SIZE))  # (num_layer, batch_size, hidden_size)
-            if CUDA:
-                h_0.cuda()
 
             input_1 = (with_occluder, h_0)
             output_1, _ = net(input_1)
