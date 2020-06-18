@@ -119,8 +119,6 @@ def train():
     test_loader = DataLoader(dataset=test_set, batch_size=TEST_BATCH_SIZE, shuffle=False)
 
     net = ObjectStatePrediction()
-    if cuda:
-        net.cuda()
 
     optimizer = Adam(params=net.parameters(), lr=1e-3)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=200, gamma=0.9, last_epoch=-1)

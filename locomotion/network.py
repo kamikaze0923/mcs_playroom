@@ -16,6 +16,8 @@ class ObjectStatePrediction(Module):
         self.gru_1 = torch.nn.GRU(input_size=POSITION_FEATURE_DIM, hidden_size=HIDDEN_STATE_SIZE, num_layers=1, batch_first=True)
         self.position_fc = torch.nn.Linear(in_features=HIDDEN_STATE_SIZE, out_features=POSITION_TRACK_DIM)
         self.leave_scene_fc = torch.nn.Linear(in_features=HIDDEN_STATE_SIZE, out_features=1)
+        if CUDA:
+            self.cuda()
 
 
     def forward(self, input):
