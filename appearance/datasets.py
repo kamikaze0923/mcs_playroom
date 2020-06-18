@@ -1,6 +1,7 @@
 import numpy as np
 from int_phy_recollect_appearance import SHAPE_TYPES, SCENE_TYPES
 from torch.utils.data import Dataset
+from locomotion.network import CUDA
 import torch
 import os
 
@@ -21,6 +22,9 @@ class Objects(Dataset):
                     target_tensor.append(target)
         self.data = torch.cat(image_tensor)
         self.targets = torch.cat(target_tensor)
+        if CUDA:
+            self.data.cuda()
+            self.targets.cuda()
         print(self.data.size())
         print(self.targets.size())
         assert self.data.size()[0] == self.targets.size()[0]

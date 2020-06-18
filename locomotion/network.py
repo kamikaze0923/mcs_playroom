@@ -6,6 +6,10 @@ POSITION_TRACK_DIM = 2
 
 POSITION_FEATURE_DIM = 29
 
+CUDA = torch.cuda.is_available()
+if CUDA:
+    print("Use GPU")
+
 class ObjectStatePrediction(Module):
     def __init__(self):
         super().__init__()

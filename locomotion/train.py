@@ -1,5 +1,5 @@
 from locomotion.datasets import get_train_test_dataset
-from locomotion.network import ObjectStatePrediction, HIDDEN_STATE_SIZE
+from locomotion.network import ObjectStatePrediction, HIDDEN_STATE_SIZE, CUDA
 from torch.optim import Adam
 from torch.optim import lr_scheduler
 from torch.utils.data.dataloader import DataLoader
@@ -19,9 +19,7 @@ bce = BCELoss(reduction='none')
 
 torch.set_printoptions(profile="full", precision=2, linewidth=10000)
 torch.manual_seed(5)
-cuda = torch.cuda.is_available()
-if cuda:
-    print("Use GPU")
+
 
 MODEL_SAVE_DIR = os.path.join("locomotion", "pre_trained")
 OBJECT_IN_SCENE_BIT = -1
@@ -31,6 +29,8 @@ def set_loss(dataloader, net):
     for with_occluder, without_occluder in dataloader:
         # print(with_occluder.size(), without_occluder.size())
         h_0 = torch.zeros(size=(1, dataloader.batch_size, HIDDEN_STATE_SIZE))  # (num_layer, batch_size, hidden_size)
+        if CUDA:
+            h_0.cuda()
 
         input_1 = (with_occluder,h_0)
         output_1, _ = net(input_1)
