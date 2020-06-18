@@ -29,15 +29,14 @@ lr = 1e-3
 optimizer = optim.Adam(model.parameters(), lr=lr)
 scheduler = lr_scheduler.StepLR(optimizer, 10, gamma=0.1, last_epoch=-1)
 n_epochs = 100
-log_interval = 30000
+log_interval = 2000
 
 # %%
 fit(triplet_train_loader, None, model, loss_fn, optimizer, scheduler, n_epochs, cuda, log_interval)
 
+
+
 batch_size = 256
-kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
-
-
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True, **kwargs)
 
 train_embeddings_tl, train_labels_tl = extract_embeddings(train_loader, model)
