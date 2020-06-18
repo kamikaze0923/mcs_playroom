@@ -150,6 +150,9 @@ def train():
             all_test_loss.append(test_loss)
         scheduler.step()
 
+    os.makedirs(MODEL_SAVE_DIR, exist_ok=True)
+    torch.save(net.state_dict(), os.path.join(MODEL_SAVE_DIR, "model_{}_hidden_state.pth".format(HIDDEN_STATE_SIZE)))
+
 
     all_epochs = [i*CHECK_LOSS_INTERVAL for i in range(N_EPOCH // CHECK_LOSS_INTERVAL)]
     plt.figure(figsize=(24,6))
@@ -161,8 +164,7 @@ def train():
     plt.savefig(os.path.join(MODEL_SAVE_DIR, "loss_{}_hidden_state.png".format(HIDDEN_STATE_SIZE)))
     plt.close()
 
-    os.makedirs(MODEL_SAVE_DIR, exist_ok=True)
-    torch.save(net.state_dict(), os.path.join(MODEL_SAVE_DIR, "model_{}_hidden_state.pth".format(HIDDEN_STATE_SIZE)))
+
 
 
 

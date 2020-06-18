@@ -7,6 +7,9 @@ from appearance.datasets import Objects, TripletObjects
 from appearance.utils import cuda, plot_embeddings, extract_embeddings
 import os
 
+MODEL_SAVE_DIR = os.path.join("appearance", "pre_trained")
+os.makedirs(MODEL_SAVE_DIR, exist_ok=True)
+
 train_dataset = Objects()
 print(len(train_dataset))
 triplet_train_dataset = TripletObjects(train_dataset) # Returns triplets of images
@@ -42,5 +45,5 @@ train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size,
 train_embeddings_tl, train_labels_tl = extract_embeddings(train_loader, model)
 plot_embeddings(train_embeddings_tl, train_labels_tl)
 
-torch.save(model.embedding_net.state_dict(), os.path.join("appearance", "pre_trained", "model.pth"))
+torch.save(model.embedding_net.state_dict(), os.path.join(MODEL_SAVE_DIR, "model.pth"))
 
