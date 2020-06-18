@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 TRAIN_BATCH_SIZE = 200
 TEST_BATCH_SIZE = 133
-N_EPOCH = 6000
+N_EPOCH = 10000
 CHECK_LOSS_INTERVAL = 10
 assert N_EPOCH % CHECK_LOSS_INTERVAL == 0
 
@@ -117,7 +117,7 @@ def train():
     net = ObjectStatePrediction().to(DEVICE)
 
     optimizer = Adam(params=net.parameters(), lr=1e-3)
-    scheduler = lr_scheduler.StepLR(optimizer, step_size=200, gamma=0.9, last_epoch=-1)
+    scheduler = lr_scheduler.StepLR(optimizer, step_size=1000, gamma=0.9, last_epoch=-1)
 
     all_train_loss = []
     all_test_loss = []
