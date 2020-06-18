@@ -136,7 +136,7 @@ def train():
             optimizer.step()
 
         if epoch % CHECK_LOSS_INTERVAL == 0:
-            print("Epoch {}： Lr {}".format(epoch, scheduler.get_last_lr()))
+            print("Epoch {}: Lr {}".format(epoch, scheduler.get_last_lr()))
             net.eval()
 
             train_loss = set_loss(train_loader, net)
