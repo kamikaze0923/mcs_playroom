@@ -86,7 +86,7 @@ def create_leave_scene_target(valid_ground_truth):
     n_steps = torch.sum(valid_ground_truth, dim=1)
     leave_scene_step = torch.cumsum(n_steps, dim=0) - 1
     total_batch_step = torch.sum(n_steps).item()
-    target = torch.zeros(size=(total_batch_step,))
+    target = torch.zeros(size=(total_batch_step,)).to(DEVICE)
     target[leave_scene_step] = 1
     return target
 
