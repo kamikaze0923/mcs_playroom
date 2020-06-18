@@ -155,7 +155,7 @@ def train():
                 best_loss = test_loss
                 best_epoch = epoch
                 torch.save(net.state_dict(), os.path.join(MODEL_SAVE_DIR, "model_{}_hidden_state.pth".format(HIDDEN_STATE_SIZE)))
-            print("Best model in epoch {}".format(best_epoch))
+            print("Best model in epoch {} loss {}".format(best_epoch, best_loss))
         scheduler.step()
 
 
