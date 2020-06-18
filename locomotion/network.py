@@ -19,7 +19,6 @@ class ObjectStatePrediction(Module):
         if CUDA:
             self.cuda()
 
-
     def forward(self, input):
         x, h_t = input
         hidden_state, h_t = self.gru_1(x, h_t)

@@ -129,6 +129,8 @@ def train():
         net.train()
         for _, (with_occluder, without_occluder) in enumerate(train_loader):
             h_0 = torch.zeros(size=(1, TRAIN_BATCH_SIZE, HIDDEN_STATE_SIZE))  # (num_layer, batch_size, hidden_size)
+            if CUDA:
+                h_0.cuda()
 
             input_1 = (with_occluder, h_0)
             output_1, _ = net(input_1)
