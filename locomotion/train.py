@@ -123,7 +123,9 @@ def train():
     all_test_loss = []
 
     h_0 = torch.zeros(size=(1, TRAIN_BATCH_SIZE, HIDDEN_STATE_SIZE)).to(DEVICE) # (num_layer, batch_size, hidden_size)
-
+    os.makedirs(MODEL_SAVE_DIR, exist_ok=True)
+    best_loss = float('inf')
+    best_epoch = None
     for epoch in range(N_EPOCH):
         net.train()
         for _, (with_occluder, without_occluder) in enumerate(train_loader):
@@ -148,10 +150,16 @@ def train():
             test_loss = set_loss(test_loader, net)
             print("Validation  Set Loss {: .15f}".format(test_loss))
             all_test_loss.append(test_loss)
+
+            if test_loss < best_loss:
+                best_loss = test_loss
+                best_epoch = epoch
+                torch.save(net.state_dict(), os.path.join(MODEL_SAVE_DIR, "model_{}_hidden_state.pth".format(HIDDEN_STATE_SIZE)))
+            print("Best model in epoch {}".format(best_epoch))
         scheduler.step()
 
-    os.makedirs(MODEL_SAVE_DIR, exist_ok=True)
-    torch.save(net.state_dict(), os.path.join(MODEL_SAVE_DIR, "model_{}_hidden_state.pth".format(HIDDEN_STATE_SIZE)))
+
+
 
 
     all_epochs = [i*CHECK_LOSS_INTERVAL for i in range(N_EPOCH // CHECK_LOSS_INTERVAL)]
