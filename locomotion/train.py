@@ -93,8 +93,8 @@ def create_leave_scene_target(valid_ground_truth):
 def create_position_target(position_used, valid_ground_truth): # move ground truth forward 1 step
     batch_size, step_len = valid_ground_truth.size()
 
-    valid_ground_truth_expanded = torch.cat([valid_ground_truth, torch.zeros(size=(batch_size, 1)).bool()], dim=1)
-    all_steps = torch.arange(0, step_len+1).repeat(batch_size, 1)
+    valid_ground_truth_expanded = torch.cat([valid_ground_truth, torch.zeros(size=(batch_size, 1)).bool().to(DEVICE)], dim=1)
+    all_steps = torch.arange(0, step_len+1).repeat(batch_size, 1).to(DEVICE)
     scene_steps = torch.mul(valid_ground_truth_expanded.float(), all_steps)
 
     last_scene_step_next = torch.argmax(scene_steps, dim=1) + 1
@@ -104,7 +104,7 @@ def create_position_target(position_used, valid_ground_truth): # move ground tru
     first_scene_step = torch.argmin(scene_steps, dim=1)
     valid_ground_truth_expanded[torch.arange(0, batch_size), first_scene_step] = False
 
-    position_used_expand = torch.cat([position_used, torch.zeros(size=(batch_size, 1, 2))], dim=1)
+    position_used_expand = torch.cat([position_used, torch.zeros(size=(batch_size, 1, 2)).to(DEVICE)], dim=1)
 
     return position_used_expand[valid_ground_truth_expanded]
 
