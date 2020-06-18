@@ -1,5 +1,5 @@
 from gym_ai2thor.envs.mcs_env import McsEnv
-from locomotion.network import Position_Embbedding_Network, HIDDEN_STATE_SIZE
+from locomotion.network import ObjectStatePrediction, HIDDEN_STATE_SIZE
 from locomotion.train import MODEL_SAVE_DIR
 from int_phy_recollect_position import get_locomotion_feature
 import matplotlib.pyplot as plt
@@ -16,7 +16,7 @@ def dis_to_origin(x,y):
 # scene_name = "github_scenes/spatio_temporal_continuity/implausible"
 scene_name = "object_permanence"
 
-net = Position_Embbedding_Network()
+net = ObjectStatePrediction()
 net.eval()
 net.load_state_dict(torch.load(os.path.join(MODEL_SAVE_DIR, "model_{}_hidden_state.pth".format(HIDDEN_STATE_SIZE))))
 
@@ -39,8 +39,8 @@ for _ in range(10):
         plt.ylim((-1, 4))
         plt.title("Position(x,y) of {}".format(one_obj['id']))
         legend_elements = [
-            Line2D([0], [0], marker='o', color='w', markerfacecolor='b', label='Model Prediction', markersize=6),
-            Line2D([0], [0], marker='o', color='w', markerfacecolor='r', label='Ground Truth', markersize=6)
+            Line2D([0], [0], marker='o', color='w', markerfacecolor='b', label='Model Prediction', markersize=5),
+            Line2D([0], [0], marker='o', color='w', markerfacecolor='r', label='Ground Truth', markersize=5)
         ]
         plt.legend(handles=legend_elements, prop={'size': 6})
         plt.pause(0.01)
@@ -58,39 +58,45 @@ for _ in range(10):
                 f_none = f_none.unsqueeze(0).unsqueeze(0)
                 _, h_t_1 = net((f_none, h_t_1))
 
-        obj_in_scene = False
+        obj_in_scene = 0
         for i, action in enumerate(env_1.scene_config['goal']['action_list']):
             env_1.step(action=action[0])
 
             obj_in_view = None
             if len(env_1.step_output.object_list) == 1:
-                f_1 = get_locomotion_feature(env_1.step_output.object_list[0], object_occluded=False, object_in_scene=True)
+                obj_in_scene += 1
+                f_1 = get_locomotion_feature(env_1.step_output.object_list[0], object_occluded=False, object_in_scene=obj_in_scene > 0)
                 obj_in_view = True
-                obj_in_scene = True
             elif len(env_1.step_output.object_list) == 0:
-                f_1 = get_locomotion_feature(None, object_occluded=True, object_in_scene=(obj_in_scene > 0))
+                f_1 = get_locomotion_feature(None, object_occluded=True, object_in_scene=obj_in_scene > 0)
                 obj_in_view = False
+                if obj_in_scene > 0:
+                    obj_in_scene += 1
 
-            gx, gy = f_1[0], f_1[1]
-            f_1 = torch.tensor(f_1).unsqueeze(0).unsqueeze(0)
+            f_1_unseen = get_locomotion_feature(None, object_occluded=True, object_in_scene=True)
+            f_1_unseen = f_1_unseen.detach().clone().unsqueeze(0).unsqueeze(0)
 
-            f_1_unseen = get_locomotion_feature(None)
-            f_1_unseen = torch.tensor(f_1_unseen).unsqueeze(0).unsqueeze(0)
-
-            #always try what if in next frame obj is unseen
+            # always try what if in next frame obj is unseen
             output_1_unseen, _ = net((f_1_unseen, h_t_1))
             output_1_unseen_numpy = output_1_unseen.detach().numpy().squeeze()
+            gx, gy = f_1[0], f_1[1]
 
+            # update hidden state
+            f_1 = f_1.detach().clone().unsqueeze(0).unsqueeze(0)
             _, h_t_1 = net((f_1, h_t_1))
+
+            if not obj_in_scene > 0:
+                continue
 
             # plot the ground truth
             if obj_in_scene > 0 and obj_in_view:
-                plt.plot(gx, gy, "or")
+                plt.scatter(gx, gy, s=5, color='r')
+                plt.annotate("{}".format(obj_in_scene), (gx, gy), size=5)
                 plt.pause(0.3)
 
-            # after some steps, make a prediction if next step cannot see the object
-            if obj_in_scene > 0:
-                plt.plot(output_1_unseen_numpy[0], output_1_unseen_numpy[1], "ob")
+            # after first steps, make a prediction if next step cannot see the object
+            if obj_in_scene > 1:
+                plt.scatter(output_1_unseen_numpy[0], output_1_unseen_numpy[1], s=5, color='b')
                 plt.pause(0.3)
 
 

@@ -1,5 +1,5 @@
 import numpy as np
-from int_phy_collect import SHAPE_TYPES
+from int_phy_recollect_appearance import SHAPE_TYPES, SCENE_TYPES
 from torch.utils.data import Dataset
 import torch
 import os
@@ -10,14 +10,20 @@ class Objects(Dataset):
     def __init__(self):
         image_tensor = []
         target_tensor = []
-        for i, t in enumerate(SHAPE_TYPES):
-            image = torch.load(os.path.join("appearance", "object_mask_frame", t, "0.pth"))
-            target = torch.zeros(size=(image.size()[0],))
-            target.fill_(i)
-            image_tensor.append(image)
-            target_tensor.append(target)
+        for i, t0 in enumerate(SCENE_TYPES):
+            for j, t1 in enumerate(SHAPE_TYPES):
+                image_dir = os.path.join("appearance", "object_mask_frame", t1, t0)
+                for file in os.listdir(image_dir):
+                    image = torch.load(os.path.join(image_dir, file))
+                    target = torch.zeros(size=(image.size()[0],))
+                    target.fill_(j)
+                    image_tensor.append(image)
+                    target_tensor.append(target)
         self.data = torch.cat(image_tensor)
         self.targets = torch.cat(target_tensor)
+        print(self.data.size())
+        print(self.targets.size())
+        assert self.data.size()[0] == self.targets.size()[0]
 
     def __getitem__(self, index):
         return (self.data[index], self.targets[index])
@@ -56,4 +62,8 @@ class TripletObjects(Dataset):
 
     def __len__(self):
         return len(self.object_dataset)
+
+if __name__ == "__main__":
+    dataset = Objects()
+    print(len(dataset))
 

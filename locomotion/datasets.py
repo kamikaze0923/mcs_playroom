@@ -1,16 +1,16 @@
-from int_phy_collect import SHAPE_TYPES
+from int_phy_recollect_position import SHAPE_TYPES, SCENE_TYPES
 from torch.utils.data import Dataset
 import torch
 import os
 
-N_TRAIN = 1600
+N_TRAIN = 3000
+N_TEST = 665
 
 def load_all_tensors(occluder_dir):
     occluder_tensor = []
     for t in SHAPE_TYPES:
         shape_dir = os.path.join("locomotion", "positions", occluder_dir, t)
-        scene_dirs = os.listdir(shape_dir)
-        for scene_dir in scene_dirs:
+        for scene_dir in SCENE_TYPES:
             scene_dir = os.path.join(shape_dir, scene_dir)
             tensor_files = os.listdir(scene_dir)
             for file in tensor_files:
@@ -29,6 +29,8 @@ def get_train_test_dataset():
     with_occluder_tensor = with_occluder_tensor[rand_permutation]
     train_set = TuplePositions(with_occluder_tensor[:N_TRAIN], without_occluder_tensor[:N_TRAIN])
     test_set = TuplePositions(with_occluder_tensor[N_TRAIN:], without_occluder_tensor[N_TRAIN:])
+    assert len(train_set) == N_TRAIN
+    assert len(test_set) == N_TEST
     return train_set, test_set
 
 

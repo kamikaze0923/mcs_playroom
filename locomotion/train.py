@@ -1,23 +1,27 @@
 from locomotion.datasets import get_train_test_dataset
-from locomotion.network import Position_Embbedding_Network, HIDDEN_STATE_SIZE
+from locomotion.network import ObjectStatePrediction, HIDDEN_STATE_SIZE
 from torch.optim import Adam
 from torch.optim import lr_scheduler
 from torch.utils.data.dataloader import DataLoader
+from torch.nn import MSELoss, BCELoss
 import torch
 import os
 import matplotlib.pyplot as plt
 
-TRAIN_BATCH_SIZE = 40
-TEST_BATCH_SIZE = 230
-N_EPOCH = 2000
+TRAIN_BATCH_SIZE = 50
+TEST_BATCH_SIZE = 133
+N_EPOCH = 3000
+CHECK_LOSS_INTERVAL = 10
+assert N_EPOCH % CHECK_LOSS_INTERVAL == 0
+
+mse = MSELoss(reduction='none')
+bce = BCELoss(reduction='none')
 
 torch.set_printoptions(profile="full", precision=2, linewidth=10000)
 torch.manual_seed(5)
 
 MODEL_SAVE_DIR = os.path.join("locomotion", "pre_trained")
 OBJECT_IN_SCENE_BIT = -1
-
-
 
 def set_loss(dataloader, net):
     total_loss = 0
@@ -27,31 +31,83 @@ def set_loss(dataloader, net):
 
         input_1 = (with_occluder,h_0)
         output_1, _ = net(input_1)
-        target = without_occluder[:, :, [0, 1]]
 
-        valid_ground_truth = without_occluder[:, :, OBJECT_IN_SCENE_BIT] == 1
-        output_1 = output_1[valid_ground_truth]
-        target = target[valid_ground_truth]
+        final_loss = batch_final_loss(output_1, without_occluder, dataloader.batch_size)
 
-        loss_weight = get_loss_weight(valid_ground_truth)
-        loss = weighted_mse(output_1, target, loss_weight, dataloader.batch_size)
-        total_loss += loss.item()
+        total_loss += final_loss.item()
     total_loss /= len(dataloader)
     return total_loss
 
 
+def batch_final_loss(output, ground_truth, batch_size):
+    position_pred, leave_scene_pred = output
 
-def weighted_mse(h1, h2, weight, batch_size):
-    loss = (h1 - h2) ** 2
-    loss = 0.5 * torch.sum(loss, dim=1)
+    position_used = ground_truth[:, :, [0, 1]]
+
+    # Only measure position loss for in scene objects, otherwise (0,0) makes no sense
+    valid_ground_truth = ground_truth[:, :, OBJECT_IN_SCENE_BIT] == 1
+    position_pred = position_pred[valid_ground_truth]
+    position_target = create_position_target(position_used, valid_ground_truth)
+    leave_scene_pred = leave_scene_pred[valid_ground_truth]
+    leave_scene_target = create_leave_scene_target(valid_ground_truth)
+
+    mse_loss_weight, bce_loss_weight = get_batch_loss_weight(valid_ground_truth)
+    position_loss = weighted_mse(position_pred, position_target, mse_loss_weight, batch_size)
+    leave_scene_loss = weighted_bce(leave_scene_pred, leave_scene_target, bce_loss_weight, batch_size)
+
+    final_loss = position_loss + leave_scene_loss
+    return final_loss
+
+
+def weighted_mse(pred, target, weight, batch_size):
+    loss = mse(pred, target)
+    loss = torch.sum(loss, dim=1)
     loss = loss * weight
     return torch.sum(loss) / batch_size
 
-def get_loss_weight(valid_ground_truth):
-    n_loss = torch.sum(valid_ground_truth, dim=1)
-    loss_weight = 1 / n_loss.detach().clone().float()
-    loss_weight = torch.repeat_interleave(loss_weight, n_loss)
-    return loss_weight
+def weighted_bce(pred, target, weight, batch_size, EPSL=1e-4):
+    loss = bce(pred, target)
+    loss = loss * weight
+    return torch.sum(loss) / batch_size
+
+def get_batch_loss_weight(valid_ground_truth):
+    bce_n_loss = torch.sum(valid_ground_truth, dim=1)
+    bce_loss_weight = 1 / bce_n_loss.detach().clone().float()
+    bce_loss_weight = torch.repeat_interleave(bce_loss_weight, bce_n_loss)
+
+    mse_n_loss = bce_n_loss - 1
+    mse_loss_weight = 1 / mse_n_loss.detach().clone().float()
+    mse_loss_weight = torch.repeat_interleave(mse_loss_weight, bce_n_loss)
+    mse_loss_weight[torch.cumsum(bce_n_loss, dim=0) - 1] = 0
+
+    return mse_loss_weight, bce_loss_weight
+
+def create_leave_scene_target(valid_ground_truth):
+    n_steps = torch.sum(valid_ground_truth, dim=1)
+    leave_scene_step = torch.cumsum(n_steps, dim=0) - 1
+    total_batch_step = torch.sum(n_steps).item()
+    target = torch.zeros(size=(total_batch_step,))
+    target[leave_scene_step] = 1
+    return target
+
+def create_position_target(position_used, valid_ground_truth): # move ground truth forward 1 step
+    batch_size, step_len = valid_ground_truth.size()
+
+    valid_ground_truth_expanded = torch.cat([valid_ground_truth, torch.zeros(size=(batch_size, 1)).bool()], dim=1)
+    all_steps = torch.arange(0, step_len+1).repeat(batch_size, 1)
+    scene_steps = torch.mul(valid_ground_truth_expanded.float(), all_steps)
+
+    last_scene_step_next = torch.argmax(scene_steps, dim=1) + 1
+    valid_ground_truth_expanded[torch.arange(0, batch_size), last_scene_step_next] = True
+
+    scene_steps[scene_steps == 0] = 99 # change 0 to some number > 60, use argmin to find the first step
+    first_scene_step = torch.argmin(scene_steps, dim=1)
+    valid_ground_truth_expanded[torch.arange(0, batch_size), first_scene_step] = False
+
+    position_used_expand = torch.cat([position_used, torch.zeros(size=(batch_size, 1, 2))], dim=1)
+
+    return position_used_expand[valid_ground_truth_expanded]
+
 
 def train():
     train_set, test_set = get_train_test_dataset()
@@ -59,14 +115,13 @@ def train():
     train_loader = DataLoader(dataset=train_set, batch_size=TRAIN_BATCH_SIZE, shuffle=True)
     test_loader = DataLoader(dataset=test_set, batch_size=TEST_BATCH_SIZE, shuffle=False)
 
-    net = Position_Embbedding_Network()
+    net = ObjectStatePrediction()
     optimizer = Adam(params=net.parameters(), lr=1e-3)
-    scheduler = lr_scheduler.StepLR(optimizer, step_size=400, gamma=0.5, last_epoch=-1)
+    scheduler = lr_scheduler.StepLR(optimizer, step_size=200, gamma=0.9, last_epoch=-1)
 
     all_train_loss = []
     all_test_loss = []
     for epoch in range(N_EPOCH):
-        print("Epoch {}".format(epoch))
         net.train()
         for _, (with_occluder, without_occluder) in enumerate(train_loader):
             h_0 = torch.zeros(size=(1, TRAIN_BATCH_SIZE, HIDDEN_STATE_SIZE))  # (num_layer, batch_size, hidden_size)
@@ -74,34 +129,31 @@ def train():
             input_1 = (with_occluder, h_0)
             output_1, _ = net(input_1)
 
-            target = without_occluder[:, :, [0,1]]
-
-            # Only measure position loss for in scene objects, otherwise (0,0) makes no sense
-            valid_ground_truth = without_occluder[:, :, OBJECT_IN_SCENE_BIT] == 1
-            output_1 = output_1[valid_ground_truth]
-            target = target[valid_ground_truth]
-
-            loss_weight = get_loss_weight(valid_ground_truth)
-            loss = weighted_mse(output_1, target, loss_weight, batch_size=train_loader.batch_size)
+            final_loss = batch_final_loss(output_1, without_occluder, train_loader.batch_size)
 
             optimizer.zero_grad()
-            loss.backward()
+            final_loss.backward()
             optimizer.step()
 
-        net.eval()
-        train_loss = set_loss(train_loader, net)
-        print("Training Set Loss {: .15f}".format(train_loss))
-        all_train_loss.append(train_loss)
+        if epoch % CHECK_LOSS_INTERVAL == 0:
+            print("Epoch {}： Lr {}".format(epoch, scheduler.get_last_lr()))
+            net.eval()
 
-        test_loss = set_loss(test_loader, net)
-        print("Testing  Set Loss {: .15f}".format(test_loss))
-        all_test_loss.append(test_loss)
+            train_loss = set_loss(train_loader, net)
+            print("Training    Set Loss {: .15f}".format(train_loss))
+            all_train_loss.append(train_loss)
+
+            test_loss = set_loss(test_loader, net)
+            print("Validation  Set Loss {: .15f}".format(test_loss))
+            all_test_loss.append(test_loss)
         scheduler.step()
 
-    all_epochs = [i for i in range(N_EPOCH)]
+
+    all_epochs = [i*CHECK_LOSS_INTERVAL for i in range(N_EPOCH // CHECK_LOSS_INTERVAL)]
+    plt.figure(figsize=(24,6))
     plt.title("Learning Curve")
-    plt.plot(all_epochs, all_train_loss, label="Training Loss")
-    plt.plot(all_epochs, all_test_loss, label="Testing Loss")
+    plt.plot(all_epochs, all_train_loss, label="Training Set Loss", linewidth=0.4)
+    plt.plot(all_epochs, all_test_loss, label="Validation Set Loss", linewidth=0.4)
     plt.legend()
     plt.yscale("log")
     plt.savefig(os.path.join(MODEL_SAVE_DIR, "loss_{}_hidden_state.png".format(HIDDEN_STATE_SIZE)))

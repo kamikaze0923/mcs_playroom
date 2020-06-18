@@ -6,8 +6,7 @@ import torch
 import os, sys
 
 SHAPE_TYPES = ["cylinder", "sphere", "cube"]
-# all_scene = ["object_permanence", "shape_constancy", "spatio_temporal_continuity"]
-all_scene = ["object_permanence"]
+SCENE_TYPES = ["object_permanence", "shape_constancy", "spatio_temporal_continuity"]
 
 SAVE_SCENE_LENGTH = 1
 TOTAL_SCENE = 3 # max 1080
@@ -16,7 +15,7 @@ N_RESTART = TOTAL_SCENE // SAVE_SCENE_LENGTH
 
 if __name__ == "__main__":
 
-    for scene_type in all_scene:
+    for scene_type in SCENE_TYPES:
         for _, shape_type in enumerate(SHAPE_TYPES):
             os.makedirs(os.path.join("appearance", "object_mask_frame", shape_type ,scene_type), exist_ok=True)
 

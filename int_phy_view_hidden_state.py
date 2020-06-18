@@ -1,5 +1,5 @@
 from gym_ai2thor.envs.mcs_env import McsEnv
-from locomotion.network import Position_Embbedding_Network, HIDDEN_STATE_SIZE, NUM_HIDDEN_LAYER
+from locomotion.network import ObjectStatePrediction, HIDDEN_STATE_SIZE, NUM_HIDDEN_LAYER
 from locomotion.train import MODEL_SAVE_DIR
 from int_phy_recollect_position import get_locomotion_feature
 import matplotlib.pyplot as plt
@@ -10,7 +10,7 @@ scene_name = "object_permanence"
 start_scene_number = 0
 env = McsEnv(task="intphys_scenes", scene_type=scene_name, start_scene_number=start_scene_number)
 
-net = Position_Embbedding_Network()
+net = ObjectStatePrediction()
 net.eval()
 net.load_state_dict(torch.load(os.path.join(MODEL_SAVE_DIR, "model_{}layerGRU.pth".format(NUM_HIDDEN_LAYER))))
 

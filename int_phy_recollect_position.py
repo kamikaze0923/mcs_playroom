@@ -1,15 +1,12 @@
 from gym_ai2thor.envs.mcs_env import McsEnv
-from int_phy.object_state import ObjectState, pre_process_cropped_img, IMAGE_CROP_SIZE, get_object_match_pixels
-from PIL import Image
-import numpy as np
 import torch
 import os, sys
 
 
-# all_scene = ["object_permanence", "shape_constancy", "spatio_temporal_continuity"]
-all_scene = ["object_permanence"]
-
+# SCENE_TYPES = ["object_permanence", "shape_constancy", "spatio_temporal_continuity"]
+SCENE_TYPES = ["object_permanence", "shape_constancy"]
 SHAPE_TYPES = ["cylinder", "sphere", "cube"]
+
 WITH_OCCLUDER = False
 SAVE_SCENE_LENGTH = 40
 

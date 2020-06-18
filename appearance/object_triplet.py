@@ -8,6 +8,7 @@ from appearance.utils import cuda, plot_embeddings, extract_embeddings
 import os
 
 train_dataset = Objects()
+print(len(train_dataset))
 triplet_train_dataset = TripletObjects(train_dataset) # Returns triplets of images
 batch_size = 48
 kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
@@ -21,6 +22,7 @@ margin = 1
 embedding_net = EmbeddingNet()
 model = TripletNet(embedding_net)
 if cuda:
+    print("Using GPU")
     model.cuda()
 loss_fn = TripletLoss(margin)
 lr = 1e-3
