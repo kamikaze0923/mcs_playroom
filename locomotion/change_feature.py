@@ -24,8 +24,8 @@ for t in SHAPE_TYPES:
 
             print(tensor_no_occluder.size(), tensor_occluder.size())
 
-            tensor_no_occluder[:,:, -2] = torch.logical_and(tensor_no_occluder[:,:,0] != 0, tensor_no_occluder[:,:,3] != 0)
-            tensor_occluder[:,:, -2] = torch.logical_and(tensor_occluder[:,:,0] != 0, tensor_occluder[:,:,3] != 0)
+            # tensor_no_occluder[:,:, -2] = torch.logical_and(tensor_no_occluder[:,:,0] != 0, tensor_no_occluder[:,:,3] != 0)
+            # tensor_occluder[:,:, -2] = torch.logical_and(tensor_occluder[:,:,0] != 0, tensor_occluder[:,:,3] != 0)
             print(tensor_no_occluder[0])
             print('-' * 200)
             print(tensor_occluder[0])

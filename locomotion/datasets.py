@@ -26,9 +26,6 @@ def load_all_tensors(occluder_dir):
                 file = os.path.join(scene_dir, file)
                 print(file)
                 tensor = torch.load(file)
-                print(tensor.size())
-                print(tensor[3])
-                exit(0)
                 occluder_tensor.append(tensor)
     return occluder_tensor
 
