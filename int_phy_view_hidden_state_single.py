@@ -25,7 +25,6 @@ net.load_state_dict(
 start_scene_number = 0
 env_1 = McsEnv(task="intphys_scenes", scene_type=scene_name, start_scene_number=start_scene_number)
 for _ in range(10):
-
     env_1.reset(random_init=False)
     env_new_objects = []
     env_occluders = []
@@ -55,7 +54,7 @@ for _ in range(10):
 
         if len(env_1.scene_config['goal']['action_list']) == 40:
             for _ in range(20):
-                f_none = get_locomotion_feature(obj=None, object_occluded=False, object_in_scene=False)
+                f_none = get_locomotion_feature(None, object_occluded=False, object_in_scene=False)
                 f_none = torch.tensor(f_none)
                 f_none = f_none.unsqueeze(0).unsqueeze(0)
                 _, h_t = net((f_none, h_t))
@@ -68,7 +67,7 @@ for _ in range(10):
             obj_in_view = None
             if len(env_1.step_output.object_list) == 1:
                 obj_in_scene += 1
-                f_1 = get_locomotion_feature(env_1.step_output.object_list[0], object_occluded=False, object_in_scene=obj_in_scene > 0)
+                f_1 = get_locomotion_feature(env_1.step_output, object_occluded=False, object_in_scene=obj_in_scene > 0)
                 obj_in_view = True
             elif len(env_1.step_output.object_list) == 0:
                 f_1 = get_locomotion_feature(None, object_occluded=True, object_in_scene=obj_in_scene > 0)

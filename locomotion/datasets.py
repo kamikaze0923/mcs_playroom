@@ -1,10 +1,10 @@
-from int_phy_recollect_position import SHAPE_TYPES, SCENE_TYPES
+from int_phy_recollect_position import SHAPE_TYPES, SCENE_TYPES, DATA_SAVE_DIR
 from torch.utils.data import Dataset
 import torch
 import os
 
-N_TRAIN = 3000
-N_TEST = 665
+N_TRAIN = 5000
+N_TEST = 756
 
 if torch.cuda.is_available():
     DEVICE = "cuda:0"
@@ -16,7 +16,7 @@ print("Uing {}".format(DEVICE))
 def load_all_tensors(occluder_dir):
     occluder_tensor = []
     for t in SHAPE_TYPES:
-        shape_dir = os.path.join("locomotion", "positions", occluder_dir, t)
+        shape_dir = os.path.join(DATA_SAVE_DIR, occluder_dir, t)
         for scene_dir in SCENE_TYPES:
             scene_dir = os.path.join(shape_dir, scene_dir)
             tensor_files = os.listdir(scene_dir)

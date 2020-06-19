@@ -1,9 +1,5 @@
 import os
 import machine_common_sense
-import ast
-import numpy as np
-import matplotlib.pyplot as plt
-from skimage import transform
 
 interaction_sceces = "transferral"
 

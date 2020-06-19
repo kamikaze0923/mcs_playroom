@@ -9,7 +9,7 @@ import os
 import matplotlib.pyplot as plt
 
 TRAIN_BATCH_SIZE = 200
-TEST_BATCH_SIZE = 133
+TEST_BATCH_SIZE = 756
 N_EPOCH = 10000
 CHECK_LOSS_INTERVAL = 10
 assert N_EPOCH % CHECK_LOSS_INTERVAL == 0
@@ -26,9 +26,10 @@ OBJECT_IN_SCENE_BIT = -1
 def set_loss(dataloader, net):
     total_loss = 0
     h_0 = torch.zeros(size=(1, dataloader.batch_size, HIDDEN_STATE_SIZE)).to(DEVICE)  # (num_layer, batch_size, hidden_size)
+    c_0 = torch.zeros(size=(1, dataloader.batch_size, HIDDEN_STATE_SIZE)).to(DEVICE)  # (num_layer, batch_size, hidden_size)
     for with_occluder, without_occluder in dataloader:
 
-        input_1 = (with_occluder,h_0)
+        input_1 = (with_occluder,h_0, c_0)
         output_1, _ = net(input_1)
 
         final_loss = batch_final_loss(output_1, without_occluder, dataloader.batch_size)
@@ -48,16 +49,16 @@ def batch_final_loss(output, ground_truth, batch_size):
     position_pred = position_pred[valid_ground_truth]
     position_target = create_position_target(position_used, valid_ground_truth)
     ground_truth_temp = ground_truth[valid_ground_truth]
-    print(ground_truth_temp[:26, 0])
-    print(position_target[:26, 0])
+    # print(ground_truth_temp[:26, 0])
+    # print(position_target[:26, 0])
     leave_scene_pred = leave_scene_pred[valid_ground_truth]
     leave_scene_target = create_leave_scene_target(valid_ground_truth)
 
     mse_loss_weight, bce_loss_weight = get_batch_loss_weight(valid_ground_truth)
-    print(mse_loss_weight[:26])
-    print(leave_scene_target[:26])
-    print(bce_loss_weight[:26])
-    exit(0)
+    # print(mse_loss_weight[:26])
+    # print(leave_scene_target[:26])
+    # print(bce_loss_weight[:26])
+    # exit(0)
     position_loss = weighted_mse(position_pred, position_target, mse_loss_weight, batch_size)
     leave_scene_loss = weighted_bce(leave_scene_pred, leave_scene_target, bce_loss_weight, batch_size)
 
@@ -117,7 +118,8 @@ def create_position_target(position_used, valid_ground_truth): # move ground tru
 
 def train():
     train_set, test_set = get_train_test_dataset()
-    assert len(train_set) % TRAIN_BATCH_SIZE == 0, len(test_set) % TEST_BATCH_SIZE == 0
+    assert len(train_set) % TRAIN_BATCH_SIZE == 0
+    assert len(test_set) % TEST_BATCH_SIZE == 0
     train_loader = DataLoader(dataset=train_set, batch_size=TRAIN_BATCH_SIZE, shuffle=True)
     test_loader = DataLoader(dataset=test_set, batch_size=TEST_BATCH_SIZE, shuffle=False)
 
@@ -130,6 +132,7 @@ def train():
     all_test_loss = []
 
     h_0 = torch.zeros(size=(1, TRAIN_BATCH_SIZE, HIDDEN_STATE_SIZE)).to(DEVICE) # (num_layer, batch_size, hidden_size)
+    c_0 = torch.zeros(size=(1, TRAIN_BATCH_SIZE, HIDDEN_STATE_SIZE)).to(DEVICE)  # (num_layer, batch_size, hidden_size)
     os.makedirs(MODEL_SAVE_DIR, exist_ok=True)
     best_loss = float('inf')
     best_epoch = None
@@ -137,7 +140,7 @@ def train():
         net.train()
         for _, (with_occluder, without_occluder) in enumerate(train_loader):
 
-            input_1 = (with_occluder, h_0)
+            input_1 = (with_occluder, h_0, c_0)
             output_1, _ = net(input_1)
 
             final_loss = batch_final_loss(output_1, without_occluder, train_loader.batch_size)

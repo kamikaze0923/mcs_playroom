@@ -8,8 +8,8 @@ import os, sys
 SHAPE_TYPES = ["cylinder", "sphere", "cube"]
 SCENE_TYPES = ["object_permanence", "shape_constancy", "spatio_temporal_continuity"]
 
-SAVE_SCENE_LENGTH = 1
-TOTAL_SCENE = 3 # max 1080
+SAVE_SCENE_LENGTH = 40
+TOTAL_SCENE = 1080 # max 1080
 assert TOTAL_SCENE % SAVE_SCENE_LENGTH == 0
 N_RESTART = TOTAL_SCENE // SAVE_SCENE_LENGTH
 
