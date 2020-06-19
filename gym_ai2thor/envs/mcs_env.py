@@ -15,7 +15,7 @@ class McsEnv:
     def __init__(self, task=None, scene_type=None, seed=None, start_scene_number=0):
 
         if platform.system() == "Linux":
-            app = "unity_app/MCS-AI2-THOR-Unity-App-v0.0.9.x86_64"
+            app = "unity_app/MCS-AI2-THOR-Unity-App-v0.0.10.x86_64"
         elif platform.system() == "Darwin":
             app = "unity_app/MCSai2thor.app/Contents/MacOS/MCSai2thor"
         else:
