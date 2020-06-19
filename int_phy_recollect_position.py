@@ -1,6 +1,6 @@
 from gym_ai2thor.envs.mcs_env import McsEnv
 import torch
-import os, sys
+import os
 
 
 # SCENE_TYPES = ["object_permanence", "shape_constancy", "spatio_temporal_continuity"]

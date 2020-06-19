@@ -2,6 +2,8 @@ from copy import deepcopy
 import numpy as np
 import torch
 from PIL import Image
+from int_phy_recollect_position import get_locomotion_feature
+
 
 IMAGE_CROP_SIZE = 28
 
@@ -50,7 +52,7 @@ def get_object_mask_color(color):
     return (color['r'], color['g'], color['b'])
 
 
-def get_appearance(model, object_frame, edge_pixels, obeject_color):
+def get_cropped_object_appearane(object_frame, edge_pixels, obeject_color):
     object_frame = np.array(object_frame)
     x_s = edge_pixels['x_min']
     x_e = edge_pixels['x_max']
@@ -64,22 +66,25 @@ def get_appearance(model, object_frame, edge_pixels, obeject_color):
     obj_frame = object_frame[y_s:y_e, x_s:x_e, :]
     obj_frame = Image.fromarray(obj_frame).convert('L').resize(new_size)
     obj_frame = pre_process_cropped_img(np.array(obj_frame)).unsqueeze(0)
-    embedding = model(obj_frame)
-    return embedding[0].detach()
+    return obj_frame
 
 
 
 class ObjectState:
+
     def __init__(self, object_info, depth_frame, object_frame):
         self.id = object_info.uuid
         self.color = object_info.color
         self.position = [object_info.position['x'], object_info.position['y'], object_info.position['z']]
         self.depth, self.edge_pixels = get_object_frame_info(object_info, depth_frame, object_frame)
         self.velocity = (0, 0)
+
         self.in_view = True
         self.occluded_by = None
         self.out_of_view = False
-        self.velocity_history = []
+
+        self.appearance = None
+        self.locomotion_feature = None
 
     def in_view_update(self, new_object_state):
         v_x = round(new_object_state.position[0] - self.position[0], 3)
@@ -92,22 +97,29 @@ class ObjectState:
         self.edge_pixels = new_object_state.edge_pixels
         self.in_view = True
 
-        if v_z != 0:
-            pass
-            # print(v_z)
-        if self.velocity is not None:
-            self.velocity_history.append(self.velocity)
 
-    def out_view_update(self, last_seen_state_and_occluders=None, constant_velocity=True):
+    def out_view_update(self, last_seen_state_and_occluders=None):
         if last_seen_state_and_occluders:
             last_seen_state, last_occluder = last_seen_state_and_occluders
             self.last_seen_state = deepcopy(last_seen_state)
             self.occluded_by = last_occluder
 
-        if constant_velocity:
-            self.position[0] += self.velocity[0]
-            self.position[1] += self.velocity[1]
 
         self.edge_pixels = None
         self.in_view = False
+
+
+    def appearance_update(self, decision, likelihood):
+        if self.appearance:
+            old_decision, old_likelihood = self.appearance
+            if old_decision != decision:
+                print("object {} appearance change from {} to {}".format(self.id, old_decision, decision))
+                exit(0)
+            else:
+                print("object {} appearance dose not change".format(self.id))
+        else:
+            print("object {} first appear as {}".format(self.id, decision))
+        self.appearance = (decision, likelihood)
+
+
 

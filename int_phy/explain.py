@@ -57,19 +57,19 @@ def check_occluder_is_lifted_up(last_occluder, new_occluder_dict):
 
 
 def check_appearance(distributions, appearance, object_classes):
-    likelihoods = []
-    max_prob_class = None
-    max_prob = 0
+    # likelihoods = []
+    max_likelihood_class = None
+    max_likelihood = 0
     for distribution, class_name in zip(distributions, object_classes):
         log_prob = distribution.log_prob(appearance)
         prob = torch.exp(log_prob)
-        likelihoods.append(prob)
-        print("likelihood of {}: {: .2f}".format(class_name, prob))
-        if prob > max_prob:
-            max_prob = prob
-            max_prob_class = class_name
-    print("object type decision: {}".format(max_prob_class))
-    return likelihoods
+        # likelihoods.append(prob)
+        # print("likelihood of {}: {: .2f}".format(class_name, prob))
+        if prob > max_likelihood:
+            max_likelihood = prob
+            max_likelihood_class = class_name
+    # print("object type decision: {}".format(max_likelihood_class))
+    return max_likelihood_class, max_likelihood
 
 
 def check_object_patially_occlusion(all_occluder_dict, object_state, frame_size):

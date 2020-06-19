@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 
 
 LOCOMOTION_FIGURE_DIR = os.path.join("locomotion", "figure")
+print("RNN Hidden State {}".format(HIDDEN_STATE_SIZE))
 
 
 def get_output_position(dataloader, net, batch_size):

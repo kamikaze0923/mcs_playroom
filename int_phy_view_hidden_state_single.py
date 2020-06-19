@@ -18,7 +18,9 @@ scene_name = "object_permanence"
 
 net = ObjectStatePrediction()
 net.eval()
-net.load_state_dict(torch.load(os.path.join(MODEL_SAVE_DIR, "model_{}_hidden_state.pth".format(HIDDEN_STATE_SIZE))))
+net.load_state_dict(
+    torch.load(os.path.join(MODEL_SAVE_DIR, "model_{}_hidden_state.pth".format(HIDDEN_STATE_SIZE)), map_location="cpu")
+)
 
 start_scene_number = 0
 env_1 = McsEnv(task="intphys_scenes", scene_type=scene_name, start_scene_number=start_scene_number)
@@ -48,7 +50,7 @@ for _ in range(10):
 
         env_1.step_output = env_1.controller.start_scene(env_1.scene_config)
 
-        h_t_1 = torch.zeros(size=(1, 1, HIDDEN_STATE_SIZE))
+        h_t = torch.zeros(size=(1, 1, HIDDEN_STATE_SIZE))
         print(len(env_1.scene_config['goal']['action_list']))
 
         if len(env_1.scene_config['goal']['action_list']) == 40:
@@ -56,9 +58,10 @@ for _ in range(10):
                 f_none = get_locomotion_feature(obj=None, object_occluded=False, object_in_scene=False)
                 f_none = torch.tensor(f_none)
                 f_none = f_none.unsqueeze(0).unsqueeze(0)
-                _, h_t_1 = net((f_none, h_t_1))
+                _, h_t = net((f_none, h_t))
 
         obj_in_scene = 0
+        object_pred_leave = False
         for i, action in enumerate(env_1.scene_config['goal']['action_list']):
             env_1.step(action=action[0])
 
@@ -77,16 +80,20 @@ for _ in range(10):
             f_1_unseen = f_1_unseen.detach().clone().unsqueeze(0).unsqueeze(0)
 
             # always try what if in next frame obj is unseen
-            output_1_unseen, _ = net((f_1_unseen, h_t_1))
-            output_1_unseen_numpy = output_1_unseen.detach().numpy().squeeze()
+            output_1_unseen, _ = net((f_1_unseen, h_t))
+            pred_position, pred_prob_leave = output_1_unseen
+
+            pred_position = pred_position.detach().numpy().squeeze()
+            pred_prob_leave = pred_prob_leave.item()
+
+
             gx, gy = f_1[0], f_1[1]
+            px, py = pred_position[0], pred_position[1]
 
             # update hidden state
             f_1 = f_1.detach().clone().unsqueeze(0).unsqueeze(0)
-            _, h_t_1 = net((f_1, h_t_1))
+            _, h_t = net((f_1, h_t))
 
-            if not obj_in_scene > 0:
-                continue
 
             # plot the ground truth
             if obj_in_scene > 0 and obj_in_view:
@@ -94,10 +101,16 @@ for _ in range(10):
                 plt.annotate("{}".format(obj_in_scene), (gx, gy), size=5)
                 plt.pause(0.3)
 
-            # after first steps, make a prediction if next step cannot see the object
-            if obj_in_scene > 1:
-                plt.scatter(output_1_unseen_numpy[0], output_1_unseen_numpy[1], s=5, color='b')
-                plt.pause(0.3)
+            # plot next step's prediction
+            if obj_in_scene > 0:
+                if pred_prob_leave < 0.1 and not object_pred_leave:
+                    plt.scatter(px, py, s=5, color='b')
+                    plt.annotate("{}".format(obj_in_scene+1), (px, py), size=5)
+                    plt.pause(0.3)
+                else:
+                    if not object_pred_leave:
+                        print("Next step leave scene prob {}".format(pred_prob_leave))
+                        object_pred_leave = True
 
 
 

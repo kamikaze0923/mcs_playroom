@@ -47,10 +47,17 @@ def batch_final_loss(output, ground_truth, batch_size):
     valid_ground_truth = ground_truth[:, :, OBJECT_IN_SCENE_BIT] == 1
     position_pred = position_pred[valid_ground_truth]
     position_target = create_position_target(position_used, valid_ground_truth)
+    ground_truth_temp = ground_truth[valid_ground_truth]
+    print(ground_truth_temp[:26, 0])
+    print(position_target[:26, 0])
     leave_scene_pred = leave_scene_pred[valid_ground_truth]
     leave_scene_target = create_leave_scene_target(valid_ground_truth)
 
     mse_loss_weight, bce_loss_weight = get_batch_loss_weight(valid_ground_truth)
+    print(mse_loss_weight[:26])
+    print(leave_scene_target[:26])
+    print(bce_loss_weight[:26])
+    exit(0)
     position_loss = weighted_mse(position_pred, position_target, mse_loss_weight, batch_size)
     leave_scene_loss = weighted_bce(leave_scene_pred, leave_scene_target, bce_loss_weight, batch_size)
 
