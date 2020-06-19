@@ -58,6 +58,8 @@ class McsEnv:
                 self.scene_config, status = machine_common_sense.MCS.load_config_json_file(self.all_scenes[self.current_scene])
         # if "goal" in self.scene_config:
         #     print(self.scene_config['goal']["description"])
+        # if "answer" in self.scene_config:
+        #     print(self.scene_config['answer']["choice"])
         self.step_output = self.controller.start_scene(self.scene_config)
         # self.step_output = self.controller.step(action="Pass")
 

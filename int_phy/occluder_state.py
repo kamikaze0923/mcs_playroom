@@ -1,8 +1,6 @@
 import numpy as np
-
-
-def project_to_2d(x, y, z, focal_length=30.85795):
-    return x * focal_length / z, y * focal_length / z
+from int_phy.object_state import get_2d_bonding_box_point
+from shapely.geometry.polygon import Polygon
 
 def get_occluder_frame_info(object_info, depth_frame, object_frame):
     depth_frame = np.array(depth_frame)
@@ -19,23 +17,6 @@ def get_occluder_frame_info(object_info, depth_frame, object_frame):
     }
     object_depth_frame_value = max([depth_frame[i,j] for i,j in matched_pixels])
     return object_depth_frame_value, pixel_info
-
-
-def get_bonding_box_2d(bonding_box_3d, agent_position):
-    vertices = []
-    for vertex in bonding_box_3d:
-        delta_x, delta_y, delta_z = None, None, None
-        for k, v in vertex.items():
-            if k == "x":
-                delta_x = v - agent_position['x']
-            elif k == "y":
-                delta_y = v - agent_position['y']
-            elif k == "z":
-                delta_z = v - agent_position['z']
-        assert delta_x and delta_y and delta_z
-        x_2d, y_2d = project_to_2d(delta_x, delta_y, delta_z)
-        vertices.append((round(x_2d), round(y_2d)))
-    print(vertices)
 
 
 def get_running_in_occluder_info(all_occluder_dicts, object_state):
@@ -95,15 +76,19 @@ def get_running_out_occluder_info(all_occluder_dicts, appear_state, estimate_sta
     return min_pixel_dis, which_occluder
 
 
+def get_bonding_box_polygon(object_info):
+    bonding_box_point = get_2d_bonding_box_point(object_info.dimensions)
+    return Polygon(bonding_box_point)
+
+
 
 class OccluderState:
-    def __init__(self, object_info, depth_frame, object_frame, agent_position):
+    def __init__(self, object_info, depth_frame, object_frame):
         self.id = object_info.uuid
         self.color = object_info.color
-        self.position = [object_info.position['x'], object_info.position['y'], object_info.position['z']]
         self.depth, self.edge_pixels = get_occluder_frame_info(object_info, depth_frame, object_frame)
-        # print(min(self.edge_pixelss), max(self.edge_pixelss))
-        # self.bonding_box = get_bonding_box_2d(object_info.dimensions, agent_position)
+        self.bonding_box_polygon = get_bonding_box_polygon(object_info)
+        a = 1
 
 
 

@@ -72,22 +72,28 @@ def check_appearance(distributions, appearance, object_classes):
     return max_likelihood_class, max_likelihood
 
 
-def check_object_patially_occlusion(all_occluder_dict, object_state, frame_size):
+def check_object_patially_occlusion(all_occluder_dict, object_state, frame_size): # need to rewrite, use bonding box point
     is_partially_occluded = False
     if object_state.edge_pixels['x_min'] == 0 or object_state.edge_pixels['y_min'] == 0:
         is_partially_occluded = True
+        print("Enter Scene occlusion")
     elif object_state.edge_pixels['x_max'] == frame_size[0] - 1 or object_state.edge_pixels['y_max'] == frame_size[1] - 1:
         is_partially_occluded = True
+        print("Enter Scene occlusion")
     else:
         for _, occluder_state in all_occluder_dict.items():
             if object_state.edge_pixels['x_min'] == occluder_state.edge_pixels['x_max'] + 1:
                 is_partially_occluded = True
+                print(11111)
             elif object_state.edge_pixels['x_max'] == occluder_state.edge_pixels['x_min'] - 1:
                 is_partially_occluded = True
+                print(22222)
             elif object_state.edge_pixels['y_min'] == occluder_state.edge_pixels['y_max'] + 1:
                 is_partially_occluded = True
+                print(33333)
             elif object_state.edge_pixels['y_max'] == occluder_state.edge_pixels['y_min'] - 1:
                 is_partially_occluded = True
+                print(44444)
     return is_partially_occluded
 
 

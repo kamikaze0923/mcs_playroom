@@ -2,7 +2,8 @@ from copy import deepcopy
 import numpy as np
 import torch
 from PIL import Image
-from int_phy_recollect_position import get_locomotion_feature
+from collections import defaultdict
+from shapely.geometry.point import Point
 
 
 IMAGE_CROP_SIZE = 28
@@ -36,18 +37,6 @@ def get_object_frame_info(object_info, depth_frame, object_frame):
     return object_depth_frame_value, pixel_info
 
 
-def get_object_dimension(dimensions):
-    arr = []
-    for row in dimensions:
-        arr.append([round(row['x'], 2), round(row['y'], 2), round(row['z'], 2)])
-    arr = np.stack(arr)
-    distance_matrix = np.zeros(shape=(arr.shape[0], arr.shape[0]))
-    for i,x in enumerate(arr):
-        for j,y in enumerate(arr):
-            if j <= i:
-                distance_matrix[i, j] = np.sqrt(np.sum(np.square(x - y)))
-    return distance_matrix
-
 def get_object_mask_color(color):
     return (color['r'], color['g'], color['b'])
 
@@ -70,6 +59,17 @@ def get_cropped_object_appearane(object_frame, edge_pixels, obeject_color):
 
 
 
+def get_2d_bonding_box_point(dimensions):
+    front_4_points = [dimensions[i] for i in [0,1,4,5]]
+    all_z = [p['z'] for p in front_4_points]
+    assert sum(all_z) == 4 * all_z[0]
+    list_of_point_obj = []
+    for p in front_4_points:
+        list_of_point_obj.append(Point([p['x'], p['y']]))
+    return list_of_point_obj
+
+
+
 class ObjectState:
 
     def __init__(self, object_info, depth_frame, object_frame):
@@ -78,6 +78,7 @@ class ObjectState:
         self.position = [object_info.position['x'], object_info.position['y'], object_info.position['z']]
         self.depth, self.edge_pixels = get_object_frame_info(object_info, depth_frame, object_frame)
         self.velocity = (0, 0)
+        self.bonding_box_point = get_2d_bonding_box_point(object_info.dimensions)
 
         self.in_view = True
         self.occluded_by = None
@@ -85,6 +86,7 @@ class ObjectState:
 
         self.appearance = None
         self.locomotion_feature = None
+        self.appearance_cnt = defaultdict(lambda: 0)
 
     def in_view_update(self, new_object_state):
         v_x = round(new_object_state.position[0] - self.position[0], 3)
@@ -113,13 +115,17 @@ class ObjectState:
         if self.appearance:
             old_decision, old_likelihood = self.appearance
             if old_decision != decision:
-                print("object {} appearance change from {} to {}".format(self.id, old_decision, decision))
-                exit(0)
+                pass
+                # print("object {} appearance change from {} to {}".format(self.id, old_decision, decision))
             else:
-                print("object {} appearance dose not change".format(self.id))
+                pass
+                # print("object {} appearance dose not change".format(self.id))
         else:
-            print("object {} first appear as {}".format(self.id, decision))
+            pass
+            # print("object {} first appear as {}".format(self.id, decision))
         self.appearance = (decision, likelihood)
+        self.appearance_cnt[decision] += 1
+        print(self.id, decision)
 
 
 

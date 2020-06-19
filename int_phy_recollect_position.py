@@ -27,32 +27,57 @@ def get_locomotion_feature(step_output, object_occluded, object_in_scene):
         obj = step_output.object_list[0]
     features = []
     if not object_in_scene:
-        features.extend([0.0]*31)
+        features.extend([0.0]*29)
     else:
         if object_occluded:
-            features.extend([.0] * 30)
+            features.extend([.0] * 28)
             features.extend([1.0])
         else:
             features.append(obj.position['x'])
             features.append(obj.position['y'])
             features.append(obj.position['z'])
-            if not step_output:
-                features.extend([0.0, 0.0])
-            else:
-                grounds = list(filter(lambda x: "floor" in x.uuid, step_output.structural_object_list))
-                assert len(grounds) == 1
-                ramps = list(filter(lambda x: "ramp" in x.uuid, step_output.structural_object_list))
-                support_objs = grounds + ramps
-                support_feature = [1.0, get_support_direction(obj, support_objs, step_output.object_mask_list[-1])]
-                features.extend(support_feature)
             for bonding_vertex in obj.dimensions:
                 features.append(bonding_vertex['x'])
                 features.append(bonding_vertex['y'])
                 features.append(bonding_vertex['z'])
-            features.extend([0.0,1.0])
+            features.extend([1.0,1.0])
 
-    assert len(features) == 31
+    assert len(features) == 29
     return torch.tensor(features)
+
+# def get_locomotion_feature(step_output, object_occluded, object_in_scene):
+#     if step_output is None:
+#         obj = None
+#     else:
+#         obj = step_output.object_list[0]
+#     features = []
+#     if not object_in_scene:
+#         features.extend([0.0]*31)
+#     else:
+#         if object_occluded:
+#             features.extend([.0] * 30)
+#             features.extend([1.0])
+#         else:
+#             features.append(obj.position['x'])
+#             features.append(obj.position['y'])
+#             features.append(obj.position['z'])
+#             if not step_output:
+#                 features.extend([0.0, 0.0])
+#             else:
+#                 grounds = list(filter(lambda x: "floor" in x.uuid, step_output.structural_object_list))
+#                 assert len(grounds) == 1
+#                 ramps = list(filter(lambda x: "ramp" in x.uuid, step_output.structural_object_list))
+#                 support_objs = grounds + ramps
+#                 support_feature = [1.0, get_support_direction(obj, support_objs, step_output.object_mask_list[-1])]
+#                 features.extend(support_feature)
+#             for bonding_vertex in obj.dimensions:
+#                 features.append(bonding_vertex['x'])
+#                 features.append(bonding_vertex['y'])
+#                 features.append(bonding_vertex['z'])
+#             features.extend([0.0,1.0])
+#
+#     assert len(features) == 31
+#     return torch.tensor(features)
 
 
 if __name__ == "__main__":

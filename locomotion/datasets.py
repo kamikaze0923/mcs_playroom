@@ -6,6 +6,8 @@ import os
 N_TRAIN = 5000
 N_TEST = 756
 
+torch.set_printoptions(profile="full", precision=2, linewidth=10000)
+
 if torch.cuda.is_available():
     DEVICE = "cuda:0"
 else:
@@ -24,6 +26,9 @@ def load_all_tensors(occluder_dir):
                 file = os.path.join(scene_dir, file)
                 print(file)
                 tensor = torch.load(file)
+                print(tensor.size())
+                print(tensor[3])
+                exit(0)
                 occluder_tensor.append(tensor)
     return occluder_tensor
 

@@ -23,7 +23,7 @@ class ObjectStatePrediction(Module):
         fc_hidden_states = torch.relu(self.all_fc(hidden_states))
         position_pred = self.position_fc(fc_hidden_states)
         leave_scene_pred = torch.sigmoid(self.leave_scene_fc(hidden_states).squeeze())
-        return (position_pred, leave_scene_pred), h_t
+        return (position_pred, leave_scene_pred), (h_t, c_t)
 
 
 if __name__ == "__main__":

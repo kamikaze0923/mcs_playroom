@@ -40,14 +40,14 @@ class SceneState:
             if "wall" not in obj.uuid or "occluder" not in obj.uuid:
                 continue
             try: # it is possible to have a obj in step_output but not in object_mask_frame
-                obj_state = OccluderState(obj, new_depth_frame, new_object_frame, self.agent_position)
+                obj_state = OccluderState(obj, new_depth_frame, new_object_frame)
                 new_structrual_object_state_dict[obj.uuid] = obj_state
             except:
                 print("Unexpected error:\n {}".format(sys.exc_info()))
         return new_structrual_object_state_dict
 
     def update(self, new_step_output, appearance_checker):
-        print('-'*40)
+        # print('-'*40)
         new_depth_frame = new_step_output.depth_mask_list[-1]
         new_object_frame = new_step_output.object_mask_list[-1]
 
@@ -62,14 +62,14 @@ class SceneState:
 
         for id, state in new_object_state_dict.items():
             if id not in self.object_state_dict: # object appearance
-                print("object {} first appears".format(id))
+                # print("object {} first appears".format(id))
                 self.object_state_dict[id] = state
                 # if not explain_for_first_appearance(state, self.frame_size):
                 #     print("object {} first appearance VOE".format(id))
                     # exit(0)
             else:
                 if self.object_state_dict[id].in_view == False:
-                    print("object {} re-appears".format(id))
+                    # print("object {} re-appears".format(id))
                     # occluder_id = explain_for_re_appearance(
                     #         state, self.object_state_dict[id], new_occluder_state_dict
                     # )
@@ -81,12 +81,13 @@ class SceneState:
                     self.object_state_dict[id].occluded_by = None
                 else:
                     pass
-                    print("object {} still in view".format(id))
+                    # print("object {} still in view".format(id))
                 self.object_state_dict[id].in_view_update(state)
 
 
             if check_object_patially_occlusion(new_occluder_state_dict, state, self.frame_size):
                 print("object {} is patially occluded".format(state.id))
+                pass
             else:
                 cropped_object_frame = get_cropped_object_appearane(new_object_frame, state.edge_pixels, state.color)
                 appearance = appearance_checker.get_appearance(cropped_object_frame)
