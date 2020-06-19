@@ -35,8 +35,6 @@ class MetaController:
             self.env.add_obstacle_func = self.nav.add_obstacle_from_step_output
         self.face = FaceTurnerResNet(get_action_space_from_names(self.face_env.action_names))
 
-        self.obstacles = {}
-
         self.plannerState = None
 
 

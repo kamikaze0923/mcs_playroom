@@ -15,10 +15,10 @@ def get_output_position(dataloader, net, batch_size):
     with_occluder_prediction = []
     without_occluder_target = []
     for _, (with_occluder, without_occluder) in enumerate(dataloader):
-        h_0 = torch.zeros(
-            size=(1, batch_size, HIDDEN_STATE_SIZE))  # (num_layer, batch_size, hidden_size)
+        h_0 = torch.zeros(size=(1, batch_size, HIDDEN_STATE_SIZE))  # (num_layer, batch_size, hidden_size)
+        c_0 = torch.zeros(size=(1, batch_size, HIDDEN_STATE_SIZE))  # (num_layer, batch_size, hidden_size)
 
-        input_1 = (with_occluder, h_0)
+        input_1 = (with_occluder, h_0, c_0)
         output_1, _ = net(input_1)
         position, _  = output_1
         with_occluder_prediction.append(position)
