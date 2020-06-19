@@ -1,4 +1,4 @@
-from locomotion.datasets import get_train_test_dataset
+from locomotion.datasets import get_train_test_dataset, DEVICE
 from locomotion.network import ObjectStatePrediction, HIDDEN_STATE_SIZE
 from locomotion.train import MODEL_SAVE_DIR, TRAIN_BATCH_SIZE, TEST_BATCH_SIZE
 from torch.utils.data.dataloader import DataLoader
@@ -15,8 +15,8 @@ def get_output_position(dataloader, net, batch_size):
     with_occluder_prediction = []
     without_occluder_target = []
     for _, (with_occluder, without_occluder) in enumerate(dataloader):
-        h_0 = torch.zeros(size=(1, batch_size, HIDDEN_STATE_SIZE))  # (num_layer, batch_size, hidden_size)
-        c_0 = torch.zeros(size=(1, batch_size, HIDDEN_STATE_SIZE))  # (num_layer, batch_size, hidden_size)
+        h_0 = torch.zeros(size=(1, batch_size, HIDDEN_STATE_SIZE)).to(DEVICE)  # (num_layer, batch_size, hidden_size)
+        c_0 = torch.zeros(size=(1, batch_size, HIDDEN_STATE_SIZE)).to(DEVICE)   # (num_layer, batch_size, hidden_size)
 
         input_1 = (with_occluder, h_0, c_0)
         output_1, _ = net(input_1)
