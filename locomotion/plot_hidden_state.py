@@ -26,7 +26,7 @@ def get_output_position(dataloader, net, batch_size):
 
     with_occluder_position = torch.cat(with_occluder_prediction)
     without_occluder_position = torch.cat(without_occluder_target)
-    return with_occluder_position.detach().numpy(), without_occluder_position.detach().numpy()
+    return with_occluder_position.detach().cpu().numpy(), without_occluder_position.detach().cpu().numpy()
 
 
 
@@ -36,10 +36,10 @@ def get_position():
     train_loader = DataLoader(dataset=train_set, batch_size=TRAIN_BATCH_SIZE, shuffle=True)
     test_loader = DataLoader(dataset=test_set, batch_size=TEST_BATCH_SIZE, shuffle=False)
 
-    net = ObjectStatePrediction()
+    net = ObjectStatePrediction().to(DEVICE)
     net.eval()
     net.load_state_dict(
-        torch.load(os.path.join(MODEL_SAVE_DIR, "model_{}_hidden_state.pth".format(HIDDEN_STATE_SIZE)), map_location="cpu")
+        torch.load(os.path.join(MODEL_SAVE_DIR, "model_{}_hidden_state.pth".format(HIDDEN_STATE_SIZE)), map_location=DEVICE)
     )
 
     train_emb = get_output_position(train_loader, net, TRAIN_BATCH_SIZE)
