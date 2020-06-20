@@ -1,4 +1,5 @@
 from gym_ai2thor.envs.mcs_env import McsEnv
+from int_phy.object_state import get_2d_bonding_box_point
 import torch
 import os
 
@@ -10,14 +11,20 @@ DATA_SAVE_DIR = os.path.join("locomotion", "positions")
 
 WITH_OCCLUDER = False
 SAVE_SCENE_LENGTH = 40
+ON_GROUND_THRESHOLD = 1e-3
 
 TOTAL_SCENE = 1080 # max 1080
 assert TOTAL_SCENE % SAVE_SCENE_LENGTH == 0
 N_RESTART = TOTAL_SCENE // SAVE_SCENE_LENGTH
 
-def get_support_direction(obj, support_objs, object_mask):
-    object_mask.show()
-    a = obj
+def get_support_indicator(step_output):
+    grounds = list(filter(lambda x: "floor" in x.uuid, step_output.structural_object_list))
+    assert len(grounds) == 1
+    ramps = list(filter(lambda x: "ramp" in x.uuid, step_output.structural_object_list))
+    support_objs = grounds + ramps
+    print(support_objs)
+    for obj in support_objs:
+        fron_bonding_box = get_2d_bonding_box_point(support_objs.dimensions)
     return 90
 
 def get_locomotion_feature(step_output, object_occluded, object_in_scene):
@@ -27,11 +34,13 @@ def get_locomotion_feature(step_output, object_occluded, object_in_scene):
         obj = step_output.object_list[0]
     features = []
     if not object_in_scene:
-        features.extend([0.0] * 27)
-        features.extend([0.0, 0.0])
+        features.extend([0.0] * 27) # position + bonding_box
+        features.extend([0.0]) # supported
+        features.extend([0.0, 0.0])# occluded, in_scene
     else:
         if object_occluded:
             features.extend([0.0] * 27)
+            features.extend([0.0])  # supported
             features.extend([0.0, 1.0])
         else:
             features.append(obj.position['x'])
@@ -41,9 +50,11 @@ def get_locomotion_feature(step_output, object_occluded, object_in_scene):
                 features.append(bonding_vertex['x'])
                 features.append(bonding_vertex['y'])
                 features.append(bonding_vertex['z'])
+            # step_output.object_mask_list[-1].show()
+            features.extend(get_support_indicator(step_output))
             features.extend([1.0, 1.0])
 
-    assert len(features) == 29
+    assert len(features) == 30
     return torch.tensor(features)
 
 # def get_locomotion_feature(step_output, object_occluded, object_in_scene):

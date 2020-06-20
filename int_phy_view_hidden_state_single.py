@@ -10,17 +10,15 @@ import torch
 import os
 import math
 
-def dis_to_origin(x,y):
-    return math.sqrt( x ** 2 + y ** 2)
 
 # scene_name = "github_scenes/spatio_temporal_continuity/implausible"
 scene_name = "object_permanence"
 
 net = ObjectStatePrediction()
 net.eval()
-net.load_state_dict(
-    torch.load(os.path.join(MODEL_SAVE_DIR, "model_{}_hidden_state.pth".format(HIDDEN_STATE_SIZE)), map_location="cpu")
-)
+# net.load_state_dict(
+#     torch.load(os.path.join(MODEL_SAVE_DIR, "model_{}_hidden_state.pth".format(HIDDEN_STATE_SIZE)), map_location="cpu")
+# )
 
 start_scene_number = 0
 env_1 = McsEnv(task="intphys_scenes", scene_type=scene_name, start_scene_number=start_scene_number)

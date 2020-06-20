@@ -1,9 +1,9 @@
-from int_phy_recollect_position import SHAPE_TYPES, SCENE_TYPES, DATA_SAVE_DIR
+from int_phy_recollect_position import SHAPE_TYPES, SCENE_TYPES, DATA_SAVE_DIR, ON_GROUND_THRESHOLD
 import os
 import torch
 
 torch.set_printoptions(profile="full", precision=2, linewidth=10000)
-ON_GROUND_THRESHOLD = 1e-3
+
 
 Y_IDX = [4, 7, 10, 13, 16, 19, 22, 25]
 
