@@ -11,7 +11,7 @@ SHAPE_TYPES = ["cylinder", "sphere", "cube"]
 DATA_SAVE_DIR = os.path.join("locomotion", "positions")
 
 WITH_OCCLUDER = False
-SAVE_SCENE_LENGTH = 1
+SAVE_SCENE_LENGTH = 40
 ON_GROUND_THRESHOLD = 1e-1
 
 TOTAL_SCENE = 1080 # max 1080
@@ -115,7 +115,8 @@ if __name__ == "__main__":
                     env.step_output = env.controller.start_scene(env.scene_config)
                     one_episode_locomotion = []
                     object_in_scene = False
-
+                    if scene_type == "gravity":
+                        assert len(env.scene_config['goal']['action_list']) == 50
                     for i, action in enumerate(env.scene_config['goal']['action_list']):
                         env.step(action=action[0])
                         if len(env.step_output.object_list) == 1:
@@ -146,7 +147,7 @@ if __name__ == "__main__":
                 padded_locomotion = torch.zeros(
                     size=
                     (
-                        len(object_locomotions[shape_type]), max_locomotion_length,
+                        len(object_locomotions[shape_type]), max(max_locomotion_length, 60),
                         object_locomotions[shape_type][0].size()[1]
                     )
                 )
