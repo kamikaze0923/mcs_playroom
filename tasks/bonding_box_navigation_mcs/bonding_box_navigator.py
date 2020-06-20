@@ -10,7 +10,7 @@ random.seed(1)
 class BoundingBoxNavigator:
 
 	# pose is a triplet x,y,theta (heading)
-	def __init__(self, robot_radius=0.5, maxStep=0.25):
+	def __init__(self, robot_radius=0.1, maxStep=0.25):
 		self.agentX = None
 		self.agentY = None
 		self.agentH = None
@@ -49,7 +49,7 @@ class BoundingBoxNavigator:
 
 	def add_obstacle_from_step_output(self, step_output):
 		for obj in step_output.object_list:
-			if obj.uuid not in self.scene_obstacles_dict and len(obj.dimensions) > 0:
+			if len(obj.dimensions) > 0:
 				x_list = []
 				y_list = []
 				for i in range(4, 8):
@@ -60,7 +60,7 @@ class BoundingBoxNavigator:
 				del self.scene_obstacles_dict[obj.uuid]
 
 		for obj in step_output.structural_object_list:
-			if obj.uuid not in self.scene_obstacles_dict and len(obj.dimensions) > 0:
+			if len(obj.dimensions) > 0:
 				if obj.uuid == "ceiling" or obj.uuid == "floor":
 					continue
 				x_list = []
@@ -104,7 +104,7 @@ class BoundingBoxNavigator:
 				# plt.plot(self.agentX, self.agentY, "or")
 				circle = plt.Circle((self.agentX, self.agentY), radius=self.radius, color='r')
 				plt.gca().add_artist(circle)
-				plt.plot(gx, gy, "ob")
+				plt.plot(gx, gy, "x")
 				poly.plot("-r")
 
 				for obstacle in self.scene_obstacles_dict.values():

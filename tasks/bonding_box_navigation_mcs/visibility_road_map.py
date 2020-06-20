@@ -12,10 +12,10 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 import random
+from shapely.geometry import Point, Polygon
 
 from tasks.bonding_box_navigation_mcs.geometry import Geometry
 from tasks.bonding_box_navigation_mcs.dijkstra_search import DijkstraSearch
-from shapely.geometry import Point, Polygon
 
 show_animation = True
 
@@ -158,6 +158,8 @@ class IncrementalVisibilityRoadMap:
 
         # add nodes for each vertex
         cvx_list, cvy_list = self.calc_vertexes_in_configuration_space(obstacle.x_list, obstacle.y_list)
+
+        #new_nodes = [DijkstraSearch.Node(vx, vy) for vx,vy in zip(cvx_list, cvy_list) if self.can_node_fit_circle(DijkstraSearch.Node(vx, vy))]
         new_nodes = [DijkstraSearch.Node(vx, vy) for vx,vy in zip(cvx_list, cvy_list)]
         self.obs_nodes.extend(new_nodes)
 
@@ -171,12 +173,11 @@ class IncrementalVisibilityRoadMap:
                 self.obs_roadmap_adj[n].append(idx)
 
             
-
-        
         #check old edges for intersection with this object
         for src_id, adj in enumerate(self.obs_roadmap_adj):
             rm = []
             for i,tar_id in enumerate(adj):
+                #print(len(self.obs_nodes), src_id, tar_id)
                 if not self.validEdge(self.obs_nodes[src_id], self.obs_nodes[tar_id]):
                     rm.append(i)
             rm.reverse()
@@ -193,13 +194,55 @@ class IncrementalVisibilityRoadMap:
 
         return node_adj
         
+    def getOrthoUnitVector(self, src_node, node):
+
+        if (node.x - src_node.x) == 0:
+            return [1,0]
+        if (node.y - src_node.y) == 0:
+            return [0,1]
+
+        x = -(node.y-src_node.y)/(node.x-src_node.x)
+        y = 1
+
+        norm = math.sqrt(x*x + y*y)
+        x = x/norm
+        y = y/norm
+
+
+        return x,y
+
+
+
+
     def validEdge(self, src_node, node):
-        if np.hypot(src_node.x - node.x, src_node.y - node.y) <= 0.1:
+        if math.sqrt( (src_node.x - node.x)**2 + (src_node.y - node.y)**2) <= 0.01:
                 return False
 
+        if not self.can_node_fit_circle(src_node) or not self.can_node_fit_circle(node):
+            return False
+
+        x_orth,y_orth = self.getOrthoUnitVector(src_node, node)
+        x_orth = x_orth * self.robot_radius
+        y_orth = y_orth * self.robot_radius
+
+        l_src_node = DijkstraSearch.Node(src_node.x+x_orth, src_node.y+y_orth)
+        r_src_node = DijkstraSearch.Node(src_node.x-x_orth, src_node.y-y_orth)
+
+        l_node = DijkstraSearch.Node(node.x+x_orth, node.y+y_orth)
+        r_node = DijkstraSearch.Node(node.x-x_orth, node.y-y_orth)
+
+        #plt.plot([src_node.x,node.x], [src_node.y, node.y], "-r")
+        #plt.plot([l_src_node.x,l_node.x], [l_src_node.y, l_node.y], "-g")
+        #plt.plot([r_src_node.x,r_node.x], [r_src_node.y, r_node.y], "-g")
+        #plt.pause(1)
+
+
+
         for obs in self.obstacles:
-            if not self.is_edge_valid(src_node, node, obs):
+            if not self.is_edge_valid(src_node, node, obs) or not self.is_edge_valid(l_src_node, l_node, obs) or not self.is_edge_valid(r_src_node, r_node, obs):
                 return False
+        #plt.pause(1)
+        
         return True
 
     def planning(self, start_x, start_y, goal_x, goal_y):
@@ -224,7 +267,7 @@ class IncrementalVisibilityRoadMap:
         #print(planNodes)
         #print(planRoadmap)
         #self.plot_road_map(planNodes, planRoadmap)
-        #plt.pause(5)
+        #plt.pause(0.5)
 
         rx, ry = DijkstraSearch(False).search(
             start_x, start_y,
@@ -256,18 +299,51 @@ class IncrementalVisibilityRoadMap:
         return cvx_list, cvy_list
 
 
+
     @staticmethod
     def is_edge_valid(target_node, node, obstacle):
 
-        for i in range(len(obstacle.x_list) - 1):
-            p1 = Geometry.Point(target_node.x, target_node.y)
-            p2 = Geometry.Point(node.x, node.y)
-            p3 = Geometry.Point(obstacle.x_list[i], obstacle.y_list[i])
-            p4 = Geometry.Point(obstacle.x_list[i + 1], obstacle.y_list[i + 1])
 
-            if Geometry.is_seg_intersect(p1, p2, p3, p4):
+        p1 = Geometry.Point(target_node.x, target_node.y)
+        p2 = Geometry.Point(node.x, node.y)
+
+        for i in range(len(obstacle.x_list) - 1):
+            
+            q1 = Geometry.Point(obstacle.x_list[i], obstacle.y_list[i])
+            q2 = Geometry.Point(obstacle.x_list[i + 1], obstacle.y_list[i + 1])
+
+            if Geometry.is_seg_intersect(p1, p2, q1, q2):
                 return False
 
+        return True
+
+    def can_node_fit_circle(self, node):
+
+        for obstacle in self.obstacles:
+            for i in range(len(obstacle.x_list) - 1):
+                
+                q1 = Geometry.Point(obstacle.x_list[i], obstacle.y_list[i])
+                q2 = Geometry.Point(obstacle.x_list[i + 1], obstacle.y_list[i + 1])
+
+                if Geometry.segmentIntersectCircle(q1, q2, node, self.robot_radius):
+                    return False
+                
+        return True
+
+    def is_edge_valid_circle(self,target_node, node, obstacle):
+
+
+        p1 = Geometry.Point(target_node.x, target_node.y)
+        p2 = Geometry.Point(node.x, node.y)
+
+        for i in range(len(obstacle.x_list) - 1):
+            
+            q1 = Geometry.Point(obstacle.x_list[i], obstacle.y_list[i])
+            q2 = Geometry.Point(obstacle.x_list[i + 1], obstacle.y_list[i + 1])
+
+            if Geometry.is_seg_intersect(p1, p2, q1, q2):
+                return False
+            
         return True
 
     def calc_offset_xy(self, px, py, x, y, nx, ny):
@@ -276,8 +352,8 @@ class IncrementalVisibilityRoadMap:
         offset_vec = math.atan2(math.sin(p_vec) + math.sin(n_vec),
                                 math.cos(p_vec) + math.cos(
                                     n_vec)) + math.pi / 2.0
-        offset_x = x + self.robot_radius * math.cos(offset_vec)
-        offset_y = y + self.robot_radius * math.sin(offset_vec)
+        offset_x = x + (self.robot_radius*2) * math.cos(offset_vec)
+        offset_y = y + (self.robot_radius*2) * math.sin(offset_vec)
         return offset_x, offset_y
 
     @staticmethod
@@ -334,7 +410,7 @@ class ObstaclePolygon:
     def contains_goal(self, goal):
         goal_point = Point(goal[0], goal[1])
         coords = []
-        for x,y in zip(self.x_list, self.y_list):
+        for x, y in zip(self.x_list, self.y_list):
             coords.append(Point(x, y))
         poly = Polygon(coords)
         return goal_point.within(poly)
@@ -384,7 +460,7 @@ def main():
     obstacles=[]
     for i in range(4):
         obstacles.append(genRandomRectangle())
-
+        
 
     if show_animation:  # pragma: no cover
         plt.plot(sx, sy, "or")

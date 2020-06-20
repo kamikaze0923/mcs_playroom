@@ -35,6 +35,8 @@ for _ in range(10):
             env_occluders.append(obj)
 
     for one_obj in env_new_objects:
+        if one_obj['type'] != "cylinder":
+            continue
         plt.figure(figsize=(6,4))
         plt.xlim((-5, 5))
         plt.ylim((-1, 4))
