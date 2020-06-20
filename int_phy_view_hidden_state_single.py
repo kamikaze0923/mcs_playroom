@@ -22,7 +22,7 @@ net.load_state_dict(
     torch.load(os.path.join(MODEL_SAVE_DIR, "model_{}_hidden_state.pth".format(HIDDEN_STATE_SIZE)), map_location="cpu")
 )
 
-start_scene_number = 1
+start_scene_number = 0
 env_1 = McsEnv(task="intphys_scenes", scene_type=scene_name, start_scene_number=start_scene_number)
 for _ in range(10):
     env_1.reset(random_init=False)
@@ -76,42 +76,35 @@ for _ in range(10):
                 if obj_in_scene > 0:
                     obj_in_scene += 1
 
-            f_1_unseen = get_locomotion_feature(None, object_occluded=True, object_in_scene=True)
-            f_1_unseen = f_1_unseen.detach().clone().unsqueeze(0).unsqueeze(0)
-
-            # always try what if in next frame obj is unseen
-            output_1_unseen, _ = net((f_1_unseen, h_t, c_t))
-            pred_position, pred_prob_leave = output_1_unseen
-
-            pred_position = pred_position.detach().numpy().squeeze()
-            pred_prob_leave = pred_prob_leave.item()
-
-
             gx, gy = f_1[0], f_1[1]
-            px, py = pred_position[0], pred_position[1]
 
             # update hidden state
             f_1 = f_1.detach().clone().unsqueeze(0).unsqueeze(0)
-            _, (h_t, c_t)  = net((f_1, h_t, c_t))
+            output_1, (h_t, c_t)  = net((f_1, h_t, c_t))
+            pred_position, pred_prob_leave = output_1
+
+
+            pred_position = pred_position.detach().numpy().squeeze()
+            px, py = pred_position[0], pred_position[1]
+            pred_prob_leave = pred_prob_leave.item()
 
 
             # plot the ground truth
             if obj_in_scene > 0 and obj_in_view:
                 plt.scatter(gx, gy, s=5, color='r')
                 plt.annotate("{}".format(obj_in_scene), (gx, gy), size=5)
-                plt.pause(0.3)
+                plt.pause(0.1)
 
             # plot next step's prediction
             if obj_in_scene > 0:
-                print(pred_prob_leave)
-                # if pred_prob_leave < 0.9 and not object_pred_leave:
-                plt.scatter(px, py, s=5, color='b')
-                plt.annotate("{}".format(obj_in_scene+1), (px, py), size=5)
-                plt.pause(0.3)
-                # else:
-                #     if not object_pred_leave:
-                #         print("Next step leave scene prob {}".format(pred_prob_leave))
-                #         object_pred_leave = True
+                if pred_prob_leave < 0.9 and not object_pred_leave:
+                    plt.scatter(px, py, s=5, color='b')
+                    plt.annotate("{}".format(obj_in_scene+1), (px, py), size=5)
+                    plt.pause(0.1)
+                else:
+                    if not object_pred_leave:
+                        print("Next step leave scene prob {}".format(pred_prob_leave))
+                        object_pred_leave = True
 
 
 

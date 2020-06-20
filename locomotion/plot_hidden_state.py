@@ -18,10 +18,10 @@ def get_output_position(dataloader, net, batch_size):
         h_0 = torch.zeros(size=(1, batch_size, HIDDEN_STATE_SIZE)).to(DEVICE)  # (num_layer, batch_size, hidden_size)
         c_0 = torch.zeros(size=(1, batch_size, HIDDEN_STATE_SIZE)).to(DEVICE)   # (num_layer, batch_size, hidden_size)
 
-        print(with_occluder.size(), without_occluder.size())
-        print(with_occluder[0])
-        print(without_occluder[0])
-        exit(0)
+        # print(with_occluder.size(), without_occluder.size())
+        # print(with_occluder[0])
+        # print(without_occluder[0])
+        # exit(0)
         input_1 = (with_occluder, h_0, c_0)
         output_1, _ = net(input_1)
         position, _  = output_1
@@ -74,6 +74,8 @@ def plot():
         plt.legend()
         plt.savefig(os.path.join(LOCOMOTION_FIGURE_DIR, "{}.png".format(i)))
         plt.close()
+        if i == 20:
+            break
 
 
 

@@ -1,7 +1,7 @@
 from torch.nn.modules import Module
 import torch
 
-HIDDEN_STATE_SIZE = 8
+HIDDEN_STATE_SIZE = 12
 POSITION_TRACK_DIM = 2
 
 POSITION_FEATURE_DIM = 29

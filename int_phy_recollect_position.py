@@ -27,11 +27,12 @@ def get_locomotion_feature(step_output, object_occluded, object_in_scene):
         obj = step_output.object_list[0]
     features = []
     if not object_in_scene:
-        features.extend([0.0]*29)
+        features.extend([0.0] * 27)
+        features.extend([0.0, 0.0])
     else:
         if object_occluded:
-            features.extend([.0] * 28)
-            features.extend([1.0])
+            features.extend([0.0] * 27)
+            features.extend([0.0, 1.0])
         else:
             features.append(obj.position['x'])
             features.append(obj.position['y'])
@@ -40,7 +41,7 @@ def get_locomotion_feature(step_output, object_occluded, object_in_scene):
                 features.append(bonding_vertex['x'])
                 features.append(bonding_vertex['y'])
                 features.append(bonding_vertex['z'])
-            features.extend([1.0,1.0])
+            features.extend([1.0, 1.0])
 
     assert len(features) == 29
     return torch.tensor(features)
