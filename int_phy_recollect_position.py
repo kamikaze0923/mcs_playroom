@@ -1,31 +1,42 @@
 from gym_ai2thor.envs.mcs_env import McsEnv
 from int_phy.object_state import get_2d_bonding_box_point
+from shapely.geometry import Polygon, Point
 import torch
 import os
 
 
-SCENE_TYPES = ["object_permanence", "shape_constancy", "spatio_temporal_continuity"]
-# SCENE_TYPES = ["gravity"]
+# SCENE_TYPES = ["object_permanence", "shape_constancy", "spatio_temporal_continuity"]
+SCENE_TYPES = ["gravity"]
 SHAPE_TYPES = ["cylinder", "sphere", "cube"]
 DATA_SAVE_DIR = os.path.join("locomotion", "positions")
 
 WITH_OCCLUDER = False
-SAVE_SCENE_LENGTH = 40
-ON_GROUND_THRESHOLD = 1e-3
+SAVE_SCENE_LENGTH = 1
+ON_GROUND_THRESHOLD = 1e-1
 
 TOTAL_SCENE = 1080 # max 1080
 assert TOTAL_SCENE % SAVE_SCENE_LENGTH == 0
 N_RESTART = TOTAL_SCENE // SAVE_SCENE_LENGTH
 
-def get_support_indicator(step_output):
+def get_support_indicator(step_output, obj_bonding_p):
     grounds = list(filter(lambda x: "floor" in x.uuid, step_output.structural_object_list))
     assert len(grounds) == 1
     ramps = list(filter(lambda x: "ramp" in x.uuid, step_output.structural_object_list))
     support_objs = grounds + ramps
-    print(support_objs)
+    indicator = [0]
+    support_dis = float('inf')
     for obj in support_objs:
-        fron_bonding_box = get_2d_bonding_box_point(support_objs.dimensions)
-    return 90
+        front_bonding_box = get_2d_bonding_box_point(obj.dimensions)
+        polygon = Polygon(front_bonding_box)
+        for p in obj_bonding_p:
+            if polygon.distance(p) < ON_GROUND_THRESHOLD:
+                indicator = [1]
+                support_dis = polygon.distance(p)
+                break
+        if indicator[0] == 1:
+            break
+    # print(indicator, support_dis)
+    return indicator
 
 def get_locomotion_feature(step_output, object_occluded, object_in_scene):
     if step_output is None:
@@ -46,60 +57,31 @@ def get_locomotion_feature(step_output, object_occluded, object_in_scene):
             features.append(obj.position['x'])
             features.append(obj.position['y'])
             features.append(obj.position['z'])
+            bonding_xy = []
             for bonding_vertex in obj.dimensions:
                 features.append(bonding_vertex['x'])
                 features.append(bonding_vertex['y'])
+                bonding_xy.append(Point(bonding_vertex['x'], bonding_vertex['y']))
                 features.append(bonding_vertex['z'])
             # step_output.object_mask_list[-1].show()
-            features.extend(get_support_indicator(step_output))
+            features.extend(get_support_indicator(step_output, bonding_xy))
             features.extend([1.0, 1.0])
 
     assert len(features) == 30
     return torch.tensor(features)
 
-# def get_locomotion_feature(step_output, object_occluded, object_in_scene):
-#     if step_output is None:
-#         obj = None
-#     else:
-#         obj = step_output.object_list[0]
-#     features = []
-#     if not object_in_scene:
-#         features.extend([0.0]*31)
-#     else:
-#         if object_occluded:
-#             features.extend([.0] * 30)
-#             features.extend([1.0])
-#         else:
-#             features.append(obj.position['x'])
-#             features.append(obj.position['y'])
-#             features.append(obj.position['z'])
-#             if not step_output:
-#                 features.extend([0.0, 0.0])
-#             else:
-#                 grounds = list(filter(lambda x: "floor" in x.uuid, step_output.structural_object_list))
-#                 assert len(grounds) == 1
-#                 ramps = list(filter(lambda x: "ramp" in x.uuid, step_output.structural_object_list))
-#                 support_objs = grounds + ramps
-#                 support_feature = [1.0, get_support_direction(obj, support_objs, step_output.object_mask_list[-1])]
-#                 features.extend(support_feature)
-#             for bonding_vertex in obj.dimensions:
-#                 features.append(bonding_vertex['x'])
-#                 features.append(bonding_vertex['y'])
-#                 features.append(bonding_vertex['z'])
-#             features.extend([0.0,1.0])
-#
-#     assert len(features) == 31
-#     return torch.tensor(features)
-
 
 if __name__ == "__main__":
-
     for scene_type in SCENE_TYPES:
         for _, shape_type in enumerate(SHAPE_TYPES):
-            if WITH_OCCLUDER:
+            if scene_type == "gravity":
                 os.makedirs(os.path.join(DATA_SAVE_DIR, "with_occluder", shape_type, scene_type), exist_ok=True)
-            else:
                 os.makedirs(os.path.join(DATA_SAVE_DIR, "without_occluder", shape_type, scene_type), exist_ok=True)
+            else:
+                if WITH_OCCLUDER:
+                    os.makedirs(os.path.join(DATA_SAVE_DIR, "with_occluder", shape_type, scene_type), exist_ok=True)
+                else:
+                    os.makedirs(os.path.join(DATA_SAVE_DIR, "without_occluder", shape_type, scene_type), exist_ok=True)
 
         object_locomotions = {}
         start_scene_number = 0
@@ -171,10 +153,14 @@ if __name__ == "__main__":
                 print(padded_locomotion.size())
                 for i, x in enumerate(object_locomotions[shape_type]):
                     padded_locomotion[i, -x.size()[0]:, :] = x
-                if WITH_OCCLUDER:
+                if scene_type == "gravity":
                     torch.save(padded_locomotion, os.path.join(DATA_SAVE_DIR, "with_occluder", shape_type, scene_type, "{}.pth".format(n_restart)))
-                else:
                     torch.save(padded_locomotion, os.path.join(DATA_SAVE_DIR, "without_occluder", shape_type, scene_type, "{}.pth".format(n_restart)))
+                else:
+                    if WITH_OCCLUDER:
+                        torch.save(padded_locomotion, os.path.join(DATA_SAVE_DIR, "with_occluder", shape_type, scene_type, "{}.pth".format(n_restart)))
+                    else:
+                        torch.save(padded_locomotion, os.path.join(DATA_SAVE_DIR, "without_occluder", shape_type, scene_type, "{}.pth".format(n_restart)))
 
             env.controller.end_scene(None, None)
 

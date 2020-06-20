@@ -7,8 +7,6 @@ import matplotlib
 from matplotlib.lines import Line2D
 matplotlib.use('MacOSX')
 import torch
-import os
-import math
 
 
 # scene_name = "github_scenes/spatio_temporal_continuity/implausible"

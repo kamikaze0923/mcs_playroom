@@ -22,24 +22,24 @@ for t in SHAPE_TYPES:
             print(no_occluder_file)
             tensor_no_occluder = torch.load(no_occluder_file)
             print(tensor_no_occluder.size())
-            # tensor_no_occluder_min_bond = torch.min(tensor_no_occluder[:, :, Y_IDX], dim=2)[0]
-            # tensor_no_occluder_on_ground = torch.logical_and(tensor_no_occluder_min_bond < ON_GROUND_THRESHOLD, tensor_no_occluder[:,:,-2] != 0)
-            # tensor_no_occluder_on_ground = tensor_no_occluder_on_ground.unsqueeze(-1).float()
-            # tensor_no_occluder = torch.cat([tensor_no_occluder[:,:,:-2], tensor_no_occluder_on_ground, tensor_no_occluder[:,:,-2:]], dim=2)
-            # print(tensor_no_occluder.size())
+            tensor_no_occluder_min_bond = torch.min(tensor_no_occluder[:, :, Y_IDX], dim=2)[0]
+            tensor_no_occluder_on_ground = torch.logical_and(tensor_no_occluder_min_bond < ON_GROUND_THRESHOLD, tensor_no_occluder[:,:,-2] != 0)
+            tensor_no_occluder_on_ground = tensor_no_occluder_on_ground.unsqueeze(-1).float()
+            tensor_no_occluder = torch.cat([tensor_no_occluder[:,:,:-2], tensor_no_occluder_on_ground, tensor_no_occluder[:,:,-2:]], dim=2)
+            print(tensor_no_occluder.size())
             # print(tensor_no_occluder[0])
-            # print("-" * 400)
+            print("-" * 400)
 
 
             occluder_file = os.path.join(scene_dir_occluder, one_file)
             print(occluder_file)
             tensor_occluder = torch.load(occluder_file)
             print(tensor_occluder.size())
-            # tensor_occluder_min_bond = torch.min(tensor_occluder[:, :, Y_IDX], dim=2)[0]
-            # tensor_occluder_on_ground = torch.logical_and(tensor_occluder_min_bond < ON_GROUND_THRESHOLD, tensor_occluder[:,:,-2] != 0)
-            # tensor_occluder_on_ground = tensor_occluder_on_ground.unsqueeze(-1).float()
-            # tensor_occluder = torch.cat([tensor_occluder[:,:,:-2], tensor_occluder_on_ground, tensor_occluder[:,:,-2:]], dim=2)
-            # print(tensor_occluder.size())
+            tensor_occluder_min_bond = torch.min(tensor_occluder[:, :, Y_IDX], dim=2)[0]
+            tensor_occluder_on_ground = torch.logical_and(tensor_occluder_min_bond < ON_GROUND_THRESHOLD, tensor_occluder[:,:,-2] != 0)
+            tensor_occluder_on_ground = tensor_occluder_on_ground.unsqueeze(-1).float()
+            tensor_occluder = torch.cat([tensor_occluder[:,:,:-2], tensor_occluder_on_ground, tensor_occluder[:,:,-2:]], dim=2)
+            print(tensor_occluder.size())
             # print(tensor_occluder[0])
 
             # torch.save(tensor_no_occluder, no_occluder_file)

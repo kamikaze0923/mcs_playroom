@@ -77,7 +77,7 @@ class BoundingBoxNavigator:
 		self.epsilon = success_distance
 
 		gx, gy = goal[0], goal[2]
-		gx, gy = 1.75, -1.75
+		# gx, gy = 1.75, -1.75
 		sx, sy = self.agentX, self.agentY
 
 		while True:
