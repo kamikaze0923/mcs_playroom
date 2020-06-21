@@ -3,8 +3,8 @@ from torch.utils.data import Dataset
 import torch
 import os
 
-N_TRAIN = 6300
-N_TEST = 1280
+N_TRAIN = 6400
+N_TEST = 1200
 
 torch.set_printoptions(profile="full", precision=2, linewidth=10000)
 
@@ -26,7 +26,7 @@ def load_all_tensors(occluder_dir):
                 file = os.path.join(scene_dir, file)
                 print(file)
                 tensor = torch.load(file)
-                # tensor = tensor[torch.sum(tensor[:,:,-1], dim=1) != 0]
+                tensor = tensor[torch.sum(tensor[:,:,-1], dim=1) != 0]
                 # in case some in gravity scene the obj does not appear at all
                 occluder_tensor.append(tensor)
     return occluder_tensor

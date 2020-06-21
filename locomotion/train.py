@@ -8,8 +8,8 @@ import torch
 import os
 import matplotlib.pyplot as plt
 
-TRAIN_BATCH_SIZE = 150
-TEST_BATCH_SIZE = 640
+TRAIN_BATCH_SIZE = 160
+TEST_BATCH_SIZE = 300
 N_EPOCH = 20000
 CHECK_LOSS_INTERVAL = 10
 assert N_EPOCH % CHECK_LOSS_INTERVAL == 0
