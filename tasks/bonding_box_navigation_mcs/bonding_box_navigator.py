@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from tasks.bonding_box_navigation_mcs.fov import FieldOfView
 from shapely.geometry import Point
 
-SHOW_ANIMATION = True
+SHOW_ANIMATION = False
 random.seed(1)
 
 class BoundingBoxNavigator:

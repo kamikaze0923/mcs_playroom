@@ -3,8 +3,8 @@ from torch.utils.data import Dataset
 import torch
 import os
 
-N_TRAIN = 5000
-N_TEST = 756
+N_TRAIN = 6800
+N_TEST = 960
 
 torch.set_printoptions(profile="full", precision=2, linewidth=10000)
 
