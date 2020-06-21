@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from tasks.bonding_box_navigation_mcs.fov import FieldOfView
 from shapely.geometry import Point
 
-SHOW_ANIMATION = False
+SHOW_ANIMATION = True
 random.seed(1)
 
 class BoundingBoxNavigator:
@@ -85,15 +85,18 @@ class BoundingBoxNavigator:
 		for _ in range(NAVIGATION_LIMIT_STEP):
 			goal_obj_bonding_box = None
 			for id, box in self.scene_obstacles_dict.items():
-				if box.contains_goal(goal):
+				if box.contains_goal((gx, gy)):
 					goal_obj_bonding_box = box.get_goal_bonding_box_polygon()
 					break
 			if not goal_obj_bonding_box:
 				dis_to_goal = math.sqrt((self.agentX-gx)**2 + (self.agentY-gy)**2)
+				print("Distance to Goal {}".format(dis_to_goal))
 			else:
 				dis_to_goal = goal_obj_bonding_box.distance(Point(self.agentX, self.agentY))
+				print("Distance to Bonding Box {}".format(dis_to_goal))
 			if dis_to_goal < self.epsilon:
 				SUCCESS_FLAG = True
+
 				break
 			roadmap = IncrementalVisibilityRoadMap(self.radius, do_plot=False)
 			for obstacle_key, obstacle in self.scene_obstacles_dict.items():
