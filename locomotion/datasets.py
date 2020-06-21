@@ -41,8 +41,8 @@ def get_train_test_dataset():
     with_occluder_tensor = with_occluder_tensor[rand_permutation]
     train_set = TuplePositions(with_occluder_tensor[:N_TRAIN], without_occluder_tensor[:N_TRAIN])
     test_set = TuplePositions(with_occluder_tensor[N_TRAIN:], without_occluder_tensor[N_TRAIN:])
-    # assert len(train_set) == N_TRAIN
-    # assert len(test_set) == N_TEST
+    assert len(train_set) == N_TRAIN
+    assert len(test_set) == N_TEST
     return train_set, test_set
 
 
