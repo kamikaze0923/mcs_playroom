@@ -14,7 +14,7 @@ class ObjectStatePrediction(Module):
     def __init__(self):
         super().__init__()
         self.lstm = torch.nn.LSTM(
-            input_size=POSITION_FEATURE_DIM, hidden_size=HIDDEN_STATE_SIZE, num_layers=NUM_HIDDEN_LAYER, dropout=0.5, batch_first=True
+            input_size=POSITION_FEATURE_DIM, hidden_size=HIDDEN_STATE_SIZE, num_layers=NUM_HIDDEN_LAYER, batch_first=True
         )
         self.all_fc = torch.nn.Linear(in_features=HIDDEN_STATE_SIZE, out_features=HIDDEN_STATE_SIZE)
         self.position_fc = torch.nn.Linear(in_features=HIDDEN_STATE_SIZE, out_features=POSITION_TRACK_DIM)
