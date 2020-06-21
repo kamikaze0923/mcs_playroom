@@ -3,9 +3,6 @@ from torch.utils.data import Dataset
 import torch
 import os
 
-# N_TRAIN = 5000
-# N_TEST = 756
-
 N_TRAIN = 6300
 N_TEST = 1280
 
