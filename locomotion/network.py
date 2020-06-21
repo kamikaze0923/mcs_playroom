@@ -19,12 +19,13 @@ class ObjectStatePrediction(Module):
         self.all_fc = torch.nn.Linear(in_features=HIDDEN_STATE_SIZE, out_features=HIDDEN_STATE_SIZE)
         self.position_fc = torch.nn.Linear(in_features=HIDDEN_STATE_SIZE, out_features=POSITION_TRACK_DIM)
         self.leave_scene_fc = torch.nn.Linear(in_features=HIDDEN_STATE_SIZE, out_features=1)
+        self.drop_out = torch.nn.Dropout(0.5)
 
 
     def forward(self, input):
         x, h_t, c_t = input
         hidden_states, (h_t, c_t) = self.lstm(x, (h_t, c_t))
-        fc_hidden_states = torch.relu(self.all_fc(hidden_states))
+        fc_hidden_states = torch.relu(self.drop_out(self.all_fc(hidden_states)))
         position_pred = self.position_fc(fc_hidden_states)
         leave_scene_pred = torch.sigmoid(self.leave_scene_fc(hidden_states).squeeze())
         return (position_pred, leave_scene_pred), (h_t, c_t)
