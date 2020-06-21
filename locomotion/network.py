@@ -5,13 +5,16 @@ import sys
 HIDDEN_STATE_SIZE = int(sys.argv[1])
 print("LSTM Hidden State Size: {}".format(HIDDEN_STATE_SIZE))
 POSITION_TRACK_DIM = 2
+NUM_HIDDEN_LAYER = 2
 
 POSITION_FEATURE_DIM = 30
 
 class ObjectStatePrediction(Module):
     def __init__(self):
         super().__init__()
-        self.lstm = torch.nn.LSTM(input_size=POSITION_FEATURE_DIM, hidden_size=HIDDEN_STATE_SIZE, num_layers=1, batch_first=True)
+        self.lstm = torch.nn.LSTM(
+            input_size=POSITION_FEATURE_DIM, hidden_size=HIDDEN_STATE_SIZE, num_layers=NUM_HIDDEN_LAYER, dropout=0.7, batch_first=True
+        )
         self.all_fc = torch.nn.Linear(in_features=HIDDEN_STATE_SIZE, out_features=HIDDEN_STATE_SIZE)
         self.position_fc = torch.nn.Linear(in_features=HIDDEN_STATE_SIZE, out_features=POSITION_TRACK_DIM)
         self.leave_scene_fc = torch.nn.Linear(in_features=HIDDEN_STATE_SIZE, out_features=1)

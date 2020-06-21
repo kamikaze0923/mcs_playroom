@@ -1,5 +1,5 @@
 from locomotion.datasets import get_train_test_dataset, DEVICE
-from locomotion.network import ObjectStatePrediction, HIDDEN_STATE_SIZE
+from locomotion.network import ObjectStatePrediction, HIDDEN_STATE_SIZE, NUM_HIDDEN_LAYER
 from torch.optim import Adam
 from torch.optim import lr_scheduler
 from torch.utils.data.dataloader import DataLoader
@@ -25,8 +25,8 @@ OBJECT_IN_SCENE_BIT = -1
 
 def set_loss(dataloader, net):
     total_loss = 0
-    h_0 = torch.zeros(size=(1, dataloader.batch_size, HIDDEN_STATE_SIZE)).to(DEVICE)  # (num_layer, batch_size, hidden_size)
-    c_0 = torch.zeros(size=(1, dataloader.batch_size, HIDDEN_STATE_SIZE)).to(DEVICE)  # (num_layer, batch_size, hidden_size)
+    h_0 = torch.zeros(size=(NUM_HIDDEN_LAYER, dataloader.batch_size, HIDDEN_STATE_SIZE)).to(DEVICE)  # (num_layer, batch_size, hidden_size)
+    c_0 = torch.zeros(size=(NUM_HIDDEN_LAYER, dataloader.batch_size, HIDDEN_STATE_SIZE)).to(DEVICE)  # (num_layer, batch_size, hidden_size)
     for with_occluder, without_occluder in dataloader:
 
         input_1 = (with_occluder,h_0, c_0)
@@ -127,8 +127,8 @@ def train():
     all_train_loss = []
     all_test_loss = []
 
-    h_0 = torch.zeros(size=(1, TRAIN_BATCH_SIZE, HIDDEN_STATE_SIZE)).to(DEVICE) # (num_layer, batch_size, hidden_size)
-    c_0 = torch.zeros(size=(1, TRAIN_BATCH_SIZE, HIDDEN_STATE_SIZE)).to(DEVICE)  # (num_layer, batch_size, hidden_size)
+    h_0 = torch.zeros(size=(NUM_HIDDEN_LAYER, TRAIN_BATCH_SIZE, HIDDEN_STATE_SIZE)).to(DEVICE) # (num_layer, batch_size, hidden_size)
+    c_0 = torch.zeros(size=(NUM_HIDDEN_LAYER, TRAIN_BATCH_SIZE, HIDDEN_STATE_SIZE)).to(DEVICE)  # (num_layer, batch_size, hidden_size)
     os.makedirs(MODEL_SAVE_DIR, exist_ok=True)
     best_loss = float('inf')
     best_epoch = None
