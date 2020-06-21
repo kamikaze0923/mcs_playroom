@@ -95,7 +95,7 @@ class McsHumanControlEnv(McsEnv):
 
 
 if __name__ == '__main__':
-    env = McsHumanControlEnv(task="interaction_scenes", scene_type="transferral", start_scene_number=0)
+    env = McsHumanControlEnv(task="interaction_scenes", scene_type="traversal", start_scene_number=0)
     env.reset()
 
     while True:
@@ -111,10 +111,12 @@ if __name__ == '__main__':
         elif action == "d":
             env.step("MoveRight", amount=0.5)
         elif action == "q":
-            rt = input("RotateLeft! Enter the rotation: ")
+            # rt = input("RotateLeft! Enter the rotation: ")
+            rt = 10
             env.step("RotateLeft", rotation=-float(rt))
         elif action == "e":
-            rt = input("RotateRight! Enter the rotation: ")
+            # rt = input("RotateRight! Enter the rotation: ")
+            rt = 10
             env.step("RotateRight", rotation=float(rt))
         elif action == "r":
             hrz = input("Look Up! Enter the horizon: ")

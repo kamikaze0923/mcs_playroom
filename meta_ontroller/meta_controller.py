@@ -4,7 +4,6 @@ from a3c.task_util import get_action_space_from_names
 from gym_ai2thor.envs.mcs_nav import McsNavWrapper
 from gym_ai2thor.envs.mcs_face import McsFaceWrapper
 from gym_ai2thor.envs.mcs_obj import McsObjWrapper
-import os
 from planner.ff_planner_handler import PlanParser
 from meta_ontroller.planner_state import GameState
 import machine_common_sense
@@ -50,12 +49,11 @@ class MetaController:
         assert 'action' in action_dict
         if action_dict['action'] == "GotoLocation":
             goal = get_goal(action_dict['location'])
-            success_distance = machine_common_sense.mcs_controller_ai2thor.MAX_REACH_DISTANCE - 0.2
+            success_distance = machine_common_sense.mcs_controller_ai2thor.MAX_REACH_DISTANCE - 0.1
             success = self.nav.go_to_goal(
-                self.nav_env, goal, success_distance, epsd_collector, frame_collector
+                self.nav_env, goal, success_distance
             )
             if not success:
-                print("Navigation Fail")
                 return False
             self.plannerState.agent_loc_info[self.plannerState.AGENT_NAME] = goal
             self.plannerState.object_facing = None

@@ -3,6 +3,7 @@ import random
 import math
 import matplotlib.pyplot as plt
 from tasks.bonding_box_navigation_mcs.fov import FieldOfView
+from shapely.geometry import Point
 
 SHOW_ANIMATION = True
 random.seed(1)
@@ -70,19 +71,29 @@ class BoundingBoxNavigator:
 					y_list.append(obj.dimensions[i]['z'])
 				self.scene_obstacles_dict[obj.uuid] = ObstaclePolygon(x_list, y_list)
 
-	def go_to_goal(self, nav_env, goal, success_distance, epsd_collector=None, frame_collector=None):
+	def go_to_goal(self, nav_env, goal, success_distance):
 		self.agentX = nav_env.step_output.position['x']
 		self.agentY = nav_env.step_output.position['z']
 		self.agentH = nav_env.step_output.rotation / 360 * (2 * math.pi)
 		self.epsilon = success_distance
 
 		gx, gy = goal[0], goal[2]
-		# gx, gy = 1.75, -1.75
 		sx, sy = self.agentX, self.agentY
 
-		while True:
-			dis_to_goal = math.sqrt((self.agentX-gx)**2 + (self.agentY-gy)**2)
+		NAVIGATION_LIMIT_STEP = 100
+		SUCCESS_FLAG = False
+		for _ in range(NAVIGATION_LIMIT_STEP):
+			goal_obj_bonding_box = None
+			for id, box in self.scene_obstacles_dict.items():
+				if box.contains_goal(goal):
+					goal_obj_bonding_box = box.get_goal_bonding_box_polygon()
+					break
+			if not goal_obj_bonding_box:
+				dis_to_goal = math.sqrt((self.agentX-gx)**2 + (self.agentY-gy)**2)
+			else:
+				dis_to_goal = goal_obj_bonding_box.distance(Point(self.agentX, self.agentY))
 			if dis_to_goal < self.epsilon:
+				SUCCESS_FLAG = True
 				break
 			roadmap = IncrementalVisibilityRoadMap(self.radius, do_plot=False)
 			for obstacle_key, obstacle in self.scene_obstacles_dict.items():
@@ -135,8 +146,9 @@ class BoundingBoxNavigator:
 			self.agentY = nav_env.step_output.position['z']
 			self.agentH = nav_env.step_output.rotation / 360 * (2 * math.pi)
 
-
-		return True
+		if not SUCCESS_FLAG:
+			print("Navigation Fail")
+		return SUCCESS_FLAG
 
 
 
