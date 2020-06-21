@@ -3,11 +3,12 @@ import torch
 import sys
 
 HIDDEN_STATE_SIZE = int(sys.argv[1])
-print("LSTM Hidden State Size: {}".format(HIDDEN_STATE_SIZE))
-POSITION_TRACK_DIM = 2
 NUM_HIDDEN_LAYER = 2
+print("LSTM Hidden State Size: {}".format(HIDDEN_STATE_SIZE))
+print("LSTM Hidden Layer Size: {}".format(NUM_HIDDEN_LAYER))
 
 POSITION_FEATURE_DIM = 30
+POSITION_TRACK_DIM = 2
 
 class ObjectStatePrediction(Module):
     def __init__(self):
