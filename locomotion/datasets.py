@@ -24,7 +24,7 @@ def load_all_tensors(occluder_dir):
             tensor_files = os.listdir(scene_dir)
             for file in tensor_files:
                 file = os.path.join(scene_dir, file)
-                print(file)
+                # print(file)
                 tensor = torch.load(file)
                 tensor = tensor[torch.sum(tensor[:,:,-1], dim=1) != 0]
                 # in case some in gravity scene the obj does not appear at all
