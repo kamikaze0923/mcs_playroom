@@ -3,8 +3,11 @@ from torch.utils.data import Dataset
 import torch
 import os
 
-N_TRAIN = 6800
-N_TEST = 960
+# N_TRAIN = 5000
+# N_TEST = 756
+
+N_TRAIN = 6300
+N_TEST = 1280
 
 torch.set_printoptions(profile="full", precision=2, linewidth=10000)
 
@@ -26,6 +29,8 @@ def load_all_tensors(occluder_dir):
                 file = os.path.join(scene_dir, file)
                 print(file)
                 tensor = torch.load(file)
+                tensor = tensor[torch.sum(tensor[:,:,-1], dim=1) != 0]
+                # in case some in gravity scene the obj does not appear at all
                 occluder_tensor.append(tensor)
     return occluder_tensor
 
@@ -39,8 +44,8 @@ def get_train_test_dataset():
     with_occluder_tensor = with_occluder_tensor[rand_permutation]
     train_set = TuplePositions(with_occluder_tensor[:N_TRAIN], without_occluder_tensor[:N_TRAIN])
     test_set = TuplePositions(with_occluder_tensor[N_TRAIN:], without_occluder_tensor[N_TRAIN:])
-    assert len(train_set) == N_TRAIN
-    assert len(test_set) == N_TEST
+    # assert len(train_set) == N_TRAIN
+    # assert len(test_set) == N_TEST
     return train_set, test_set
 
 

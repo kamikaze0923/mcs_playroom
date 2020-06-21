@@ -107,6 +107,8 @@ if __name__ == "__main__":
                     if obj['type'] in SHAPE_TYPES:
                         env_new_objects.append(obj)
                 for one_obj in env_new_objects:
+                    if one_obj['type'] != "cube":
+                        continue
                     if WITH_OCCLUDER:
                         env.scene_config['objects']  = [one_obj] + env_ramps + env_occluders
                     else:
