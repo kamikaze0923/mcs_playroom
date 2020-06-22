@@ -5,7 +5,7 @@ import torch
 import os
 
 
-SCENE_TYPES = ["object_permanence", "shape_constancy", "spatio_temporal_continuity", "gravity"]
+SCENE_TYPES = ["gravity", "object_permanence", "shape_constancy", "spatio_temporal_continuity", ]
 SHAPE_TYPES = ["cylinder", "sphere", "cube"]
 DATA_SAVE_DIR = os.path.join("int_phy", "locomotion", "positions")
 
@@ -107,8 +107,6 @@ if __name__ == "__main__":
                     if obj['type'] in SHAPE_TYPES:
                         env_new_objects.append(obj)
                 for one_obj in env_new_objects:
-                    if one_obj['type'] != "cube":
-                        continue
                     if WITH_OCCLUDER:
                         env.scene_config['objects']  = [one_obj] + env_ramps + env_occluders
                     else:

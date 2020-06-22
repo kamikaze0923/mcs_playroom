@@ -7,7 +7,7 @@ NUM_HIDDEN_LAYER = 1
 print("LSTM Hidden State Size: {}".format(HIDDEN_STATE_SIZE))
 print("LSTM Hidden Layer Size: {}".format(NUM_HIDDEN_LAYER))
 
-POSITION_FEATURE_DIM = 30
+POSITION_FEATURE_DIM = 34
 POSITION_TRACK_DIM = 2
 OBJECT_IN_SCENE_BIT = -1
 
@@ -21,7 +21,6 @@ class ObjectStatePrediction(Module):
         self.all_fc = torch.nn.Linear(in_features=HIDDEN_STATE_SIZE, out_features=HIDDEN_STATE_SIZE)
         self.position_fc = torch.nn.Linear(in_features=HIDDEN_STATE_SIZE, out_features=POSITION_TRACK_DIM)
         self.leave_scene_fc = torch.nn.Linear(in_features=HIDDEN_STATE_SIZE, out_features=1)
-        self.drop_out = torch.nn.Dropout(0.5)
 
     def custumiszed_lstm_cell_forward(
             self, x, hidden_states, invalid_output = torch.zeros(size=(1, HIDDEN_STATE_SIZE)).to(DEVICE)
