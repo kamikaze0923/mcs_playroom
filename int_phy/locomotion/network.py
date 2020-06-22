@@ -23,19 +23,18 @@ class ObjectStatePrediction(Module):
         self.leave_scene_fc = torch.nn.Linear(in_features=HIDDEN_STATE_SIZE, out_features=1)
         self.drop_out = torch.nn.Dropout(0.5)
 
-    def custumiszed_lstm_cell_forward(self, x, hidden_states):
+    def custumiszed_lstm_cell_forward(
+            self, x, hidden_states, invalid_output = torch.zeros(size=(1, HIDDEN_STATE_SIZE)).to(DEVICE)
+    ):
         h_t, c_t = hidden_states
         assert h_t.size()[0] == c_t.size()[0]
-        invalid_output = torch.zeros(size=(1, HIDDEN_STATE_SIZE)).to(DEVICE)
 
         output_h_t = []
         every_layer_final_h_t = [[] for _ in range(NUM_HIDDEN_LAYER)]
         every_layer_final_c_t = [[] for _ in range(NUM_HIDDEN_LAYER)]
         for i, x_one_seq in enumerate(x):
-
             for j in range(NUM_HIDDEN_LAYER):
                 h_t_n, c_t_n = h_t[j], c_t[j]
-
                 one_layer_h_t = []
                 for k, x_one in enumerate(x_one_seq):
                     final_h_t, final_c_t = h_t_n[i].unsqueeze(0), c_t_n[i].unsqueeze(0)
@@ -48,13 +47,12 @@ class ObjectStatePrediction(Module):
                     else:
                         # print("int valid step: {}".format(k))
                         one_layer_h_t.append(invalid_output)
-
                 every_layer_final_h_t[j].append(final_h_t)
                 every_layer_final_c_t[j].append(final_c_t)
                 one_layer_h_t = torch.cat(one_layer_h_t, dim=0)
                 x_one_seq = one_layer_h_t.clone()
-
             output_h_t.append(one_layer_h_t)
+
         for j in range(NUM_HIDDEN_LAYER):
             every_layer_final_h_t[j] = torch.cat(every_layer_final_h_t[j])
             every_layer_final_c_t[j] = torch.cat(every_layer_final_c_t[j])
@@ -62,10 +60,7 @@ class ObjectStatePrediction(Module):
         output_h_t = torch.stack(output_h_t, dim=0)
         every_layer_final_h_t = torch.stack(every_layer_final_h_t)
         every_layer_final_c_t = torch.stack(every_layer_final_c_t)
-
-
         return output_h_t, (every_layer_final_h_t, every_layer_final_c_t)
-
 
     def forward(self, input):
         x, h_t, c_t = input
