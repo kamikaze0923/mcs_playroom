@@ -25,8 +25,8 @@ def get_support_indicator(step_output, obj_bonding_p):
     indicator = [0]
     support_dis = float('inf')
     for obj in support_objs:
-        front_bonding_box = get_2d_bonding_box_point(obj.dimensions)
-        polygon = Polygon(front_bonding_box)
+        bonding_box_point = get_2d_bonding_box_point(obj.dimensions)
+        polygon = Polygon(bonding_box_point)
         for p in obj_bonding_p:
             if polygon.distance(p) < ON_GROUND_THRESHOLD:
                 indicator = [1]

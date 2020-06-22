@@ -7,7 +7,7 @@ import os
 import matplotlib.pyplot as plt
 
 
-LOCOMOTION_FIGURE_DIR = os.path.join("locomotion", "figure")
+LOCOMOTION_FIGURE_DIR = os.path.join("int_phy", "locomotion", "figure")
 print("RNN Hidden State {}".format(HIDDEN_STATE_SIZE))
 
 
@@ -62,7 +62,7 @@ def plot():
 
     for i in range(test_emb_with_occluder.shape[0]):
         valid_idx = test_emb_without_occluder[i, :, -1] == 1
-        plt.title("Latent State(2D) Trajectory of Object {} Locomotion".format(i))
+        plt.title("Trajectory of Object {} Locomotion".format(i))
         plt.xlim((-5, 5))
         plt.ylim((-1, 4))
         x = test_emb_with_occluder[i, valid_idx, 0]
