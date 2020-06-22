@@ -2,7 +2,7 @@ from torch.nn.modules import Module
 from int_phy.locomotion.datasets import DEVICE
 import torch
 
-HIDDEN_STATE_SIZE = 32
+HIDDEN_STATE_SIZE = 16
 NUM_HIDDEN_LAYER = 1
 print("LSTM Hidden State Size: {}".format(HIDDEN_STATE_SIZE))
 print("LSTM Hidden Layer Size: {}".format(NUM_HIDDEN_LAYER))
