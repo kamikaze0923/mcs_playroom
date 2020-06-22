@@ -125,7 +125,7 @@ def train():
 
     net = ObjectStatePrediction().to(DEVICE)
 
-    optimizer = Adam(params=net.parameters(), lr=1e-4)
+    optimizer = Adam(params=net.parameters(), lr=1e-3)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=1000, gamma=0.9, last_epoch=-1)
 
     all_train_loss = []
