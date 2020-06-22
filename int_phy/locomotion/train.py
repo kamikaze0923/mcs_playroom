@@ -8,8 +8,13 @@ import torch
 import os
 import matplotlib.pyplot as plt
 
+# TRAIN_BATCH_SIZE = 200
+# TEST_BATCH_SIZE = 300
+
 TRAIN_BATCH_SIZE = 200
-TEST_BATCH_SIZE = 300
+TEST_BATCH_SIZE = 756
+
+
 N_EPOCH = 20000
 CHECK_LOSS_INTERVAL = 10
 assert N_EPOCH % CHECK_LOSS_INTERVAL == 0
@@ -20,7 +25,7 @@ bce = BCELoss(reduction='none')
 torch.set_printoptions(profile="full", precision=2, linewidth=10000)
 torch.manual_seed(5)
 
-MODEL_SAVE_DIR = os.path.join("int_phy", "locomotion", "pre_trained")
+MODEL_SAVE_DIR = os.path.join("int_phy", "locomotion", "pre_trained_old")
 
 def set_loss(dataloader, net):
     total_loss = 0

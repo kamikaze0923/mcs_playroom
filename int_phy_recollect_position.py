@@ -5,9 +5,9 @@ import torch
 import os
 
 
-SCENE_TYPES = ["gravity", "object_permanence", "shape_constancy", "spatio_temporal_continuity", ]
+SCENE_TYPES = ["object_permanence", "shape_constancy", "spatio_temporal_continuity"]
 SHAPE_TYPES = ["cylinder", "sphere", "cube"]
-DATA_SAVE_DIR = os.path.join("int_phy", "locomotion", "positions")
+DATA_SAVE_DIR = os.path.join("int_phy", "locomotion", "positions_old")
 
 WITH_OCCLUDER = False
 SAVE_SCENE_LENGTH = 40
