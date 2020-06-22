@@ -4,6 +4,7 @@ import math
 import matplotlib.pyplot as plt
 from tasks.bonding_box_navigation_mcs.fov import FieldOfView
 from shapely.geometry import Point
+import pickle
 
 SHOW_ANIMATION = True
 random.seed(1)
@@ -39,7 +40,7 @@ class BoundingBoxNavigator:
 		dY = pathY[i]-self.agentY
 		angleFromAxis = math.atan2(dX, dY)
 			
-		#taking at most a step of size 0.1
+		#taking at most a step of size 0.25
 		distToFirstWaypoint = math.sqrt((self.agentX-pathX[i])**2 + (self.agentY-pathY[i])**2)
 		stepSize = min(self.maxStep, distToFirstWaypoint)
 
@@ -99,14 +100,25 @@ class BoundingBoxNavigator:
 
 				break
 			roadmap = IncrementalVisibilityRoadMap(self.radius, do_plot=False)
+			# parameters = {}
+			# all_obstacles = []
 			for obstacle_key, obstacle in self.scene_obstacles_dict.items():
 				if not obstacle.contains_goal((gx, gy)):
 					roadmap.addObstacle(obstacle)
+					all_obstacles.append(obstacle)
+			# print(len(all_obstacles))
+			# parameters['obstacles'] = all_obstacles
+			# parameters['sx'] = sx
+			# parameters['sy'] = sy
+			# parameters['gx'] = gx
+			# parameters['gy'] = gy
+			# parameters['robot_radius'] = 0.1
+			# parameters['max_stepsize'] = 0.25
+			# with open("parameters.pkl", 'wb') as f:
+			# 	pickle.dump(parameters, f)
+			# exit(0)
 
-			fov = FieldOfView([sx, sy, 0], 42.5 / 180.0 * math.pi, self.scene_obstacles_dict.values())
-			fov.agentX = self.agentX
-			fov.agentY = self.agentY
-			fov.agentH = self.agentH
+			fov = FieldOfView([self.agentX, self.agentY, self.agentH], 42.5 / 180.0 * math.pi, self.scene_obstacles_dict.values())
 			poly = fov.getFoVPolygon(100)
 
 			if SHOW_ANIMATION:

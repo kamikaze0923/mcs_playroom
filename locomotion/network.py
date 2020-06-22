@@ -3,7 +3,7 @@ import torch
 import sys
 
 HIDDEN_STATE_SIZE = int(sys.argv[1])
-NUM_HIDDEN_LAYER = 2
+NUM_HIDDEN_LAYER = 1
 print("LSTM Hidden State Size: {}".format(HIDDEN_STATE_SIZE))
 print("LSTM Hidden Layer Size: {}".format(NUM_HIDDEN_LAYER))
 
@@ -25,7 +25,7 @@ class ObjectStatePrediction(Module):
     def forward(self, input):
         x, h_t, c_t = input
         hidden_states, (h_t, c_t) = self.lstm(x, (h_t, c_t))
-        fc_hidden_states = torch.relu(self.drop_out(self.all_fc(hidden_states)))
+        fc_hidden_states = torch.relu(self.all_fc(hidden_states))
         position_pred = self.position_fc(fc_hidden_states)
         leave_scene_pred = torch.sigmoid(self.leave_scene_fc(hidden_states).squeeze())
         return (position_pred, leave_scene_pred), (h_t, c_t)
