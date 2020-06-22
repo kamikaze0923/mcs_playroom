@@ -2,17 +2,17 @@ import torch
 from torch.optim import lr_scheduler
 import torch.optim as optim
 
-from appearance.trainer import fit
-from appearance.datasets import Objects, TripletObjects
-from appearance.utils import cuda, plot_embeddings, extract_embeddings
+from int_phy.appearance.trainer import fit
+from int_phy.appearance.datasets import Objects, TripletObjects, DATA_SAVE_DIR
+from int_phy.appearance.utils import cuda, plot_embeddings, extract_embeddings
 import os
 
 # Set up the network and training parameters
-from appearance.networks import EmbeddingNet, TripletNet
-from appearance.losses import TripletLoss
+from int_phy.appearance.networks import EmbeddingNet, TripletNet
+from int_phy.appearance.losses import TripletLoss
 
-MODEL_SAVE_DIR = os.path.join("appearance", "pre_trained")
 
+MODEL_SAVE_DIR = os.path.join("int_phy", "appearance", "pre_trained")
 
 if __name__ == "__main__":
     os.makedirs(MODEL_SAVE_DIR, exist_ok=True)

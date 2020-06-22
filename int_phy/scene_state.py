@@ -37,7 +37,7 @@ class SceneState:
     def get_new_occluder_state_dict(self, structural_object_list, new_depth_frame, new_object_frame):
         new_structrual_object_state_dict = {}
         for obj in structural_object_list:
-            if "wall" not in obj.uuid or "occluder" not in obj.uuid:
+            if "occluder_wall" not in obj.uuid:
                 continue
             try: # it is possible to have a obj in step_output but not in object_mask_frame
                 obj_state = OccluderState(obj, new_depth_frame, new_object_frame)
@@ -46,11 +46,10 @@ class SceneState:
                 print("Unexpected error:\n {}".format(sys.exc_info()))
         return new_structrual_object_state_dict
 
-    def update(self, new_step_output, appearance_checker):
+    def update(self, new_step_output, appearance_checker, locomotion_checker):
         # print('-'*40)
         new_depth_frame = new_step_output.depth_mask_list[-1]
         new_object_frame = new_step_output.object_mask_list[-1]
-
 
         new_object_state_dict = self.get_new_object_state_dict(
             new_step_output.object_list, new_depth_frame, new_object_frame
@@ -64,9 +63,6 @@ class SceneState:
             if id not in self.object_state_dict: # object appearance
                 # print("object {} first appears".format(id))
                 self.object_state_dict[id] = state
-                # if not explain_for_first_appearance(state, self.frame_size):
-                #     print("object {} first appearance VOE".format(id))
-                    # exit(0)
             else:
                 if self.object_state_dict[id].in_view == False:
                     # print("object {} re-appears".format(id))
@@ -85,16 +81,11 @@ class SceneState:
                 self.object_state_dict[id].in_view_update(state)
 
 
-            if check_object_patially_occlusion(new_occluder_state_dict, state, self.frame_size):
-                print("object {} is patially occluded".format(state.id))
-                pass
-            else:
-                cropped_object_frame = get_cropped_object_appearane(new_object_frame, state.edge_pixels, state.color)
-                appearance = appearance_checker.get_appearance(cropped_object_frame)
-                decision, likelihoods = check_appearance(
-                    appearance_checker.appearance_distributions, appearance, SHAPE_TYPES
-                )
-                self.object_state_dict[id].appearance_update(decision, likelihoods)
+            if not check_object_patially_occlusion(new_occluder_state_dict, state):
+                if not check_object_on_edge(state, self.frame_size):
+                    cropped_object_frame = get_cropped_object_appearane(new_object_frame, state.edge_pixels, state.color)
+                    decision, likelihoods = appearance_checker.check_appearance(cropped_object_frame, SHAPE_TYPES)
+                    self.object_state_dict[id].appearance_update(decision, likelihoods)
 
 
 
@@ -122,3 +113,10 @@ class SceneState:
 
         self.object_frame = new_object_frame
         self.depth_frame = new_depth_frame
+
+    def get_scene_appearance_scrore(self):
+        min_object_appearance_score = 1
+        for obj_state in self.object_state_dict.values():
+            obj_appearance_score = obj_state.get_appearance_score()
+            min_object_appearance_score = min(obj_appearance_score, min_object_appearance_score)
+        return min_object_appearance_score

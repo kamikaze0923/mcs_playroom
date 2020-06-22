@@ -1,5 +1,5 @@
-from locomotion.datasets import get_train_test_dataset, DEVICE
-from locomotion.network import ObjectStatePrediction, HIDDEN_STATE_SIZE, NUM_HIDDEN_LAYER
+from int_phy.locomotion.datasets import get_train_test_dataset, DEVICE
+from int_phy.locomotion.network import ObjectStatePrediction, HIDDEN_STATE_SIZE, NUM_HIDDEN_LAYER, OBJECT_IN_SCENE_BIT
 from torch.optim import Adam
 from torch.optim import lr_scheduler
 from torch.utils.data.dataloader import DataLoader
@@ -8,7 +8,7 @@ import torch
 import os
 import matplotlib.pyplot as plt
 
-TRAIN_BATCH_SIZE = 160
+TRAIN_BATCH_SIZE = 150
 TEST_BATCH_SIZE = 300
 N_EPOCH = 20000
 CHECK_LOSS_INTERVAL = 10
@@ -20,8 +20,7 @@ bce = BCELoss(reduction='none')
 torch.set_printoptions(profile="full", precision=2, linewidth=10000)
 torch.manual_seed(5)
 
-MODEL_SAVE_DIR = os.path.join("locomotion", "pre_trained")
-OBJECT_IN_SCENE_BIT = -1
+MODEL_SAVE_DIR = os.path.join("int_phy", "locomotion", "pre_trained")
 
 def set_loss(dataloader, net):
     total_loss = 0
@@ -48,7 +47,7 @@ def batch_final_loss(output, ground_truth, batch_size):
     valid_ground_truth = ground_truth[:, :, OBJECT_IN_SCENE_BIT] == 1
     position_pred = position_pred[valid_ground_truth]
     position_target = create_position_target(position_used, valid_ground_truth)
-    leave_scene_pred = leave_scene_pred[valid_ground_truth]
+    leave_scene_pred = leave_scene_pred[valid_ground_truth].squeeze()
     leave_scene_target = create_leave_scene_target(valid_ground_truth)
 
     mse_loss_weight, bce_loss_weight = get_batch_loss_weight(valid_ground_truth)

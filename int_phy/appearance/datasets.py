@@ -5,7 +5,7 @@ import torch
 import os
 
 np.random.seed(0)
-
+DATA_SAVE_DIR = os.path.join("int_phy", "appearance", "object_mask_frame")
 
 class Objects(Dataset):
     def __init__(self):
@@ -13,7 +13,7 @@ class Objects(Dataset):
         target_tensor = []
         for i, t0 in enumerate(SCENE_TYPES):
             for j, t1 in enumerate(SHAPE_TYPES):
-                image_dir = os.path.join("appearance", "object_mask_frame", t1, t0)
+                image_dir = os.path.join(DATA_SAVE_DIR, t1, t0)
                 for file in os.listdir(image_dir):
                     file = os.path.join(image_dir, file)
                     image = torch.load(file)

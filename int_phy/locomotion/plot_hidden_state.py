@@ -1,6 +1,6 @@
-from locomotion.datasets import get_train_test_dataset, DEVICE
-from locomotion.network import ObjectStatePrediction, HIDDEN_STATE_SIZE
-from locomotion.train import MODEL_SAVE_DIR, TRAIN_BATCH_SIZE, TEST_BATCH_SIZE
+from int_phy.locomotion.datasets import get_train_test_dataset, DEVICE
+from int_phy.locomotion.network import ObjectStatePrediction, HIDDEN_STATE_SIZE, NUM_HIDDEN_LAYER
+from int_phy.locomotion.train import MODEL_SAVE_DIR, TRAIN_BATCH_SIZE, TEST_BATCH_SIZE
 from torch.utils.data.dataloader import DataLoader
 import torch
 import os
@@ -15,8 +15,8 @@ def get_output_position(dataloader, net, batch_size):
     with_occluder_prediction = []
     without_occluder_target = []
     for _, (with_occluder, without_occluder) in enumerate(dataloader):
-        h_0 = torch.zeros(size=(1, batch_size, HIDDEN_STATE_SIZE)).to(DEVICE)  # (num_layer, batch_size, hidden_size)
-        c_0 = torch.zeros(size=(1, batch_size, HIDDEN_STATE_SIZE)).to(DEVICE)   # (num_layer, batch_size, hidden_size)
+        h_0 = torch.zeros(size=(NUM_HIDDEN_LAYER, batch_size, HIDDEN_STATE_SIZE)).to(DEVICE)  # (num_layer, batch_size, hidden_size)
+        c_0 = torch.zeros(size=(NUM_HIDDEN_LAYER, batch_size, HIDDEN_STATE_SIZE)).to(DEVICE)   # (num_layer, batch_size, hidden_size)
 
         # print(with_occluder.size(), without_occluder.size())
         # print(with_occluder[0])
@@ -74,7 +74,7 @@ def plot():
         plt.legend()
         plt.savefig(os.path.join(LOCOMOTION_FIGURE_DIR, "{}.png".format(i)))
         plt.close()
-        if i == 20:
+        if i == 100:
             break
 
 

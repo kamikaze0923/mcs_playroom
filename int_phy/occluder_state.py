@@ -1,6 +1,6 @@
 import numpy as np
-from int_phy.object_state import get_2d_bonding_box_point
-from shapely.geometry.polygon import Polygon
+from int_phy.object_state import get_bonding_box_polygon
+
 
 def get_occluder_frame_info(object_info, depth_frame, object_frame):
     depth_frame = np.array(depth_frame)
@@ -76,9 +76,7 @@ def get_running_out_occluder_info(all_occluder_dicts, appear_state, estimate_sta
     return min_pixel_dis, which_occluder
 
 
-def get_bonding_box_polygon(object_info):
-    bonding_box_point = get_2d_bonding_box_point(object_info.dimensions)
-    return Polygon(bonding_box_point)
+
 
 
 
@@ -88,7 +86,6 @@ class OccluderState:
         self.color = object_info.color
         self.depth, self.edge_pixels = get_occluder_frame_info(object_info, depth_frame, object_frame)
         self.bonding_box_polygon = get_bonding_box_polygon(object_info)
-        a = 1
 
 
 

@@ -1,21 +1,10 @@
 from int_phy.occluder_state import get_running_in_occluder_info, get_running_out_occluder_info
-import torch
+import matplotlib.pyplot as plt
+import shapely.ops as so
 
 
 EDGE_MARGIN = 50
 
-def explain_for_first_appearance(state, frame_size):
-    explain_success = False
-    if frame_size[0] - state.edge_pixels['x_max'] <= EDGE_MARGIN:
-        print("object {} come from right into scene".format(state.id))
-        explain_success = True
-    elif state.edge_pixels['x_min'] <= EDGE_MARGIN:
-        print("object {} come from left into scene".format(state.id))
-        explain_success = True
-    if state.edge_pixels['y_min'] <= EDGE_MARGIN:
-        print("object {} come from top into scene".format(state.id))
-        explain_success = True
-    return explain_success
 
 def explain_for_disappearance_by_out_of_scene(pre_state, frame_size):
     explain_success = False
@@ -47,53 +36,34 @@ def explain_for_disappearance_by_occlusion(pre_state, new_occluder_state_dict):
         print("object {} run into {}".format(pre_state.id, occluder_name))
     return explain_success
 
-def check_occluder_is_lifted_up(last_occluder, new_occluder_dict):
-    occluder_lift_up = False
-    last_occluder_pixels_bottom = last_occluder.edge_pixels['y_max']
-    occluder_pixels_bottom = new_occluder_dict[last_occluder.id].edge_pixels['y_max']
-    if last_occluder_pixels_bottom > occluder_pixels_bottom + EDGE_MARGIN:
-        occluder_lift_up = True
-    return occluder_lift_up
 
+def check_object_patially_occlusion(all_occluder_dict, object_state, plot=False): # need to rewrite, use bonding box point
+    occlusion = False
+    for occluder_id, occluder_state in all_occluder_dict.items():
+        if object_state.bonding_box_polygon.intersects(occluder_state.bonding_box_polygon):
+            occlusion = True
+            # print("{} occlude {}".format(occluder_id, object_state.id))
+        if plot:
+            plt.cla()
+            plt.axis('equal')
+            new_shape = so.cascaded_union([object_state.bonding_box_polygon, occluder_state.bonding_box_polygon])
+            for geom in new_shape.geoms:
+                xs, ys = geom.exterior.xy
+                plt.fill(xs, ys, alpha=0.5, fc='r', ec='none')
+            plt.pause(0.2)
+    return occlusion
 
-def check_appearance(distributions, appearance, object_classes):
-    # likelihoods = []
-    max_likelihood_class = None
-    max_likelihood = 0
-    for distribution, class_name in zip(distributions, object_classes):
-        log_prob = distribution.log_prob(appearance)
-        prob = torch.exp(log_prob)
-        # likelihoods.append(prob)
-        # print("likelihood of {}: {: .2f}".format(class_name, prob))
-        if prob > max_likelihood:
-            max_likelihood = prob
-            max_likelihood_class = class_name
-    # print("object type decision: {}".format(max_likelihood_class))
-    return max_likelihood_class, max_likelihood
-
-
-def check_object_patially_occlusion(all_occluder_dict, object_state, frame_size): # need to rewrite, use bonding box point
-    is_partially_occluded = False
-    if object_state.edge_pixels['x_min'] == 0 or object_state.edge_pixels['y_min'] == 0:
-        is_partially_occluded = True
-        print("Enter Scene occlusion")
-    elif object_state.edge_pixels['x_max'] == frame_size[0] - 1 or object_state.edge_pixels['y_max'] == frame_size[1] - 1:
-        is_partially_occluded = True
-        print("Enter Scene occlusion")
-    else:
-        for _, occluder_state in all_occluder_dict.items():
-            if object_state.edge_pixels['x_min'] == occluder_state.edge_pixels['x_max'] + 1:
-                is_partially_occluded = True
-                print(11111)
-            elif object_state.edge_pixels['x_max'] == occluder_state.edge_pixels['x_min'] - 1:
-                is_partially_occluded = True
-                print(22222)
-            elif object_state.edge_pixels['y_min'] == occluder_state.edge_pixels['y_max'] + 1:
-                is_partially_occluded = True
-                print(33333)
-            elif object_state.edge_pixels['y_max'] == occluder_state.edge_pixels['y_min'] - 1:
-                is_partially_occluded = True
-                print(44444)
-    return is_partially_occluded
+def check_object_on_edge(object_state, frame_size):
+    occlusion = False
+    if object_state.edge_pixels['x_min'] == 0:
+        occlusion = True
+        # print("Object {} on left edge".format(object_state.id))
+    if object_state.edge_pixels['y_min'] == 0:
+        occlusion = True
+        # print("Object {} on top edge".format(object_state.id))
+    if object_state.edge_pixels['x_max'] == frame_size[0] - 1:
+        occlusion = True
+        # print("Object {} on right edge".format(object_state.id))
+    return occlusion
 
 

@@ -3,7 +3,8 @@ import numpy as np
 import torch
 from PIL import Image
 from collections import defaultdict
-from shapely.geometry.point import Point
+from shapely.geometry import MultiPoint
+from shapely.geometry.polygon import Polygon, Point
 
 
 IMAGE_CROP_SIZE = 28
@@ -60,14 +61,15 @@ def get_cropped_object_appearane(object_frame, edge_pixels, obeject_color):
 
 
 def get_2d_bonding_box_point(dimensions):
-    front_4_points = [dimensions[i] for i in [0,1,4,5]]
-    all_z = [p['z'] for p in front_4_points]
-    assert sum(all_z) == 4 * all_z[0]
+    front_8_points = [dimensions[i] for i in range(8)]
     list_of_point_obj = []
-    for p in front_4_points:
-        list_of_point_obj.append(Point([p['x'], p['y']]))
+    for p in front_8_points:
+        list_of_point_obj.append( Point(p['x'], p['y']) )
     return list_of_point_obj
 
+def get_bonding_box_polygon(object_info):
+    bonding_box_point = get_2d_bonding_box_point(object_info.dimensions)
+    return MultiPoint(bonding_box_point).convex_hull
 
 
 class ObjectState:
@@ -78,7 +80,7 @@ class ObjectState:
         self.position = [object_info.position['x'], object_info.position['y'], object_info.position['z']]
         self.depth, self.edge_pixels = get_object_frame_info(object_info, depth_frame, object_frame)
         self.velocity = (0, 0)
-        self.bonding_box_point = get_2d_bonding_box_point(object_info.dimensions)
+        self.bonding_box_polygon = get_bonding_box_polygon(object_info)
 
         self.in_view = True
         self.occluded_by = None
@@ -112,20 +114,26 @@ class ObjectState:
 
 
     def appearance_update(self, decision, likelihood):
-        if self.appearance:
-            old_decision, old_likelihood = self.appearance
-            if old_decision != decision:
-                pass
-                # print("object {} appearance change from {} to {}".format(self.id, old_decision, decision))
-            else:
-                pass
-                # print("object {} appearance dose not change".format(self.id))
-        else:
-            pass
-            # print("object {} first appear as {}".format(self.id, decision))
+        # if self.appearance:
+        #     old_decision, old_likelihood = self.appearance
+        #     if old_decision != decision:
+        #         print("object {} appearance change from {} to {}".format(self.id, old_decision, decision))
+        #     else:
+        #         print("object {} appearance dose not change".format(self.id))
+        # else:
+        #     print("object {} first appear as {}".format(self.id, decision))
         self.appearance = (decision, likelihood)
         self.appearance_cnt[decision] += 1
-        print(self.id, decision)
+
+
+    def get_appearance_score(self):
+        max_shape_cnt = 0
+        total_cnt = 0
+        print(self.appearance_cnt)
+        for cnt in self.appearance_cnt.values():
+            max_shape_cnt = max(cnt, max_shape_cnt)
+            total_cnt += cnt
+        return max_shape_cnt / total_cnt
 
 
 

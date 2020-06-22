@@ -1,8 +1,8 @@
 import torch
-from appearance.datasets import Objects
-from appearance.train import MODEL_SAVE_DIR
-from appearance.utils import cuda, plot_embeddings, extract_embeddings, get_multivariate_gaussion_parameters
-from appearance.networks import EmbeddingNet, TripletNet
+from int_phy.appearance.datasets import Objects
+from int_phy.appearance.train import MODEL_SAVE_DIR
+from int_phy.appearance.utils import cuda, plot_embeddings, extract_embeddings, get_multivariate_gaussion_parameters
+from int_phy.appearance.networks import EmbeddingNet, TripletNet
 from int_phy_collect import SHAPE_TYPES
 
 import os

@@ -1,6 +1,5 @@
 from gym_ai2thor.envs.mcs_env import McsEnv
-from locomotion.network import ObjectStatePrediction, HIDDEN_STATE_SIZE
-from locomotion.train import MODEL_SAVE_DIR
+from int_phy.locomotion.network import ObjectStatePrediction, HIDDEN_STATE_SIZE
 from int_phy_recollect_position import get_locomotion_feature
 import matplotlib.pyplot as plt
 import matplotlib
