@@ -105,7 +105,7 @@ class BoundingBoxNavigator:
 			for obstacle_key, obstacle in self.scene_obstacles_dict.items():
 				if not obstacle.contains_goal((gx, gy)):
 					roadmap.addObstacle(obstacle)
-					all_obstacles.append(obstacle)
+					# all_obstacles.append(obstacle)
 			# print(len(all_obstacles))
 			# parameters['obstacles'] = all_obstacles
 			# parameters['sx'] = sx
