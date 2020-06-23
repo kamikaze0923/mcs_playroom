@@ -156,24 +156,24 @@ class MetaController:
         return True
 
     def excecute(self, frame_collector=None):
+        SUCCESS_FLAG = False
         scene_config = main.explore_scene(self.sequence_generator_object, self.env.step_output)
-        if not scene_config['goal_found']:
-            return False
-        self.get_inital_planner_state(scene_config)
-        if isinstance(self.nav, BoundingBoxNavigator):
-            self.nav.clear_obstacle_dict()
-        meta_stage = 0
-        while True:
-            # print("Meta-Stage: {}".format(meta_stage))
-            result_plan = self.plan_on_current_state()
-            # for plan in result_plan:
-            #     print(plan)
-            success = self.step(result_plan[0], frame_collector=frame_collector)
-            if not success:
-                break
-            if result_plan[0]['action'] == "End":
-                break
-            meta_stage += 1
+        if scene_config['goal_found']:
+            self.get_inital_planner_state(scene_config)
+            if isinstance(self.nav, BoundingBoxNavigator):
+                self.nav.clear_obstacle_dict()
+            meta_stage = 0
+            while True:
+                # print("Meta-Stage: {}".format(meta_stage))
+                result_plan = self.plan_on_current_state()
+                # for plan in result_plan:
+                #     print(plan)
+                success = self.step(result_plan[0], frame_collector=frame_collector)
+                if not success:
+                    break
+                if result_plan[0]['action'] == "End":
+                    break
+                meta_stage += 1
+
         print("Task Reward: {}\n".format(self.env.step_output.reward))
-        # assert self.env.step_output.reward == 1
-        return True
+        return SUCCESS_FLAG

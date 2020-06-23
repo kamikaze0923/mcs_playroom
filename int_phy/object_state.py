@@ -76,9 +76,9 @@ class ObjectState:
         self.color = object_info.color
         self.position = [object_info.position['x'], object_info.position['y'], object_info.position['z']]
         self.depth, self.edge_pixels = get_object_frame_info(object_info, depth_frame, object_frame, depth_aggregation=min)
-        self.velocity = (0, 0)
         self.bonding_box_polygon = get_bonding_box_polygon(object_info)
 
+        self.velocity = (0, 0)
         self.in_view = True
         self.occluded_by = None
         self.out_of_view = False
@@ -126,7 +126,7 @@ class ObjectState:
     def get_appearance_score(self):
         max_shape_cnt = 0
         total_cnt = 0
-        print(self.appearance_cnt)
+        # print(self.appearance_cnt)
         for cnt in self.appearance_cnt.values():
             max_shape_cnt = max(cnt, max_shape_cnt)
             total_cnt += cnt

@@ -12,6 +12,7 @@ DATA_SAVE_DIR = os.path.join("int_phy", "locomotion", "positions_old")
 WITH_OCCLUDER = False
 SAVE_SCENE_LENGTH = 40
 ON_GROUND_THRESHOLD = 1e-1
+POSITION_FEATURE_DIM = 29
 
 TOTAL_SCENE = 1080 # max 1080
 assert TOTAL_SCENE % SAVE_SCENE_LENGTH == 0
@@ -45,12 +46,12 @@ def get_locomotion_feature(step_output, object_occluded, object_in_scene):
     features = []
     if not object_in_scene:
         features.extend([0.0] * 27) # position + bonding_box
-        features.extend([0.0]) # supported
+        # features.extend([0.0]) # supported
         features.extend([0.0, 0.0])# occluded, in_scene
     else:
         if object_occluded:
             features.extend([0.0] * 27)
-            features.extend([0.0])  # supported
+            # features.extend([0.0])  # supported
             features.extend([0.0, 1.0])
         else:
             features.append(obj.position['x'])
@@ -63,10 +64,10 @@ def get_locomotion_feature(step_output, object_occluded, object_in_scene):
                 bonding_xy.append(Point(bonding_vertex['x'], bonding_vertex['y']))
                 features.append(bonding_vertex['z'])
             # step_output.object_mask_list[-1].show()
-            features.extend(get_support_indicator(step_output, bonding_xy))
+            # features.extend(get_support_indicator(step_output, bonding_xy))
             features.extend([1.0, 1.0])
 
-    assert len(features) == 30
+    assert len(features) == POSITION_FEATURE_DIM
     return torch.tensor(features)
 
 

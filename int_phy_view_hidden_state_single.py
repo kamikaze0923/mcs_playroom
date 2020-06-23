@@ -1,21 +1,22 @@
 from gym_ai2thor.envs.mcs_env import McsEnv
 from int_phy.locomotion.network import ObjectStatePrediction, HIDDEN_STATE_SIZE
 from int_phy_recollect_position import get_locomotion_feature
+from int_phy.locomotion.train import MODEL_SAVE_DIR
 import matplotlib.pyplot as plt
 import matplotlib
 from matplotlib.lines import Line2D
 matplotlib.use('MacOSX')
 import torch
+import os
 
 
-# scene_name = "github_scenes/spatio_temporal_continuity/implausible"
 scene_name = "object_permanence"
 
 net = ObjectStatePrediction()
 net.eval()
-# net.load_state_dict(
-#     torch.load(os.path.join(MODEL_SAVE_DIR, "model_{}_hidden_state.pth".format(HIDDEN_STATE_SIZE)), map_location="cpu")
-# )
+net.load_state_dict(
+    torch.load(os.path.join(MODEL_SAVE_DIR, "model_{}_hidden_state.pth".format(HIDDEN_STATE_SIZE)), map_location="cpu")
+)
 
 start_scene_number = 0
 env_1 = McsEnv(task="intphys_scenes", scene_type=scene_name, start_scene_number=start_scene_number)
@@ -30,8 +31,6 @@ for _ in range(10):
             env_occluders.append(obj)
 
     for one_obj in env_new_objects:
-        if one_obj['type'] != "cylinder":
-            continue
         plt.figure(figsize=(6,4))
         plt.xlim((-5, 5))
         plt.ylim((-1, 4))
@@ -49,13 +48,6 @@ for _ in range(10):
         h_t = torch.zeros(size=(1, 1, HIDDEN_STATE_SIZE))
         c_t = torch.zeros(size=(1, 1, HIDDEN_STATE_SIZE))
         print(len(env_1.scene_config['goal']['action_list']))
-
-        if len(env_1.scene_config['goal']['action_list']) == 40:
-            for _ in range(20):
-                f_none = get_locomotion_feature(None, object_occluded=False, object_in_scene=False)
-                f_none = torch.tensor(f_none)
-                f_none = f_none.unsqueeze(0).unsqueeze(0)
-                _, (h_t, c_t) = net((f_none, h_t, c_t))
 
         obj_in_scene = 0
         object_pred_leave = False
@@ -103,10 +95,7 @@ for _ in range(10):
                         print("Next step leave scene prob {}".format(pred_prob_leave))
                         object_pred_leave = True
 
-
-
         plt.close()
-
 
 
 env_1.controller.end_scene(None, None)
