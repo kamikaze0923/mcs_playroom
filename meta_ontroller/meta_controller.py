@@ -8,7 +8,6 @@ from planner.ff_planner_handler import PlanParser
 from meta_ontroller.planner_state import GameState
 import machine_common_sense
 from tasks.bonding_box_navigation_mcs.bonding_box_navigator import BoundingBoxNavigator, SHOW_ANIMATION
-from tasks.bonding_box_navigation_mcs.visibility_road_map import ObstaclePolygon
 import matplotlib.pyplot as plt
 
 

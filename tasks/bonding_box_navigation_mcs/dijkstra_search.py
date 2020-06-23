@@ -17,10 +17,11 @@ class DijkstraSearch:
         Node class for dijkstra search
         """
 
-        def __init__(self, x, y, cost=None, parent=None, edge_ids=None):
+        def __init__(self, x, y, cost=None, parent=None, edge_ids=None, hCost=None):
             self.x = x
             self.y = y
             self.cost = cost
+            self.hCost = hCost
             self.parent = parent
             self.edge_ids = edge_ids
 
@@ -44,12 +45,13 @@ class DijkstraSearch:
         edge_ids_list: edge_list each item includes a list of edge ids
         """
 
-        start_node = self.Node(sx, sy, 0.0, -1)
-        goal_node = self.Node(gx, gy, 0.0, -1)
+        start_node = self.Node(sx, sy, 0.0, -1)#, None, math.sqrt( (sx - gx)**2 + (sy - gy)**2)) add back for a*
+        goal_node = self.Node(gx, gy, 0.0, -1)#, None, 0) add back for a*
         current_node = None
 
         open_set, close_set = dict(), dict()
         open_set[self.find_id(node_x, node_y, start_node)] = start_node
+
 
         while True:
             if self.has_node_in_set(close_set, goal_node):
@@ -58,13 +60,12 @@ class DijkstraSearch:
                 break
             elif not open_set:
                 raise ValueError("Cannot reach goal")
-                
-            current_id = min(open_set, key=lambda o: open_set[o].cost)
+
+            current_id = min(open_set, key=lambda o: open_set[o].cost) # + open_set[o].hCost) add back for a*
             current_node = open_set[current_id]
 
             # show graph
-            if self.show_animation and len(
-                    close_set.keys()) % 2 == 0:  # pragma: no cover
+            if self.show_animation and len(close_set.keys()) % 2 == 0:  # pragma: no cover
                 plt.plot(current_node.x, current_node.y, "xg")
                 # for stopping simulation with the esc key.
                 plt.gcf().canvas.mpl_connect(
@@ -84,7 +85,7 @@ class DijkstraSearch:
                 dy = node_y[n_id] - current_node.y
                 d = math.hypot(dx, dy)
                 node = self.Node(node_x[n_id], node_y[n_id],
-                                 current_node.cost + d, current_id)
+                                 current_node.cost + d, current_id)#, None, math.sqrt( (node_x[n_id] - goal_node.x)**2 + (node_y[n_id] - goal_node.y)**2)) add back for a*
 
                 if n_id in close_set:
                     continue
@@ -97,7 +98,6 @@ class DijkstraSearch:
 
         # generate final course
         rx, ry = self.generate_final_path(close_set, goal_node)
-
         return rx, ry
 
     @staticmethod
@@ -127,12 +127,15 @@ class DijkstraSearch:
 
     @staticmethod
     def is_same_node_with_xy(node_x, node_y, node_b):
-        dist = np.hypot(node_x - node_b.x,
-                        node_y - node_b.y)
-        return dist <= 0.1
+        #dist = np.hypot(node_x - node_b.x,node_y - node_b.y)
+        dist = math.sqrt( (node_x - node_b.x)**2 + (node_y - node_b.y)**2)
+        #print("dist", node_x, node_y, node_b.x, node_b.y, "d", node_x-node_b.x, node_y-node_b.y, dist)
+        return dist <= 0.01
 
     @staticmethod
     def is_same_node(node_a, node_b):
-        dist = np.hypot(node_a.x - node_b.x,
-                        node_b.y - node_b.y)
-        return dist <= 0.1
+        #dist = np.hypot(node_a.x - node_b.x,node_b.y - node_b.y)
+        dist = math.sqrt( (node_a.x - node_b.x)**2 + (node_a.y - node_b.y)**2)
+        #print("dist", node_a.x, node_a.y, node_b.x, node_b.y, "d", node_a.x-node_b.x, node_a.y-node_b.y, dist)
+        return dist <= 0.01
+

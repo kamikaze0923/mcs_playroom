@@ -1,9 +1,12 @@
-from tasks.bonding_box_navigation_mcs.visibility_road_map import ObstaclePolygon,IncrementalVisibilityRoadMap
+from tasks.bonding_box_navigation_mcs.visibility_road_map import IncrementalVisibilityRoadMap, ObstaclePolygon
 import random
 import math
 import matplotlib.pyplot as plt
 from tasks.bonding_box_navigation_mcs.fov import FieldOfView
-from shapely.geometry import Point
+from shapely.geometry import Point, Polygon
+import shapely.geometry as sp
+from descartes import PolygonPatch
+
 import pickle
 
 SHOW_ANIMATION = True
@@ -52,12 +55,10 @@ class BoundingBoxNavigator:
 	def add_obstacle_from_step_output(self, step_output):
 		for obj in step_output.object_list:
 			if len(obj.dimensions) > 0:
-				x_list = []
-				y_list = []
+				point_list = []
 				for i in range(4, 8):
-					x_list.append(obj.dimensions[i]['x'])
-					y_list.append(obj.dimensions[i]['z'])
-				self.scene_obstacles_dict[obj.uuid] = ObstaclePolygon(x_list, y_list)
+					point_list.append((obj.dimensions[i]['x'], obj.dimensions[i]['z']))
+				self.scene_obstacles_dict[obj.uuid] = ObstaclePolygon(point_list)
 			if obj.held:
 				del self.scene_obstacles_dict[obj.uuid]
 
@@ -65,12 +66,10 @@ class BoundingBoxNavigator:
 			if len(obj.dimensions) > 0:
 				if obj.uuid == "ceiling" or obj.uuid == "floor":
 					continue
-				x_list = []
-				y_list = []
+				point_list = []
 				for i in range(4, 8):
-					x_list.append(obj.dimensions[i]['x'])
-					y_list.append(obj.dimensions[i]['z'])
-				self.scene_obstacles_dict[obj.uuid] = ObstaclePolygon(x_list, y_list)
+					point_list.append((obj.dimensions[i]['x'], obj.dimensions[i]['z']))
+				self.scene_obstacles_dict[obj.uuid] = ObstaclePolygon(point_list)
 
 	def go_to_goal(self, nav_env, goal, success_distance):
 		self.agentX = nav_env.step_output.position['x']
@@ -85,9 +84,9 @@ class BoundingBoxNavigator:
 		SUCCESS_FLAG = False
 		for _ in range(NAVIGATION_LIMIT_STEP):
 			goal_obj_bonding_box = None
-			for id, box in self.scene_obstacles_dict.items():
-				if box.contains_goal((gx, gy)):
-					goal_obj_bonding_box = box.get_goal_bonding_box_polygon()
+			for id, polygon in self.scene_obstacles_dict.items():
+				if Point((gx, gy)).within(polygon):
+					goal_obj_bonding_box = polygon
 					break
 			if not goal_obj_bonding_box:
 				dis_to_goal = math.sqrt((self.agentX-gx)**2 + (self.agentY-gy)**2)
@@ -97,13 +96,13 @@ class BoundingBoxNavigator:
 				print("Distance to Bonding Box {}".format(dis_to_goal))
 			if dis_to_goal < self.epsilon:
 				SUCCESS_FLAG = True
-
 				break
+
 			roadmap = IncrementalVisibilityRoadMap(self.radius, do_plot=False)
 			# parameters = {}
 			# all_obstacles = []
 			for obstacle_key, obstacle in self.scene_obstacles_dict.items():
-				if not obstacle.contains_goal((gx, gy)):
+				if not Point((gx, gy)).within(polygon):
 					roadmap.addObstacle(obstacle)
 					# all_obstacles.append(obstacle)
 			# print(len(all_obstacles))
@@ -120,6 +119,7 @@ class BoundingBoxNavigator:
 
 			fov = FieldOfView([self.agentX, self.agentY, self.agentH], 42.5 / 180.0 * math.pi, self.scene_obstacles_dict.values())
 			poly = fov.getFoVPolygon(100)
+			world = sp.MultiPolygon().union(poly)
 
 			if SHOW_ANIMATION:
 				plt.cla()
@@ -129,13 +129,21 @@ class BoundingBoxNavigator:
 				plt.gca().set_ylim((-7, 7))
 
 				# plt.plot(self.agentX, self.agentY, "or")
-				circle = plt.Circle((self.agentX, self.agentY), radius=self.radius, color='r')
+				circle = plt.Circle((self.agentX, self.agentY), radius=self.radius, color='b')
 				plt.gca().add_artist(circle)
 				plt.plot(gx, gy, "x")
-				poly.plot("-r")
+				poly.plot("red")
 
-				for obstacle in self.scene_obstacles_dict.values():
-					obstacle.plot("-g")
+				if world.geom_type == 'MultiPolygon':
+					for i in range(len(world)):
+						patch1 = PolygonPatch(world[i], fc="blue", ec="blue", alpha=0.2, zorder=1)
+						plt.gca().add_patch(patch1)
+				else:
+					patch1 = PolygonPatch(world, fc="blue", ec="blue", alpha=0.2, zorder=1)
+					plt.gca().add_patch(patch1)
+
+				for poly in self.scene_obstacles_dict.values():
+					poly.plot("green")
 
 				plt.axis("equal")
 				plt.pause(0.1)

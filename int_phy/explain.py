@@ -1,6 +1,5 @@
 from int_phy.occluder_state import get_running_in_occluder_info, get_running_out_occluder_info
-import matplotlib.pyplot as plt
-import shapely.ops as so
+from shapely.geometry.polygon import Point, Polygon
 
 
 EDGE_MARGIN = 50
@@ -39,18 +38,25 @@ def explain_for_disappearance_by_occlusion(pre_state, new_occluder_state_dict):
 
 def check_object_patially_occlusion(all_occluder_dict, object_state, plot=False): # need to rewrite, use bonding box point
     occlusion = False
+    # for occluder_id, occluder_state in all_occluder_dict.items():
+    #     if object_state.bonding_box_polygon.intersects(occluder_state.bonding_box_polygon):
+    #         occlusion = True
+    #         # print("{} occlude {}".format(occluder_id, object_state.id))
+    #     if plot:
+    #         plt.cla()
+    #         plt.axis('equal')
+    #         new_shape = so.cascaded_union([object_state.bonding_box_polygon, occluder_state.bonding_box_polygon])
+    #         for geom in new_shape.geoms:
+    #             xs, ys = geom.exterior.xy
+    #             plt.fill(xs, ys, alpha=0.5, fc='r', ec='none')
+    #         plt.pause(0.2)
+
+    object_bonding_pixels = [Point(object_state.edge_pixels['x_min'])]
     for occluder_id, occluder_state in all_occluder_dict.items():
         if object_state.bonding_box_polygon.intersects(occluder_state.bonding_box_polygon):
             occlusion = True
-            # print("{} occlude {}".format(occluder_id, object_state.id))
-        if plot:
-            plt.cla()
-            plt.axis('equal')
-            new_shape = so.cascaded_union([object_state.bonding_box_polygon, occluder_state.bonding_box_polygon])
-            for geom in new_shape.geoms:
-                xs, ys = geom.exterior.xy
-                plt.fill(xs, ys, alpha=0.5, fc='r', ec='none')
-            plt.pause(0.2)
+
+
     return occlusion
 
 def check_object_on_edge(object_state, frame_size):

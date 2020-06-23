@@ -1,22 +1,5 @@
-import numpy as np
+from int_phy.object_state import get_object_frame_info
 from int_phy.object_state import get_bonding_box_polygon
-
-
-def get_occluder_frame_info(object_info, depth_frame, object_frame):
-    depth_frame = np.array(depth_frame)
-    object_frame = np.array(object_frame)
-    color = np.array([object_info.color['r'], object_info.color['g'], object_info.color['b']])
-    pixel_match = (object_frame == color).sum(axis=-1)
-    matched_pixels = [(x,y) for x,y in zip(*np.where(pixel_match == 3))]
-    assert len(matched_pixels) > 0
-    matched_pixels_x = [t[1] for t in matched_pixels]
-    matched_pixels_y = [t[0] for t in matched_pixels]
-    pixel_info = {
-        'x_min': min(matched_pixels_x), 'x_max': max(matched_pixels_x),
-        'y_min': min(matched_pixels_y), 'y_max': max(matched_pixels_y)
-    }
-    object_depth_frame_value = max([depth_frame[i,j] for i,j in matched_pixels])
-    return object_depth_frame_value, pixel_info
 
 
 def get_running_in_occluder_info(all_occluder_dicts, object_state):
@@ -84,7 +67,7 @@ class OccluderState:
     def __init__(self, object_info, depth_frame, object_frame):
         self.id = object_info.uuid
         self.color = object_info.color
-        self.depth, self.edge_pixels = get_occluder_frame_info(object_info, depth_frame, object_frame)
+        self.depth, self.edge_pixels = get_object_frame_info(object_info, depth_frame, object_frame, depth_aggregation=max)
         self.bonding_box_polygon = get_bonding_box_polygon(object_info)
 
 

@@ -1,6 +1,7 @@
 import math
 import matplotlib.pyplot as plt
 
+
 class Geometry:
     class Point:
         def __init__(self, x, y):
@@ -14,26 +15,25 @@ class Geometry:
         bx = b.x - c.x
         by = b.y - c.y
 
-        cv = ax**2 + ay**2 - r**2;
-        bv = 2*(ax*(bx - ax) + ay*(by - ay))
-        av = (bx - ax)**2 + (by - ay)**2
+        cv = ax ** 2 + ay ** 2 - r ** 2;
+        bv = 2 * (ax * (bx - ax) + ay * (by - ay))
+        av = (bx - ax) ** 2 + (by - ay) ** 2
 
+        disc = bv ** 2 - 4 * av * cv;
 
-        disc = bv**2 - 4*av*cv;
-        
-        if disc > 0 : 
+        if disc > 0:
             sqrtdisc = math.sqrt(disc);
-            t1 = (-bv + sqrtdisc)/(2*av);
-            t2 = (-bv - sqrtdisc)/(2*av);
+            t1 = (-bv + sqrtdisc) / (2 * av);
+            t2 = (-bv - sqrtdisc) / (2 * av);
 
             if (0 <= t1 <= 1) or (0 <= t2 <= 1):
-                #circle = plt.Circle((c.x, c.y), radius=r, color="r", fill=False)
-                #plt.gca().add_artist(circle) 
+                # circle = plt.Circle((c.x, c.y), radius=r, color="r", fill=False)
+                # plt.gca().add_artist(circle)
                 return True
-            
-        #circle = plt.Circle((c.x, c.y), radius=r, color="g", fill=False)
-        #plt.gca().add_artist(circle)
-        
+
+        # circle = plt.Circle((c.x, c.y), radius=r, color="g", fill=False)
+        # plt.gca().add_artist(circle)
+
         return False
 
     @staticmethod
@@ -73,3 +73,4 @@ class Geometry:
             return True
 
         return False
+

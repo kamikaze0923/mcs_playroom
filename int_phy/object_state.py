@@ -9,11 +9,6 @@ from shapely.geometry.polygon import Polygon, Point
 
 IMAGE_CROP_SIZE = 28
 
-def pre_process_cropped_img(img):
-    img = img.astype(np.float32)
-    img /= 255
-    img = torch.tensor(img).unsqueeze(0)
-    return img
 
 
 def get_object_match_pixels(object_color, object_frame):
@@ -23,23 +18,27 @@ def get_object_match_pixels(object_color, object_frame):
     return matched_pixels
 
 
-def get_object_frame_info(object_info, depth_frame, object_frame):
+def get_object_frame_info(object_info, depth_frame, object_frame, depth_aggregation):
     depth_frame = np.array(depth_frame)
     object_frame = np.array(object_frame)
     matched_pixels = get_object_match_pixels(object_info.color, object_frame)
     assert len(matched_pixels) > 0
-    matched_pixels_x = [t[1] for t in matched_pixels]
-    matched_pixels_y = [t[0] for t in matched_pixels]
+    matched_pixels_sorted_by_x = sorted(matched_pixels, key=lambda x: x[1])
+    matched_pixels_sorted_by_y = sorted(matched_pixels, key=lambda x: x[0])
     pixel_info = {
-        'x_min': min(matched_pixels_x), 'x_max': max(matched_pixels_x),
-        'y_min': min(matched_pixels_y), 'y_max': max(matched_pixels_y)
+        'x_min': matched_pixels_sorted_by_x[0][1], 'x_max': matched_pixels_sorted_by_x[-1][1],
+        'y_min': matched_pixels_sorted_by_y[0][0], 'y_max': matched_pixels_sorted_by_y[-1][0],
+        'x_min_y': matched_pixels_sorted_by_x[0][0], 'x_max_y': matched_pixels_sorted_by_x[-1][0],
+        'y_min_x': matched_pixels_sorted_by_y[0][1], 'y_max_x': matched_pixels_sorted_by_y[-1][1]
     }
-    object_depth_frame_value = min([depth_frame[i,j] for i,j in matched_pixels])
+    object_depth_frame_value = depth_aggregation([depth_frame[i, j] for i, j in matched_pixels])
     return object_depth_frame_value, pixel_info
 
-
-def get_object_mask_color(color):
-    return (color['r'], color['g'], color['b'])
+def pre_process_cropped_img(img):
+    img = img.astype(np.float32)
+    img /= 255
+    img = torch.tensor(img).unsqueeze(0)
+    return img
 
 
 def get_cropped_object_appearane(object_frame, edge_pixels, obeject_color):
@@ -78,7 +77,7 @@ class ObjectState:
         self.id = object_info.uuid
         self.color = object_info.color
         self.position = [object_info.position['x'], object_info.position['y'], object_info.position['z']]
-        self.depth, self.edge_pixels = get_object_frame_info(object_info, depth_frame, object_frame)
+        self.depth, self.edge_pixels = get_object_frame_info(object_info, depth_frame, object_frame, depth_aggregation=min)
         self.velocity = (0, 0)
         self.bonding_box_polygon = get_bonding_box_polygon(object_info)
 
