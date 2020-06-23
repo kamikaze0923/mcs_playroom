@@ -1,13 +1,11 @@
-from tasks.bonding_box_navigation_mcs.visibility_road_map import IncrementalVisibilityRoadMap, ObstaclePolygon
+#from tasks.bonding_box_navigation_mcs.visibility_road_map import ObstaclePolygon,IncrementalVisibilityRoadMap
+from MCS_exploration.navigation.visibility_road_map import VisibilityRoadMap,ObstaclePolygon,IncrementalVisibilityRoadMap
 import random
 import math
 import matplotlib.pyplot as plt
 from tasks.bonding_box_navigation_mcs.fov import FieldOfView
-from shapely.geometry import Point, Polygon
-import shapely.geometry as sp
-from descartes import PolygonPatch
-
-import pickle
+import cover_floor
+import time
 
 SHOW_ANIMATION = True
 random.seed(1)
@@ -29,32 +27,39 @@ class BoundingBoxNavigator:
 		self.maxStep = maxStep
 		self.current_nav_steps = 0
 
+	
 	def get_one_step_move(self, goal, roadmap):
 
-		try:
+		try :
 			pathX, pathY = roadmap.planning(self.agentX, self.agentY, goal[0], goal[1])
 		except ValueError:
-			return None, None
+			return None,None
 
-		# print(i)
+		#print(i)
 		# execute a small step along that plan by
 		# turning to face the first waypoint
 		if len(pathX) == 1 and len(pathY) == 1:
 			i = 0
 		else:
 			i = 1
-		dX = pathX[i] - self.agentX
-		dY = pathY[i] - self.agentY
+		dX = pathX[i]-self.agentX
+		dY = pathY[i]-self.agentY
 		angleFromAxis = math.atan2(dX, dY)
-
-		# taking at most a step of size 0.1
-		distToFirstWaypoint = math.sqrt((self.agentX - pathX[i]) ** 2 + (self.agentY - pathY[i]) ** 2)
+			
+		#taking at most a step of size 0.1
+		distToFirstWaypoint = math.sqrt((self.agentX-pathX[i])**2 + (self.agentY-pathY[i])**2)
 		stepSize = min(self.maxStep, distToFirstWaypoint)
 
 		return stepSize, angleFromAxis
 
 	def clear_obstacle_dict(self):
 		self.scene_obstacles_dict = {}
+
+	def reset(self):
+		self.clear_obstacle_dict()
+		self.agentX = None
+		self.agentY = None
+		self.agentH = None
 
 	def add_obstacle_from_step_output(self, step_output):
 		for obj in step_output.object_list:
@@ -81,13 +86,16 @@ class BoundingBoxNavigator:
 				self.scene_obstacles_dict[obj.uuid] = ObstaclePolygon(x_list, y_list)
 				self.scene_obstacles_dict_roadmap[obj.uuid] = 0
 
-	def go_to_goal(self, nav_env, goal, success_distance):
-		self.agentX = nav_env.step_output.position['x']
-		self.agentY = nav_env.step_output.position['z']
-		self.agentH = nav_env.step_output.rotation / 360 * (2 * math.pi)
+	#def go_to_goal(self, nav_env, goal, success_distance, epsd_collector=None, frame_collector=None):
+
+	def go_to_goal(self, goal_pose, agent, success_distance):
+		self.current_nav_steps = 0
+		self.agentX = agent.game_state.event.position['x']
+		self.agentY = agent.game_state.event.position['z']
+		self.agentH = agent.game_state.event.rotation / 360 * (2 * math.pi)
 		self.epsilon = success_distance
 
-		gx, gy = goal[0], goal[2]
+		gx, gy = goal_pose[0], goal_pose[1]
 		sx, sy = self.agentX, self.agentY
 
 		roadmap = IncrementalVisibilityRoadMap(self.radius, do_plot=False)
@@ -100,24 +108,35 @@ class BoundingBoxNavigator:
 				roadmap.addObstacle(obstacle)
 
 		while self.current_nav_steps < 150:
-			dis_to_goal = math.sqrt((self.agentX - gx) ** 2 + (self.agentY - gy) ** 2)
+			start_time = time.time()
+			dis_to_goal = math.sqrt((self.agentX-gx)**2 + (self.agentY-gy)**2)
 
 			for obstacle_key, obstacle in self.scene_obstacles_dict.items():
 				if self.scene_obstacles_dict_roadmap[obstacle_key] == 0:
-					# print("not added obstacle", self.current_nav_steps)
-					if not obstacle.contains_goal((gx, gy)):
-						# print("adding new obstacles ", self.current_nav_steps)
-						self.scene_obstacles_dict_roadmap[obstacle_key] = 1
+					# print ("not added obstacle", self.current_nav_steps)
+					if not obstacle.contains_goal((gx, gy)) :
+						# print ("adding new obstacles ", self.current_nav_steps)
+						self.scene_obstacles_dict_roadmap[obstacle_key] =1
 						roadmap.addObstacle(obstacle)
 			if dis_to_goal < self.epsilon:
 				break
 
+			end_time = time.time()
+			roadmap_creatiion_time = end_time-start_time
+			#print("roadmap creation time", roadmap_creatiion_time)
+
+			start_time = time.time()
 
 			fov = FieldOfView([sx, sy, 0], 42.5 / 180.0 * math.pi, self.scene_obstacles_dict.values())
 			fov.agentX = self.agentX
 			fov.agentY = self.agentY
 			fov.agentH = self.agentH
 			poly = fov.getFoVPolygon(15)
+			end_time = time.time()
+
+			time_taken_part_1 = end_time-start_time
+
+			#print ("time taken till creating FOV after roadmap",time_taken_part_1)
 
 			SHOW_ANIMATION = False
 
@@ -138,31 +157,59 @@ class BoundingBoxNavigator:
 					obstacle.plot("-g")
 
 				plt.axis("equal")
+				#plt.pause(0.1)
 
+			start_time = time.time()
 			stepSize, heading = self.get_one_step_move([gx, gy], roadmap)
+			end_time = time.time()
 
+			get_one_step_move_time = end_time-start_time
+			#print ("get_one_step_move_time taken", get_one_step_move_time)
 
 			if stepSize == None and heading == None:
-				return False
+				return  False
 
 			# needs to be replaced with turning the agent to the appropriate heading in the simulator, then stepping.
 			# the resulting agent position / heading should be used to set plan.agent* values.
 
-			rotation_degree = heading / (2 * math.pi) * 360 - nav_env.step_output.rotation
-			nav_env.env.step(action="RotateLook", rotation=rotation_degree)
-			self.agentX = nav_env.step_output.position['x']
-			self.agentY = nav_env.step_output.position['z']
-			self.agentH = nav_env.step_output.rotation / 360 * (2 * math.pi)
+			start_time = time.time()
 
-			if abs(rotation_degree) > 1e-2:
-				if 360 - abs(rotation_degree) > 1e-2:
-					continue
+			rotation_degree = heading / (2 * math.pi) * 360 - agent.game_state.event.rotation
+			action={'action':"RotateLook",'rotation':rotation_degree}
+			agent.game_state.step(action)
+			end_time = time.time()
+			action_time_taken = end_time-start_time
+			#print ("action time taken", action_time_taken)
 
-			nav_env.env.step(action="MoveAhead", amount=0.5)
-			self.agentX = nav_env.step_output.position['x']
-			self.agentY = nav_env.step_output.position['z']
-			self.agentH = nav_env.step_output.rotation / 360 * (2 * math.pi)
+			start_time = time.time()
 
+			rotation = agent.game_state.event.rotation
+			self.agentX = agent.game_state.event.position['x']
+			self.agentY = agent.game_state.event.position['z']
+			self.agentH = rotation / 360 * (2 * math.pi)
+			self.current_nav_steps += 1
+			cover_floor.update_seen(self.agentX, self.agentY, agent.game_state, rotation, 42.5,
+									self.scene_obstacles_dict.values())
+
+			end_time = time.time()
+			action_processing_time_taken = end_time-start_time
+			#print ("action processing taken", action_processing_time_taken)
+
+			#if abs(rotation_degree) > 1e-2:
+			#	if 360 - abs(rotation_degree) > 1e-2:
+			#		continue
+
+			#agent.game_state.step(action="MoveAhead", amount=0.5)
+			action={'action':"MoveAhead", 'amount':0.5}
+			agent.step(action)
+			rotation = agent.game_state.event.rotation
+			self.agentX = agent.game_state.event.position['x']
+			self.agentY = agent.game_state.event.position['z']
+			self.agentH = rotation / 360 * (2 * math.pi)
+			cover_floor.update_seen(self.agentX, self.agentY, agent.game_state, rotation, 42.5,
+									self.scene_obstacles_dict.values())
+
+			self.current_nav_steps += 1
 		return True
 
 

@@ -8,6 +8,7 @@ from planner.ff_planner_handler import PlanParser
 from meta_ontroller.planner_state import GameState
 import machine_common_sense
 from tasks.bonding_box_navigation_mcs.bonding_box_navigator import BoundingBoxNavigator, SHOW_ANIMATION
+from MCS_exploration import sequence_generator, main
 import matplotlib.pyplot as plt
 
 
@@ -34,6 +35,7 @@ class MetaController:
         self.face = FaceTurnerResNet(get_action_space_from_names(self.face_env.action_names))
 
         self.plannerState = None
+        self.sequence_generator_object = sequence_generator.SequenceGenerator(None, self.env.controller)
 
 
     def plan_on_current_state(self):
@@ -41,8 +43,8 @@ class MetaController:
         planner.planner_state_to_pddl(self.plannerState)
         return planner.get_plan()
 
-    def get_inital_planner_state(self):
-        self.plannerState = GameState(self.env.scene_config)
+    def get_inital_planner_state(self, scene_config):
+        self.plannerState = GameState(scene_config)
 
     def step(self, action_dict, epsd_collector=None, frame_collector=None):
         assert 'action' in action_dict
@@ -53,6 +55,7 @@ class MetaController:
                 self.nav_env, goal, success_distance
             )
             if not success:
+                print("Navigation Fail")
                 return False
             self.plannerState.agent_loc_info[self.plannerState.AGENT_NAME] = goal
             self.plannerState.object_facing = None
@@ -154,7 +157,8 @@ class MetaController:
         return True
 
     def excecute(self, frame_collector=None):
-        self.get_inital_planner_state()
+        scene_config = main.explore_scene(self.sequence_generator_object, self.env.step_output)
+        self.get_inital_planner_state(scene_config)
         if isinstance(self.nav, BoundingBoxNavigator):
             self.nav.clear_obstacle_dict()
         meta_stage = 0
@@ -163,7 +167,6 @@ class MetaController:
             result_plan = self.plan_on_current_state()
             for plan in result_plan:
                 print(plan)
-                break
             success = self.step(result_plan[0], frame_collector=frame_collector)
             if not success:
                 break

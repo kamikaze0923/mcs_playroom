@@ -28,7 +28,7 @@ class FieldOfView:
 		p2R = Geometry.Point(p1.x + maxLen*math.sin(rAngle), p1.y + maxLen*math.cos(rAngle))
 
 		#cast on HFOV lines
-		if True:
+		if True:	
 			for i in np.arange(0, 1.1, 0.1):
 				v = Geometry.Point(p1.x + maxLen*math.sin(lAngle+i*self.HVoF), p1.y + maxLen*math.cos(lAngle+i*self.HVoF))
 				theta = (np.arctan2( v.y-p1.y,  v.x-p1.x))
@@ -176,7 +176,7 @@ def main():
 		plt.cla()
 		# start and goal position
 		x, y = random.randrange(-25,25), random.randrange(-25,25)  # [m]
-		h = (2*random.random()-1)*math.pi
+		h = (2*random.random()-1)*math.pi 
 
 		#x = y = 5.0
 		#h = 180/180.0*math.pi

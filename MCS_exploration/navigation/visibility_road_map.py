@@ -6,9 +6,12 @@ author: Atsushi Sakai (@Atsushi_twi)
 
 """
 
+import os
+import sys
 import math
 import numpy as np
 import matplotlib.pyplot as plt
+import random
 from shapely.geometry import Point, Polygon
 
 from tasks.bonding_box_navigation_mcs.geometry import Geometry
@@ -98,7 +101,7 @@ class VisibilityRoadMap:
                     if not self.is_edge_valid(target_node, node, obstacle):
                         is_valid = False
                         break
-
+                
                 if is_valid:
                     road_map_info.append(node_id)
 
@@ -147,7 +150,7 @@ class IncrementalVisibilityRoadMap:
         self.obs_roadmap_adj = []
         self.obstacles = []
 
-
+    
     def addObstacle(self, obstacle):
 
         # add obstacle
@@ -163,13 +166,13 @@ class IncrementalVisibilityRoadMap:
         #check new edges for intersection with all objects
         for i,node in enumerate(new_nodes):
             self.obs_roadmap_adj.append(self.getValidNodeEdges(node))
-
+        
         for i in range(len(new_nodes)):
             idx = len(self.obs_nodes)-len(new_nodes)+i
             for n in self.obs_roadmap_adj[idx]:
                 self.obs_roadmap_adj[n].append(idx)
 
-
+            
         #check old edges for intersection with this object
         for src_id, adj in enumerate(self.obs_roadmap_adj):
             rm = []
@@ -180,7 +183,7 @@ class IncrementalVisibilityRoadMap:
             rm.reverse()
             for i in rm:
                 del self.obs_roadmap_adj[src_id][i]
-
+    
 
     def getValidNodeEdges(self, src_node):
         #draw a point to each other point and check valid
@@ -190,7 +193,7 @@ class IncrementalVisibilityRoadMap:
                 node_adj.append(node_id)
 
         return node_adj
-
+        
     def getOrthoUnitVector(self, src_node, node):
 
         if (node.x - src_node.x) == 0:
@@ -239,7 +242,7 @@ class IncrementalVisibilityRoadMap:
             if not self.is_edge_valid(src_node, node, obs) or not self.is_edge_valid(l_src_node, l_node, obs) or not self.is_edge_valid(r_src_node, r_node, obs):
                 return False
         #plt.pause(1)
-
+        
         return True
 
     def planning(self, start_x, start_y, goal_x, goal_y):
@@ -252,7 +255,7 @@ class IncrementalVisibilityRoadMap:
 
         planNodes = self.obs_nodes.copy() + sg_nodes
         planRoadmap = self.obs_roadmap_adj.copy() + sg_edges
-
+        
         for node_id in range(len(planRoadmap)):
             if self.validEdge(planNodes[node_id], planNodes[-2]) and node_id != len(planRoadmap)-2:
                 planRoadmap[node_id].append(len(planNodes)-2)
@@ -305,7 +308,7 @@ class IncrementalVisibilityRoadMap:
         p2 = Geometry.Point(node.x, node.y)
 
         for i in range(len(obstacle.x_list) - 1):
-
+            
             q1 = Geometry.Point(obstacle.x_list[i], obstacle.y_list[i])
             q2 = Geometry.Point(obstacle.x_list[i + 1], obstacle.y_list[i + 1])
 
@@ -318,13 +321,13 @@ class IncrementalVisibilityRoadMap:
 
         for obstacle in self.obstacles:
             for i in range(len(obstacle.x_list) - 1):
-
+                
                 q1 = Geometry.Point(obstacle.x_list[i], obstacle.y_list[i])
                 q2 = Geometry.Point(obstacle.x_list[i + 1], obstacle.y_list[i + 1])
 
                 if Geometry.segmentIntersectCircle(q1, q2, node, self.robot_radius):
                     return False
-
+                
         return True
 
     def is_edge_valid_circle(self,target_node, node, obstacle):
@@ -334,13 +337,13 @@ class IncrementalVisibilityRoadMap:
         p2 = Geometry.Point(node.x, node.y)
 
         for i in range(len(obstacle.x_list) - 1):
-
+            
             q1 = Geometry.Point(obstacle.x_list[i], obstacle.y_list[i])
             q2 = Geometry.Point(obstacle.x_list[i + 1], obstacle.y_list[i + 1])
 
             if Geometry.is_seg_intersect(p1, p2, q1, q2):
                 return False
-
+            
         return True
 
     def calc_offset_xy(self, px, py, x, y, nx, ny):
@@ -420,3 +423,64 @@ class ObstaclePolygon:
 
 
 
+def genRandomRectangle():
+    width = random.randrange(5,50)
+    height = random.randrange(5,50)
+    botLeftX = random.randrange(1,100)
+    botRightX = random.randrange(1,100)
+    theta = random.random()*2*math.pi
+
+    x = [random.randrange(1,50)]
+    y = [random.randrange(1,50)]
+
+    x.append(x[-1]+width)
+    y.append(y[-1])
+
+    x.append(x[-1])
+    y.append(y[-1]+height)
+
+    x.append(x[-1]-width)
+    y.append(y[-1])
+
+    for i in range(4):
+        tx = x[i]*math.cos(theta) - y[i]*math.sin(theta)
+        ty = x[i]*math.sin(theta) + y[i]*math.cos(theta)
+        x[i] = tx
+        y[i] = ty
+
+    return ObstaclePolygon(x,y)
+   
+
+def main():
+    print(__file__ + " start!!")
+
+    # start and goal position
+    sx, sy = 10.0, 10.0  # [m]
+    gx, gy = -50.0, 50.0  # [m]
+
+    robot_radius = 5.0  # [m]
+
+    obstacles=[]
+    for i in range(4):
+        obstacles.append(genRandomRectangle())
+        
+
+    if show_animation:  # pragma: no cover
+        plt.plot(sx, sy, "or")
+        plt.plot(gx, gy, "ob")
+        for ob in obstacles:
+            ob.plot()
+        plt.axis("equal")
+        plt.pause(1.0)
+
+    rx, ry = VisibilityRoadMap(robot_radius, do_plot=show_animation).planning(
+        sx, sy, gx, gy, obstacles)
+
+    if show_animation:  # pragma: no cover
+        plt.plot(rx, ry, "-r")
+        plt.pause(0.1)
+        plt.show()
+
+
+if __name__ == '__main__':
+    main()

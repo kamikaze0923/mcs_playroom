@@ -23,11 +23,11 @@ class GameState:
         self.object_loc_info = {}
         self.object_open_close_info = {}
         for obj in config['objects']:
-            object_id = PlanParser.create_legal_object_name(obj['id'])
+            object_id = PlanParser.create_legal_object_name(obj['uuid'])
             self.object_loc_info[object_id] = (
-                obj['shows'][0]['position']['x'],
-                obj['shows'][0]['position']['y'],
-                obj['shows'][0]['position']['z'],
+                obj['position']['x'],
+                obj['position']['y'],
+                obj['position']['z'],
             )
             if "opened" in obj:
                 self.object_open_close_info[object_id] = obj["opened"]
@@ -57,15 +57,11 @@ class GameState:
                 )
             elif self.goal_category == "retrieval":
                 self.goal_object_id = PlanParser.create_legal_object_name(config['goal']['metadata']['target']['id'])
-                # del self.object_loc_info[self.goal_object_id]
                 for obj in config['objects']:
                     if obj['id'] == self.goal_object_id:
                         continue
                     if "openable" in obj and obj["openable"] == True:
                         receptacle_object_id = PlanParser.create_legal_object_name(obj['id'])
-                        if obj["type"] == "changing_table":
-                            continue
-                        self.object_containment_info[self.goal_object_id].append(receptacle_object_id)
                         if "opened" in obj:
                             self.object_open_close_info[receptacle_object_id] = True
                         else:
