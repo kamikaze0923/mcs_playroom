@@ -28,8 +28,6 @@ def get_object_frame_info(object_info, depth_frame, object_frame, depth_aggregat
     pixel_info = {
         'x_min': matched_pixels_sorted_by_x[0][1], 'x_max': matched_pixels_sorted_by_x[-1][1],
         'y_min': matched_pixels_sorted_by_y[0][0], 'y_max': matched_pixels_sorted_by_y[-1][0],
-        'x_min_y': matched_pixels_sorted_by_x[0][0], 'x_max_y': matched_pixels_sorted_by_x[-1][0],
-        'y_min_x': matched_pixels_sorted_by_y[0][1], 'y_max_x': matched_pixels_sorted_by_y[-1][1]
     }
     object_depth_frame_value = depth_aggregation([depth_frame[i, j] for i, j in matched_pixels])
     return object_depth_frame_value, pixel_info

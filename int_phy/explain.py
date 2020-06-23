@@ -1,5 +1,6 @@
 from int_phy.occluder_state import get_running_in_occluder_info, get_running_out_occluder_info
 from shapely.geometry.polygon import Point, Polygon
+import matplotlib.pyplot as plt
 
 
 EDGE_MARGIN = 50
@@ -36,6 +37,16 @@ def explain_for_disappearance_by_occlusion(pre_state, new_occluder_state_dict):
     return explain_success
 
 
+def get_pixel_polygon_from_state(state):
+    p = state.edge_pixels
+    object_bonding_pixels = [
+        Point(p['x_min'], p['y_min']), Point(p['x_min'], p['y_max']),
+        Point(p['x_max'], p['y_max']), Point(p['x_max'], p['y_min'])
+    ]
+    return Polygon(object_bonding_pixels)
+
+
+
 def check_object_patially_occlusion(all_occluder_dict, object_state, plot=False): # need to rewrite, use bonding box point
     occlusion = False
     # for occluder_id, occluder_state in all_occluder_dict.items():
@@ -51,9 +62,21 @@ def check_object_patially_occlusion(all_occluder_dict, object_state, plot=False)
     #             plt.fill(xs, ys, alpha=0.5, fc='r', ec='none')
     #         plt.pause(0.2)
 
-    object_bonding_pixels = [Point(object_state.edge_pixels['x_min'])]
+    obj_poly = get_pixel_polygon_from_state(object_state)
+
+    if plot:
+        plt.cla()
+        plt.axis('equal')
+        x, y = obj_poly.exterior.xy
+        plt.plot(x,y, color='r')
     for occluder_id, occluder_state in all_occluder_dict.items():
-        if object_state.bonding_box_polygon.intersects(occluder_state.bonding_box_polygon):
+        occluder_poly = get_pixel_polygon_from_state(occluder_state)
+        if plot:
+            x, y = occluder_poly.exterior.xy
+            plt.plot(x, y, color='b')
+            plt.pause(0.1)
+        dis = obj_poly.distance(occluder_poly)
+        if dis <= 1:
             occlusion = True
 
 
