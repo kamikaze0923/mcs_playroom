@@ -1,4 +1,3 @@
-from int_phy_recollect_position import POSITION_FEATURE_DIM
 from torch.nn.modules import Module
 from int_phy.locomotion.datasets import DEVICE
 import torch
@@ -8,7 +7,7 @@ NUM_HIDDEN_LAYER = 1
 print("LSTM Hidden State Size: {}".format(HIDDEN_STATE_SIZE))
 print("LSTM Hidden Layer Size: {}".format(NUM_HIDDEN_LAYER))
 
-
+POSITION_FEATURE_DIM = 29
 POSITION_TRACK_DIM = 2
 OBJECT_IN_SCENE_BIT = -1
 

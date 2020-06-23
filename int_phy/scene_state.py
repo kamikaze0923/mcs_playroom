@@ -22,13 +22,13 @@ class SceneState:
 
 
 
-    def get_new_object_state_dict(self, object_list, new_depth_frame, new_object_frame):
+    def get_new_object_state_dict(self, new_step_output, new_depth_frame, new_object_frame):
         new_object_state_dict = {}
-        for obj in object_list:
+        for obj in new_step_output.object_list:
             if obj.uuid in self.static_object_set:
                 continue
             try: # it is possible to have a obj in step_output but not in object_mask_frame
-                obj_state = ObjectState(obj, new_depth_frame, new_object_frame)
+                obj_state = ObjectState(obj, new_depth_frame, new_object_frame, new_step_output)
                 new_object_state_dict[obj.uuid] = obj_state
             except:
                 print("Unexpected error:\n {}".format(sys.exc_info()))
@@ -52,7 +52,7 @@ class SceneState:
         new_object_frame = new_step_output.object_mask_list[-1]
 
         new_object_state_dict = self.get_new_object_state_dict(
-            new_step_output.object_list, new_depth_frame, new_object_frame
+            new_step_output, new_depth_frame, new_object_frame
         )
 
         new_occluder_state_dict = self.get_new_occluder_state_dict(
@@ -63,22 +63,13 @@ class SceneState:
             if id not in self.object_state_dict: # object appearance
                 # print("object {} first appears".format(id))
                 self.object_state_dict[id] = state
+
+        for id, state in self.object_state_dict.items():
+            if id not in new_object_state_dict:
+                # print("object {} disappears".format(id))# object disappearance
+                self.object_state_dict[id].out_view_update(locomotion_checker)
             else:
-                if self.object_state_dict[id].in_view == False:
-                    # print("object {} re-appears".format(id))
-                    # occluder_id = explain_for_re_appearance(
-                    #         state, self.object_state_dict[id], new_occluder_state_dict
-                    # )
-                    # if occluder_id != self.object_state_dict[id].occluded_by.id:
-                    #     print("object {} re-appear from a different occluder {}, shoueld be {}, VOE".format(
-                    #         id, occluder_id, self.object_state_dict[id].occluded_by.id
-                    #     ))
-                        # exit(0)
-                    self.object_state_dict[id].occluded_by = None
-                else:
-                    pass
-                    # print("object {} still in view".format(id))
-                self.object_state_dict[id].in_view_update(state)
+                self.object_state_dict[id].in_view_update(new_object_state_dict[id], locomotion_checker)
 
 
             if not check_object_patially_occlusion(new_occluder_state_dict, state):
@@ -88,28 +79,6 @@ class SceneState:
                     self.object_state_dict[id].appearance_update(decision, likelihoods)
 
 
-
-        # for id, state in self.object_state_dict.items():
-        #     if state.occluded_by:
-        #         if check_occluder_is_lifted_up(state.occluded_by, new_occluder_state_dict):
-        #             print("object {} not behind {} VOE".format(id, state.occluded_by.id))
-        #             state.occluded_by = None
-
-        # for id, state in self.object_state_dict.items():
-        #     if id not in new_object_state_dict and self.object_state_dict[id].in_view: #only reports when the first time see the object out of view
-        #         print("object {} disappears".format(id))# object disappearance
-        #         if not explain_for_disappearance_by_out_of_scene(state, self.frame_size):
-        #             occluder_id = explain_for_disappearance_by_occlusion(state, new_occluder_state_dict)
-        #             if not occluder_id:
-        #                 print("object {} disappearance VOE".format(id))
-        #                 # exit(0)
-        #                 self.object_state_dict[id].out_view_update()
-        #             else:
-        #                 self.object_state_dict[id].out_view_update(
-        #                     last_seen_state_and_occluders=(state, new_occluder_state_dict[occluder_id])
-        #                 )
-        #         else:
-        #             self.object_state_dict[id].out_view_update()
 
         self.object_frame = new_object_frame
         self.depth_frame = new_depth_frame

@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-from int_phy_collect import SHAPE_TYPES
+from int_phy_recollect_position import SHAPE_TYPES
 import os
 
 cuda = torch.cuda.is_available()

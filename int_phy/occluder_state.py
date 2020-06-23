@@ -60,15 +60,11 @@ def get_running_out_occluder_info(all_occluder_dicts, appear_state, estimate_sta
 
 
 
-
-
-
 class OccluderState:
     def __init__(self, object_info, depth_frame, object_frame):
         self.id = object_info.uuid
         self.color = object_info.color
         self.depth, self.edge_pixels = get_object_frame_info(object_info, depth_frame, object_frame, depth_aggregation=max)
-        self.bonding_box_polygon = get_bonding_box_polygon(object_info)
 
 
 

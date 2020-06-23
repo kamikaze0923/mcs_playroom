@@ -1,4 +1,3 @@
-from int_phy_recollect_position import SHAPE_TYPES, SCENE_TYPES, DATA_SAVE_DIR
 from torch.utils.data import Dataset
 import torch
 import os
@@ -8,6 +7,11 @@ import os
 
 N_TRAIN = 5000
 N_TEST = 756
+
+
+SCENE_TYPES = ["object_permanence", "shape_constancy", "spatio_temporal_continuity"]
+SHAPE_TYPES = ["cylinder", "sphere", "cube"]
+DATA_SAVE_DIR = os.path.join("int_phy", "locomotion", "positions_old")
 
 torch.set_printoptions(profile="full", precision=2, linewidth=10000)
 

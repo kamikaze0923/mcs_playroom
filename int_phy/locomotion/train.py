@@ -7,6 +7,7 @@ from torch.nn import MSELoss, BCELoss
 import torch
 import os
 import matplotlib.pyplot as plt
+import numpy as np
 
 # TRAIN_BATCH_SIZE = 200
 # TEST_BATCH_SIZE = 300
@@ -43,7 +44,7 @@ def set_loss(dataloader, net):
     return total_loss
 
 
-def batch_final_loss(output, ground_truth, batch_size):
+def batch_final_loss(output, ground_truth, batch_size, print_info=False):
     position_pred, leave_scene_pred = output
 
     position_used = ground_truth[:, :, [0, 1]]
@@ -56,23 +57,34 @@ def batch_final_loss(output, ground_truth, batch_size):
     leave_scene_target = create_leave_scene_target(valid_ground_truth)
 
     mse_loss_weight, bce_loss_weight = get_batch_loss_weight(valid_ground_truth)
-    position_loss = weighted_mse(position_pred, position_target, mse_loss_weight, batch_size)
-    leave_scene_loss = weighted_bce(leave_scene_pred, leave_scene_target, bce_loss_weight, batch_size)
+    position_loss = weighted_mse(position_pred, position_target, mse_loss_weight)
+    leave_scene_loss = weighted_bce(leave_scene_pred, leave_scene_target, bce_loss_weight)
 
-    final_loss = position_loss + leave_scene_loss
+    final_loss = (torch.sum(position_loss) + torch.sum(leave_scene_loss)) / batch_size
+    if print_info:
+        leave_scene_pred_numpy = leave_scene_pred[leave_scene_target == 1].detach().cpu().numpy()
+        print(
+            "When object leave scene, the average predict probability is {:.2f} +- {:.2f}".format(
+                np.mean(leave_scene_pred_numpy), np.std(leave_scene_pred_numpy)
+            )
+        )
+        position_loss_numpy = position_loss.detach().cpu().numpy()
+        print("Position mse error {:.4f} +- {:.4f}".format(
+            np.mean(position_loss_numpy), np.std(position_loss_numpy))
+        )
+
     return final_loss
 
 
-def weighted_mse(pred, target, weight, batch_size):
+def weighted_mse(pred, target, weight):
     loss = mse(pred, target)
     loss = torch.sum(loss, dim=1)
-    loss = loss * weight
-    return torch.sum(loss) / batch_size
+    return loss * weight
 
-def weighted_bce(pred, target, weight, batch_size, EPSL=1e-4):
+
+def weighted_bce(pred, target, weight):
     loss = bce(pred, target)
-    loss = loss * weight
-    return torch.sum(loss) / batch_size
+    return loss * weight
 
 def get_batch_loss_weight(valid_ground_truth):
     bce_n_loss = torch.sum(valid_ground_truth, dim=1)

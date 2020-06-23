@@ -1,5 +1,5 @@
 from gym_ai2thor.envs.mcs_env import McsEnv
-from int_phy.locomotion.network import ObjectStatePrediction, HIDDEN_STATE_SIZE
+from int_phy.locomotion.network import ObjectStatePrediction, HIDDEN_STATE_SIZE, NUM_HIDDEN_LAYER
 from int_phy_recollect_position import get_locomotion_feature
 from int_phy.locomotion.train import MODEL_SAVE_DIR
 import matplotlib.pyplot as plt
@@ -18,7 +18,7 @@ net.load_state_dict(
     torch.load(os.path.join(MODEL_SAVE_DIR, "model_{}_hidden_state.pth".format(HIDDEN_STATE_SIZE)), map_location="cpu")
 )
 
-start_scene_number = 0
+start_scene_number = 4
 env_1 = McsEnv(task="intphys_scenes", scene_type=scene_name, start_scene_number=start_scene_number)
 for _ in range(10):
     env_1.reset(random_init=False)
@@ -40,13 +40,13 @@ for _ in range(10):
             Line2D([0], [0], marker='o', color='w', markerfacecolor='r', label='Ground Truth', markersize=5)
         ]
         plt.legend(handles=legend_elements, prop={'size': 6})
-        plt.pause(0.01)
+        plt.pause(0.1)
         env_1.scene_config['objects'] = [one_obj] + env_occluders
 
         env_1.step_output = env_1.controller.start_scene(env_1.scene_config)
 
-        h_t = torch.zeros(size=(1, 1, HIDDEN_STATE_SIZE))
-        c_t = torch.zeros(size=(1, 1, HIDDEN_STATE_SIZE))
+        h_t = torch.zeros(size=(NUM_HIDDEN_LAYER, 1, HIDDEN_STATE_SIZE))
+        c_t = torch.zeros(size=(NUM_HIDDEN_LAYER, 1, HIDDEN_STATE_SIZE))
         print(len(env_1.scene_config['goal']['action_list']))
 
         obj_in_scene = 0
@@ -57,10 +57,12 @@ for _ in range(10):
             obj_in_view = None
             if len(env_1.step_output.object_list) == 1:
                 obj_in_scene += 1
-                f_1 = get_locomotion_feature(env_1.step_output, object_occluded=False, object_in_scene=obj_in_scene > 0)
+                f_1 = get_locomotion_feature(
+                    env_1.step_output, False, obj_in_scene > 0, env_1.step_output.object_list[0]
+                )
                 obj_in_view = True
             elif len(env_1.step_output.object_list) == 0:
-                f_1 = get_locomotion_feature(None, object_occluded=True, object_in_scene=obj_in_scene > 0)
+                f_1 = get_locomotion_feature(None, True, obj_in_scene > 0, None)
                 obj_in_view = False
                 if obj_in_scene > 0:
                     obj_in_scene += 1

@@ -1,15 +1,14 @@
-from copy import deepcopy
 import numpy as np
 import torch
 from PIL import Image
 from collections import defaultdict
 from shapely.geometry import MultiPoint
-from shapely.geometry.polygon import Polygon, Point
+from shapely.geometry.polygon import Point, Polygon
+from int_phy.locomotion.network import HIDDEN_STATE_SIZE, NUM_HIDDEN_LAYER, POSITION_FEATURE_DIM
 
 
 IMAGE_CROP_SIZE = 28
-
-
+ON_GROUND_THRESHOLD = 1e-1
 
 def get_object_match_pixels(object_color, object_frame):
     color = np.array([object_color['r'], object_color['g'], object_color['b']])
@@ -68,46 +67,86 @@ def get_bonding_box_polygon(object_info):
     bonding_box_point = get_2d_bonding_box_point(object_info.dimensions)
     return MultiPoint(bonding_box_point).convex_hull
 
+def get_support_indicator(step_output, obj_bonding_p):
+    grounds = list(filter(lambda x: "floor" in x.uuid, step_output.structural_object_list))
+    assert len(grounds) == 1
+    ramps = list(filter(lambda x: "ramp" in x.uuid, step_output.structural_object_list))
+    support_objs = grounds + ramps
+    indicator = [0]
+    support_dis = float('inf')
+    for obj in support_objs:
+        polygon = get_bonding_box_polygon(obj)
+        for p in obj_bonding_p:
+            if polygon.distance(p) < ON_GROUND_THRESHOLD:
+                indicator = [1]
+                support_dis = polygon.distance(p)
+                break
+        if indicator[0] == 1:
+            break
+    # print(indicator, support_dis)
+    return indicator
+
+def get_locomotion_feature(step_output, object_occluded, object_in_scene, obj_info):
+    if step_output is None:
+        obj = None
+    else:
+        obj = obj_info
+    features = []
+    if not object_in_scene:
+        features.extend([0.0] * 27) # position + bonding_box
+        # features.extend([0.0]) # supported
+        features.extend([0.0, 0.0])# occluded, in_scene
+    else:
+        if object_occluded:
+            features.extend([0.0] * 27)
+            # features.extend([0.0])  # supported
+            features.extend([0.0, 1.0])
+        else:
+            features.append(obj.position['x'])
+            features.append(obj.position['y'])
+            features.append(obj.position['z'])
+            bonding_xy = []
+            for bonding_vertex in obj.dimensions:
+                features.append(bonding_vertex['x'])
+                features.append(bonding_vertex['y'])
+                bonding_xy.append(Point(bonding_vertex['x'], bonding_vertex['y']))
+                features.append(bonding_vertex['z'])
+            # step_output.object_mask_list[-1].show()
+            # features.extend(get_support_indicator(step_output, bonding_xy))
+            features.extend([1.0, 1.0])
+
+    assert len(features) == POSITION_FEATURE_DIM
+    return torch.tensor(features)
+
 
 class ObjectState:
 
-    def __init__(self, object_info, depth_frame, object_frame):
+    def __init__(self, object_info, depth_frame, object_frame, step_output):
         self.id = object_info.uuid
         self.color = object_info.color
-        self.position = [object_info.position['x'], object_info.position['y'], object_info.position['z']]
+        self.loc_f = get_locomotion_feature(step_output, False, True, object_info).unsqueeze(0).unsqueeze(0)
+        self.h_t = torch.zeros(size=(NUM_HIDDEN_LAYER, 1, HIDDEN_STATE_SIZE))
+        self.c_t = torch.zeros(size=(NUM_HIDDEN_LAYER, 1, HIDDEN_STATE_SIZE))
         self.depth, self.edge_pixels = get_object_frame_info(object_info, depth_frame, object_frame, depth_aggregation=min)
-        self.bonding_box_polygon = get_bonding_box_polygon(object_info)
-
-        self.velocity = (0, 0)
-        self.in_view = True
-        self.occluded_by = None
-        self.out_of_view = False
 
         self.appearance = None
         self.locomotion_feature = None
         self.appearance_cnt = defaultdict(lambda: 0)
 
-    def in_view_update(self, new_object_state):
-        v_x = round(new_object_state.position[0] - self.position[0], 3)
-        v_y = round(new_object_state.position[1] - self.position[1], 3)
-        v_z = round(new_object_state.position[2] - self.position[2], 3)
+        self.next_step_position = None
+        self.next_step_leave_scene_prob = None
 
-        self.velocity = [v_x, v_y]
-        self.position = [new_object_state.position[0], new_object_state.position[1], new_object_state.position[2]]
-        self.depth = new_object_state.depth
-        self.edge_pixels = new_object_state.edge_pixels
-        self.in_view = True
-
-
-    def out_view_update(self, last_seen_state_and_occluders=None):
-        if last_seen_state_and_occluders:
-            last_seen_state, last_occluder = last_seen_state_and_occluders
-            self.last_seen_state = deepcopy(last_seen_state)
-            self.occluded_by = last_occluder
+    def in_view_update(self, new_object_state, locomotion_checker):
+        self.loc_f = new_object_state.loc_f
+        next_info, next_hidden = locomotion_checker.predict(self.loc_f, self.h_t, self.c_t)
+        self.next_step_position, self.next_step_leave_scene_prob = next_info
+        self.h_t, self.c_t = next_hidden
+        a = 1
 
 
-        self.edge_pixels = None
-        self.in_view = False
+    def out_view_update(self, locomotion_checker):
+        pass
+
 
 
     def appearance_update(self, decision, likelihood):
