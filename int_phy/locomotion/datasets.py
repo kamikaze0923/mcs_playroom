@@ -9,7 +9,8 @@ N_TRAIN = 46
 N_TEST = 46
 
 
-SCENE_TYPES = ["object_permanence", "shape_constancy", "spatio_temporal_continuity"]
+# SCENE_TYPES = ["object_permanence", "shape_constancy", "spatio_temporal_continuity"]
+SCENE_TYPES = ["object_permanence"]
 SHAPE_TYPES = ["cylinder", "sphere", "cube"]
 DATA_SAVE_DIR = os.path.join("int_phy", "locomotion", "positions_old_additional")
 
