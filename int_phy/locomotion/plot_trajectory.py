@@ -6,10 +6,8 @@ import torch
 import os
 import matplotlib.pyplot as plt
 
-
 LOCOMOTION_FIGURE_DIR = os.path.join("int_phy", "locomotion", "figure")
 print("RNN Hidden State {}".format(HIDDEN_STATE_SIZE))
-
 
 def get_output_position(dataloader, net, batch_size):
     with_occluder_prediction = []
@@ -35,10 +33,7 @@ def get_output_position(dataloader, net, batch_size):
         (with_occluder_prediction, leave_scene_prediction) , without_occluder_target, dataloader.batch_size, print_info=True
     )
 
-
     return with_occluder_prediction.detach().cpu().numpy(), without_occluder_target.detach().cpu().numpy()
-
-
 
 def get_position():
     _, test_set = get_train_test_dataset()

@@ -13,7 +13,7 @@ import numpy as np
 # TEST_BATCH_SIZE = 300
 
 TRAIN_BATCH_SIZE = 200
-TEST_BATCH_SIZE = 756
+TEST_BATCH_SIZE = 1756
 
 
 N_EPOCH = 20000
@@ -24,7 +24,7 @@ mse = MSELoss(reduction='none')
 bce = BCELoss(reduction='none')
 
 torch.set_printoptions(profile="full", precision=2, linewidth=10000)
-torch.manual_seed(5)
+torch.manual_seed(0)
 
 MODEL_SAVE_DIR = os.path.join("int_phy", "locomotion", "pre_trained_old")
 
@@ -136,6 +136,13 @@ def train():
     test_loader = DataLoader(dataset=test_set, batch_size=TEST_BATCH_SIZE, shuffle=False)
 
     net = ObjectStatePrediction().to(DEVICE)
+    net.load_state_dict(
+        torch.load(
+            os.path.join(
+                MODEL_SAVE_DIR, "model_{}_hidden_state.pth".format(HIDDEN_STATE_SIZE)
+            )
+        )
+    )
 
     optimizer = Adam(params=net.parameters(), lr=1e-3)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=1000, gamma=0.9, last_epoch=-1)

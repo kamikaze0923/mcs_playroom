@@ -40,12 +40,11 @@ class ApearanceModel:
                 max_likelihood_class = class_name
         return max_likelihood_class, max_likelihood
 
-
-
 class LocomotionModel:
 
-    LOCOMOTION_MSE_ERROR_THRESHOLD = 0.0118
-    LEAVE_SCENE_PROB_TRESHOLD = 0.5
+    LOCOMOTION_MSE_ERROR_THRESHOLD = 0.8
+    LOCOMOTION_MSE_ERROR_THRESHOLD_UNSEEN = 1
+    LEAVE_SCENE_PROB_TRESHOLD = 0.01
 
     def __init__(self):
         self.net = ObjectStatePrediction()
