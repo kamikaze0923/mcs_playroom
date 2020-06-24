@@ -24,7 +24,7 @@ mse = MSELoss(reduction='none')
 bce = BCELoss(reduction='none')
 
 torch.set_printoptions(profile="full", precision=2, linewidth=10000)
-torch.manual_seed(0)
+torch.manual_seed(10)
 
 MODEL_SAVE_DIR = os.path.join("int_phy", "locomotion", "pre_trained_old")
 
