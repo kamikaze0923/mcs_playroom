@@ -5,8 +5,8 @@ import os
 # N_TRAIN = 6400
 # N_TEST = 1200
 
-N_TRAIN = 46
-N_TEST = 46
+N_TRAIN = 14
+N_TEST = 14
 
 
 # SCENE_TYPES = ["object_permanence", "shape_constancy", "spatio_temporal_continuity"]
