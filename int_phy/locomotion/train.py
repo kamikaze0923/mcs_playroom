@@ -14,6 +14,7 @@ import numpy as np
 
 TRAIN_BATCH_SIZE = 25
 TEST_BATCH_SIZE = 75
+LR = 1e-4
 
 
 N_EPOCH = 20000
@@ -144,7 +145,7 @@ def train():
         )
     )
 
-    optimizer = Adam(params=net.parameters(), lr=1e-3)
+    optimizer = Adam(params=net.parameters(), lr=LR)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=1000, gamma=0.9, last_epoch=-1)
 
     all_train_loss = []
