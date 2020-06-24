@@ -5,15 +5,15 @@ import torch
 import os
 
 
-WITH_OCCLUDER = False
-SAVE_SCENE_LENGTH = 40
+WITH_OCCLUDER = True
+SAVE_SCENE_LENGTH = 20
 
-TOTAL_SCENE = 40 # max 1080
+TOTAL_SCENE = 20 # max 1080
 assert TOTAL_SCENE % SAVE_SCENE_LENGTH == 0
 N_RESTART = TOTAL_SCENE // SAVE_SCENE_LENGTH
 
 DATA_SAVE_DIR = os.path.join("int_phy", "locomotion", "positions_old_additional")
-SCENE_TYPES = ["shape_constancy", "spatio_temporal_continuity"]
+SCENE_TYPES = ["object_permanence"]
 
 
 if __name__ == "__main__":
@@ -36,7 +36,7 @@ if __name__ == "__main__":
             for _, shape_type in enumerate(SHAPE_TYPES):
                 object_locomotions[shape_type] = []
 
-            env = McsEnv(task="intphys_scenes", scene_type=scene_type, start_scene_number=start_scene_number)
+            env = McsEnv(task="intphys_scenes/validation_intphys_scenes_true", scene_type=scene_type, start_scene_number=start_scene_number)
             start_scene_number += SAVE_SCENE_LENGTH
             for _ in range(SAVE_SCENE_LENGTH):
                 env.reset(random_init=False)
