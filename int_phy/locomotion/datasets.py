@@ -5,14 +5,13 @@ import os
 # N_TRAIN = 6400
 # N_TEST = 1200
 
-N_TRAIN = 14
-N_TEST = 14
+N_TRAIN = 5000
+N_TEST = 756
 
 
-# SCENE_TYPES = ["object_permanence", "shape_constancy", "spatio_temporal_continuity"]
-SCENE_TYPES = ["object_permanence"]
+SCENE_TYPES = ["object_permanence", "shape_constancy", "spatio_temporal_continuity"]
 SHAPE_TYPES = ["cylinder", "sphere", "cube"]
-DATA_SAVE_DIR = os.path.join("int_phy", "locomotion", "positions_old_additional")
+DATA_SAVE_DIR = os.path.join("int_phy", "locomotion", "positions_old")
 
 torch.set_printoptions(profile="full", precision=2, linewidth=10000)
 
@@ -48,8 +47,7 @@ def get_train_test_dataset():
     without_occluder_tensor = without_occluder_tensor[rand_permutation]
     with_occluder_tensor = with_occluder_tensor[rand_permutation]
     train_set = TuplePositions(with_occluder_tensor[:N_TRAIN], without_occluder_tensor[:N_TRAIN])
-    # test_set = TuplePositions(with_occluder_tensor[N_TRAIN:], without_occluder_tensor[N_TRAIN:])
-    test_set = TuplePositions(with_occluder_tensor[:N_TRAIN], without_occluder_tensor[:N_TRAIN])
+    test_set = TuplePositions(with_occluder_tensor[N_TRAIN:], without_occluder_tensor[N_TRAIN:])
     assert len(train_set) == N_TRAIN
     assert len(test_set) == N_TEST
     return train_set, test_set

@@ -12,9 +12,8 @@ import numpy as np
 # TRAIN_BATCH_SIZE = 200
 # TEST_BATCH_SIZE = 300
 
-TRAIN_BATCH_SIZE = 14
-TEST_BATCH_SIZE = 14
-LR = 1e-4
+TRAIN_BATCH_SIZE = 200
+TEST_BATCH_SIZE = 756
 
 
 N_EPOCH = 20000
@@ -25,7 +24,7 @@ mse = MSELoss(reduction='none')
 bce = BCELoss(reduction='none')
 
 torch.set_printoptions(profile="full", precision=2, linewidth=10000)
-torch.manual_seed(10)
+torch.manual_seed(20)
 
 MODEL_SAVE_DIR = os.path.join("int_phy", "locomotion", "pre_trained_old")
 
@@ -145,7 +144,7 @@ def train():
         )
     )
 
-    optimizer = Adam(params=net.parameters(), lr=LR)
+    optimizer = Adam(params=net.parameters(), lr=1e-3)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=1000, gamma=0.9, last_epoch=-1)
 
     all_train_loss = []

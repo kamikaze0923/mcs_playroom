@@ -9,7 +9,7 @@ scene_name = "validation_intphys_scenes/shape_constancy"
 scene_name = "github_scenes/shape_constancy"
 # scene_name = "shape_constancy"
 scene_name = "validation_intphys_scenes/object_permanence"
-start_scene_number = 0
+start_scene_number = 4
 env = McsEnv(task="intphys_scenes", scene_type=scene_name, start_scene_number=start_scene_number)
 
 appearance_checker = ApearanceModel()
