@@ -8,9 +8,12 @@ import os
 WITH_OCCLUDER = False
 SAVE_SCENE_LENGTH = 40
 
-TOTAL_SCENE = 1080 # max 1080
+TOTAL_SCENE = 40 # max 1080
 assert TOTAL_SCENE % SAVE_SCENE_LENGTH == 0
 N_RESTART = TOTAL_SCENE // SAVE_SCENE_LENGTH
+
+DATA_SAVE_DIR = os.path.join("int_phy", "locomotion", "positions_old_additional")
+SCENE_TYPES = ["shape_constancy", "spatio_temporal_continuity"]
 
 
 if __name__ == "__main__":
@@ -37,6 +40,8 @@ if __name__ == "__main__":
             start_scene_number += SAVE_SCENE_LENGTH
             for _ in range(SAVE_SCENE_LENGTH):
                 env.reset(random_init=False)
+                if len(env.scene_config['goal']['action_list']) != 40:
+                    continue
                 env_new_objects = []
                 env_occluders = []
                 env_ramps = []
@@ -57,8 +62,6 @@ if __name__ == "__main__":
                     env.step_output = env.controller.start_scene(env.scene_config)
                     one_episode_locomotion = []
                     object_in_scene = False
-                    if scene_type == "gravity":
-                        assert len(env.scene_config['goal']['action_list']) == 50
                     for i, action in enumerate(env.scene_config['goal']['action_list']):
                         env.step(action=action[0])
                         if len(env.step_output.object_list) == 1:
