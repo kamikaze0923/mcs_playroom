@@ -42,7 +42,8 @@ class SceneState:
                 obj_state = ObjectState(obj, new_depth_frame, new_object_frame, new_step_output, self.plot)
                 new_object_state_dict[obj.uuid] = obj_state
             except:
-                print("Unexpected error:\n {}".format(sys.exc_info()))
+                pass
+                # print("Unexpected error:\n {}".format(sys.exc_info()))
         return new_object_state_dict
 
     def get_new_occluder_state_dict(self, structural_object_list, new_depth_frame, new_object_frame):
@@ -54,7 +55,8 @@ class SceneState:
                 obj_state = OccluderState(obj, new_depth_frame, new_object_frame)
                 new_structrual_object_state_dict[obj.uuid] = obj_state
             except:
-                print("Unexpected error:\n {}".format(sys.exc_info()))
+                pass
+                # print("Unexpected error:\n {}".format(sys.exc_info()))
         return new_structrual_object_state_dict
 
     def update(self, new_step_output, appearance_checker, locomotion_checker):

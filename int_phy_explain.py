@@ -8,8 +8,8 @@ scene_name = "validation_intphys_scenes/shape_constancy"
 # scene_name = "validation_intphys_scenes/spatio_temporal_continuity"
 scene_name = "github_scenes/shape_constancy"
 # scene_name = "shape_constancy"
-scene_name = "validation_intphys_scenes/object_permanence"
-start_scene_number = 4
+scene_name = "validation_intphys_scenes/shape_constancy"
+start_scene_number = 7
 env = McsEnv(task="intphys_scenes", scene_type=scene_name, start_scene_number=start_scene_number)
 
 appearance_checker = ApearanceModel()
@@ -17,7 +17,7 @@ locomotion_checker = LocomotionModel()
 
 for scene in range(len(env.all_scenes) - start_scene_number):
     env.reset(random_init=False)
-    scene_state = SceneState(env.step_output, plot=True)
+    scene_state = SceneState(env.step_output, plot=False)
     for i, x in enumerate(env.scene_config['goal']['action_list']):
         env.step(action=x[0])
         if env.step_output is None:

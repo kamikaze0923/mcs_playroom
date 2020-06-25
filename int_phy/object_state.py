@@ -22,7 +22,7 @@ def get_object_frame_info(object_info, depth_frame, object_frame, depth_aggregat
     depth_frame = np.array(depth_frame)
     object_frame = np.array(object_frame)
     matched_pixels = get_object_match_pixels(object_info.color, object_frame)
-    # assert len(matched_pixels) > 0
+    assert len(matched_pixels) > 0
     matched_pixels_sorted_by_x = sorted(matched_pixels, key=lambda x: x[1])
     matched_pixels_sorted_by_y = sorted(matched_pixels, key=lambda x: x[0])
     pixel_info = {
@@ -179,11 +179,11 @@ class ObjectState:
                         self.locomotion_cnt['far'] += 1
                         # print("Object Suddenly Appear")
                 elif new_object_state.dir == "left":
-                    if new_object_state.loc_f[0][0][0] > 0:
+                    if new_object_state.loc_f[0][0][0] < 0:
                         self.locomotion_cnt['far'] += 1
                         # print("Object Suddenly Appear")
                 elif new_object_state.dir == "right":
-                    if new_object_state.loc_f[0][0][0] < 0:
+                    if new_object_state.loc_f[0][0][0] > 0:
                         self.locomotion_cnt['far'] += 1
                         # print("Object Suddenly Appear")
 
@@ -204,7 +204,6 @@ class ObjectState:
         self.loc_f = non_seen_f
         self.edge_pixels = None
         self.depth = None
-        self.loc_update(locomotion_checker)
         if self.next_step_position is not None and self.next_step_leave_scene_prob is not None:
             if self.next_step_leave_scene_prob > locomotion_checker.LEAVE_SCENE_PROB_TRESHOLD and not self.out_of_scene:
                 self.out_of_scene = True
@@ -212,7 +211,9 @@ class ObjectState:
             else:
                 if not self.out_of_scene:
                     # print("Predicting Object has been occluded, probability of it leave the scene {:.4f}".format(self.next_step_leave_scene_prob))
+                    self.loc_update(locomotion_checker)
                     self.error_update_out_view(new_occluder_state_dict, locomotion_checker)
+
 
 
     def error_update_in_view(self, new_object_state, locomotion_checker):
