@@ -1,13 +1,9 @@
-from tasks.bonding_box_navigation_mcs.visibility_road_map import IncrementalVisibilityRoadMap, ObstaclePolygon
+from MCS_exploration.navigation.visibility_road_map import IncrementalVisibilityRoadMap,ObstaclePolygon
+from MCS_exploration.navigation.fov import FieldOfView
 import random
 import math
 import matplotlib.pyplot as plt
-from tasks.bonding_box_navigation_mcs.fov import FieldOfView
-from shapely.geometry import Point, Polygon
-import shapely.geometry as sp
-from descartes import PolygonPatch
 
-import pickle
 
 SHOW_ANIMATION = True
 random.seed(1)
@@ -132,12 +128,13 @@ class BoundingBoxNavigator:
 				circle = plt.Circle((self.agentX, self.agentY), radius=self.radius, color='r')
 				plt.gca().add_artist(circle)
 				plt.plot(gx, gy, "x")
-				poly.plot("-r")
+				poly.plot("red")
 
 				for obstacle in self.scene_obstacles_dict.values():
-					obstacle.plot("-g")
+					obstacle.plot("green")
 
 				plt.axis("equal")
+				plt.pause(0.1)
 
 			stepSize, heading = self.get_one_step_move([gx, gy], roadmap)
 

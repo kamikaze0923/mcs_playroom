@@ -38,8 +38,22 @@ class McsFaceWrapper(McsWrapper):
         if epsd_collector is not None:
             epsd_collector.add_experience(self.step_output, action)
 
-    def set_look_dir(self, rotation_in_all, horizon_in_all):
-        super().step(action="RotateLook", horizon=horizon_in_all, rotaion=rotation_in_all)
+    def set_look_dir(self, rotation_in_all, horizon_in_all, in_one_step=False):
+        if in_one_step:
+            super().step(action="RotateLook", horizon=horizon_in_all, rotation=rotation_in_all)
+        else:
+            while abs(rotation_in_all) > self.ABS_ROTATION:
+                rotation = self.ABS_ROTATION * np.sign(rotation_in_all)
+                super().step(action="RotateLook", rotation=rotation)
+                rotation_in_all -= rotation
+            super().step(action="RotateLook", rotation=rotation_in_all)
+
+            while abs(horizon_in_all) > self.ABS_HEADTILT:
+                horizon = self.ABS_HEADTILT * np.sign(horizon_in_all)
+                super().step(action="RotateLook", horizon=horizon)
+                horizon_in_all -= horizon
+            super().step(action="RotateLook", horizon=horizon_in_all)
+
 
 
 

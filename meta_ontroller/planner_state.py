@@ -6,6 +6,11 @@ class GameState:
 
     AGENT_NAME = "agent1"
     AGENT_Y_INIT = 0.4625
+    RECEPTACLE_RELATIONSHIP = {
+        'bowl': ['ball', 'apple'],
+        'box': ['ball', 'bowl', 'apple'],
+        'chair': ['box', 'bowl', 'ball', 'apple']
+    }
 
     def __init__(self, config):
         self.face_to_front = False
@@ -21,19 +26,33 @@ class GameState:
             )
         }
         self.object_loc_info = {}
+        self.receptacle_info = defaultdict(lambda : [])
         self.object_open_close_info = {}
         for obj in config['objects']:
+            for obj_2 in config['objects']:
+                if obj['uuid'] == obj_2['uuid']:
+                    continue
+                for key, value_list in self.RECEPTACLE_RELATIONSHIP.items():
+                    if key in obj['uuid']:
+                        for one_value in value_list:
+                            if one_value in obj_2['uuid']:
+                                self.receptacle_info[PlanParser.create_legal_object_name(obj['uuid'])].append(
+                                    PlanParser.create_legal_object_name(obj_2['uuid'])
+                                )
+
             object_id = PlanParser.create_legal_object_name(obj['uuid'])
             self.object_loc_info[object_id] = (
                 obj['position']['x'],
                 obj['position']['y'],
                 obj['position']['z'],
             )
-            if "opened" in obj:
-                self.object_open_close_info[object_id] = obj["opened"]
+            receptacle_object_id = PlanParser.create_legal_object_name(obj['id'])
+            if "box" in obj['id']:
+                self.object_open_close_info[receptacle_object_id] = False
+            else:
+                self.object_open_close_info[receptacle_object_id] = None
 
         self.object_containment_info = defaultdict(lambda : [])
-        self.object_knowledge_info = {}
 
         self.goal_predicate_list = None
         self.goal_category = None
@@ -57,15 +76,6 @@ class GameState:
                 )
             elif self.goal_category == "retrieval":
                 self.goal_object_id = PlanParser.create_legal_object_name(config['goal']['metadata']['target']['id'])
-                for obj in config['objects']:
-                    if obj['id'] == self.goal_object_id:
-                        continue
-                    if "openable" in obj and obj["openable"] == True:
-                        receptacle_object_id = PlanParser.create_legal_object_name(obj['id'])
-                        if "opened" in obj:
-                            self.object_open_close_info[receptacle_object_id] = True
-                        else:
-                            self.object_open_close_info[receptacle_object_id] = False
                 self.goal_predicate_list.append(
                     "(held {} {})".format(self.AGENT_NAME, self.goal_object_id)
                 )
@@ -73,17 +83,9 @@ class GameState:
                 self.transfer_object_id = PlanParser.create_legal_object_name(
                     config['goal']['metadata']['target_1']['id']
                 )
-                self.target_object_id = PlanParser.create_legal_object_name(config['goal']['metadata']['target_2']['id'])
-                for obj in config['objects']:
-                    if obj['id'] == self.transfer_object_id:
-                        continue
-                    if "openable" in obj and obj["openable"] == True:
-                        receptacle_object_id = PlanParser.create_legal_object_name(obj['id'])
-                        if "opened" in obj:
-                            self.object_open_close_info[receptacle_object_id] = True
-                        else:
-                            self.object_open_close_info[receptacle_object_id] = False
-
+                self.target_object_id = PlanParser.create_legal_object_name(
+                    config['goal']['metadata']['target_2']['id']
+                )
                 if config['goal']['metadata']['relationship'][1] == "next to":
                     self.goal_predicate_list.append(
                         "(objectNextTo {} {})".format(self.transfer_object_id, self.target_object_id)
@@ -92,6 +94,38 @@ class GameState:
                     self.goal_predicate_list.append(
                         "(objectOnTopOf {} {})".format(self.transfer_object_id, self.target_object_id)
                     )
+            elif self.goal_category == "playroom":
+                self.transfer_object_id = PlanParser.create_legal_object_name(
+                    "box_b"
+                )
+                self.target_object_id = PlanParser.create_legal_object_name(
+                    "chair_b"
+                )
+
+                for obj in config['objects']:
+                    if "openable" in obj and obj["openable"] == True:
+                        receptacle_object_id = PlanParser.create_legal_object_name(obj['id'])
+                        if "opened" in obj:
+                            self.object_open_close_info[receptacle_object_id] = True
+                        else:
+                            self.object_open_close_info[receptacle_object_id] = False
+                self.apple_a = PlanParser.create_legal_object_name("apple_a")
+                self.ball_a = PlanParser.create_legal_object_name("ball_a")
+                self.ball_b = PlanParser.create_legal_object_name("ball_b")
+                self.bowl_a = PlanParser.create_legal_object_name("bowl_a")
+                self.goal_predicate_list.extend(
+                    [
+                        "(objectOnTopOf {} {})".format(self.apple_a, self.target_object_id),
+                        "(objectOnTopOf {} {})".format(self.ball_a, self.target_object_id),
+                        "(objectOnTopOf {} {})".format(self.ball_b, self.target_object_id),
+                        "(objectOnTopOf {} {})".format(self.bowl_a, self.target_object_id),
+                        "(objectOnTopOf {} {})".format(self.transfer_object_id, self.target_object_id),
+                        # "(inreceptacle {} {})".format(self.apple_a, self.bowl_a),
+                        # "(inreceptacle {} {})".format(self.ball_a, self.transfer_object_id),
+                        # "(inreceptacle {} {})".format(self.ball_b, self.transfer_object_id),
+                        # "(inreceptacle {} {})".format(self.bowl_a, self.transfer_object_id),
+                    ]
+                )
 
 
 
@@ -100,6 +134,6 @@ class GameState:
 
 class GameKnowlege:
     def __init__(self):
-        self.canNotPutin = set()
-        self.objectNextTo = {}
-        self.objectOnTopOf = {}
+        # self.canNotPutin = set()
+        self.objectNextTo = defaultdict(lambda : [])
+        self.objectOnTopOf = defaultdict(lambda : [])

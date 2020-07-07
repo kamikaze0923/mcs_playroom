@@ -32,7 +32,11 @@ class McsEnv:
             all_scenes = sorted(os.listdir(goal_dir))
             self.all_scenes = [os.path.join(goal_dir, one_scene) for one_scene in all_scenes]
         else:
-            self.all_scenes = [os.path.join("scenes", "playroom.json")]
+            if task:
+                self.all_scenes = [os.path.join("scenes", "{}.json".format(task))]
+            else:
+                print("Please specify the task.")
+                exit(0)
 
         self.current_scene = start_scene_number - 1
 
@@ -61,7 +65,6 @@ class McsEnv:
         # if "answer" in self.scene_config:
         #     print(self.scene_config['answer']["choice"])
         self.step_output = self.controller.start_scene(self.scene_config)
-        # self.step_output = self.controller.step(action="Pass")
 
 
 

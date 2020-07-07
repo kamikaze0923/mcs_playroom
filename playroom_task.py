@@ -4,12 +4,12 @@ import sys
 
 
 if __name__ == "__main__":
-    env = McsEnv(task="interaction_scenes", scene_type="transferral", start_scene_number=2)
+    env = McsEnv(task="playroom", scene_type=None, start_scene_number=0)
     metaController = MetaController(env)
 
     while env.current_scene < len(env.all_scenes) - 1:
         env.reset()
-        result = metaController.excecute()
+        result = metaController.excecute(replan=False)
         sys.stdout.flush()
 
 

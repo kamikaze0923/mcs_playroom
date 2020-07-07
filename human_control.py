@@ -95,7 +95,7 @@ class McsHumanControlEnv(McsEnv):
 
 
 if __name__ == '__main__':
-    env = McsHumanControlEnv(task="interaction_scenes", scene_type="traversal", start_scene_number=0)
+    env = McsHumanControlEnv(task="blocks_world", scene_type=None, start_scene_number=0)
     env.reset()
 
     while True:
@@ -119,10 +119,10 @@ if __name__ == '__main__':
             rt = 10
             env.step("RotateRight", rotation=float(rt))
         elif action == "r":
-            hrz = input("Look Up! Enter the horizon: ")
+            hrz = 10
             env.step("LookUp", horizon=-float(hrz))
         elif action == "f":
-            hrz = input("Look Down! Enter the horizon: ")
+            hrz = 10
             env.step("LookDown", horizon=float(hrz))
         elif action == "U":
             obj = input("Pickup Object! Enter the object ID: ")
