@@ -53,17 +53,21 @@ def parse_line(line):
 
 def parse_plan(lines):
     plan = []
+    plan_cost = None
     for line in lines:
+        if 'plan cost' in line:
+            plan_cost = float(line.split()[-1])
         action_dict = parse_line(line)
         if action_dict is not None:
             plan.append(action_dict)
-    return plan
+    assert plan_cost
+    return plan, plan_cost
 
 def get_plan_from_file(args):
     domain, filepath, solver_type = args
 
     try:
-        weight = 1.5
+        weight = 5
         command = "ff_planner/ff -o {} -f {} -s {} -w {}".format(domain, filepath, solver_type, weight)
         if DEBUG:
             print(command)
@@ -94,12 +98,13 @@ def get_plan_from_file(args):
         print("Empty plan")
         return ["timeout", {"action": "End", "value": 0}]
     unparsed_plan = planner_output.decode("utf-8").split("\n")
-    parsed_plan = parse_plan(unparsed_plan)
+    parsed_plan, cost = parse_plan(unparsed_plan)
+    print(cost)
 
     if len(parsed_plan) == 0:
         parsed_plan = [{"action": "End", "value": 1}]
 
-    return parsed_plan
+    return parsed_plan, cost
 
 
 class PlanParser(object):
@@ -119,18 +124,14 @@ class PlanParser(object):
     def get_plan(self):
         process_pool = multiprocessing.Pool(1)
         parsed_plans = process_pool.map(
-            get_plan_from_file, zip([self.domain_file] * 3, [self.facts_file] * 3, range(3, 6))
+            get_plan_from_file, zip([self.domain_file] * 6, [self.facts_file] * 6, range(0, 6))
         )
         process_pool.close()
         return self.find_best_plan(parsed_plans)
 
     def find_best_plan(self, parsed_plans):
-        if all([parsed_plan[0] == "timeout" for parsed_plan in parsed_plans]):
-            parsed_plan = parsed_plans[0][1:]
-        else:
-            parsed_plans = [parsed_plan for parsed_plan in parsed_plans if parsed_plan[0] != "timeout"]
-            parsed_plan = min(parsed_plans, key=len)
-        return parsed_plan
+        parsed_plans = sorted(parsed_plans, key=lambda x: x[1])
+        return parsed_plans[0][0]
 
     def planner_state_to_pddl(self, gameState):
         tittle = "define (problem ball_and_bowl)\n"

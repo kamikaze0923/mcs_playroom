@@ -42,7 +42,7 @@
                 (forall (?o - object)
                     (not (lookingAtObject ?a ?o))
                 )
-                (increase (totalCost) 0.5)
+                (increase (totalCost) 0.01)
             )
  )
 
@@ -56,7 +56,7 @@
                 (agentAtLocation ?a ?lEnd)
                 (not (agentAtLocation ?a ?lStart))
                 (increase (totalCost) (distance ?lStart ?lEnd))
-                ;(increase (totalCost) 0.5)
+                ;(increase (totalCost) 0.01)
             )
  )
 
@@ -71,7 +71,7 @@
     :effect (and
                 (lookingAtObject ?a ?o)
                 (not (headTiltZero ?a))
-                (increase (totalCost) 0.5)
+                (increase (totalCost) 0.01)
             )
  )
 
@@ -94,12 +94,12 @@
                 (not (lookingAtObject ?a ?o))
                 (not (objectAtLocation ?o ?l))
                 (not (handEmpty ?a))
-                    (forall (?r1 - object)
-                        (when (inReceptacle ?o ?r1)
-                            (not (inReceptacle ?o ?r1))
-                        )
-                    )
-                (increase (totalCost) 0.5)
+                (forall (?r1 - object)
+                   (when (inReceptacle ?o ?r1)
+                       (not (inReceptacle ?o ?r1))
+                   )
+                )
+                (increase (totalCost) 0.01)
             )
  )
 
@@ -131,7 +131,7 @@
                         )
                     )
                 )
-                (increase (totalCost) 0.5)
+                (increase (totalCost) 0.01)
             )
  )
 
@@ -146,7 +146,7 @@
                   )
     :effect (and
                 (isOpened ?r)
-                (increase (totalCost) 0.5)
+                (increase (totalCost) 0.01)
             )
  )
 
@@ -161,33 +161,33 @@
                   )
     :effect (and
                 (not (isOpened ?r))
-                (increase (totalCost) 0.5)
+                (increase (totalCost) 0.01)
             )
  )
 
- (:action DropObjectNextTo
-    :parameters (?a - agent ?g - object ?o - object ?l - location)
-    :precondition (and
-                    (agentAtLocation ?a ?l)
-                    (objectAtLocation ?g ?l)
-                    (held ?a ?o)
-                    (not (handEmpty ?a))
-                  )
-    :effect (and
-                (handEmpty ?a)
-                (not (held ?a ?o))
-                (objectNextTo ?o ?g)
-                (forall (?o1 - object)
-                    (when (inReceptacle ?o1 ?o)
-                        (and
-                            (objectAtLocation ?o1 ?l)
-                            (objectNextTo ?o1 ?g)
-                        )
-                    )
-                )
-                (increase (totalCost) 0.5)
-            )
- )
+ ;(:action DropObjectNextTo
+ ;   :parameters (?a - agent ?g - object ?o - object ?l - location)
+ ;   :precondition (and
+ ;                   (agentAtLocation ?a ?l)
+ ;                   (objectAtLocation ?g ?l)
+ ;                   (held ?a ?o)
+ ;                   (not (handEmpty ?a))
+ ;                 )
+ ;   :effect (and
+ ;               (handEmpty ?a)
+ ;               (not (held ?a ?o))
+ ;               (objectNextTo ?o ?g)
+ ;               (forall (?o1 - object)
+ ;                   (when (inReceptacle ?o1 ?o)
+ ;                       (and
+ ;                           (objectAtLocation ?o1 ?l)
+ ;                           (objectNextTo ?o1 ?g)
+ ;                       )
+ ;                   )
+ ;               )
+ ;               (increase (totalCost) 0.01)
+ ;           )
+ ;)
 
  (:action DropObjectOnTopOf
     :parameters (?a - agent ?g - object ?o - object ?l - location)
@@ -209,12 +209,12 @@
                        (and
                             (objectAtLocation ?o1 ?l)
                             (objectOnTopOf ?o1 ?g)
-                            (inReceptacle ?o1 ?g)
+                            ;(inReceptacle ?o1 ?g)
                        )
 
                     )
                 )
-                (increase (totalCost) 0.5)
+                (increase (totalCost) 0.01)
             )
  )
 
